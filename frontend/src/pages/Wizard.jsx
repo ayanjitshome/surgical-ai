@@ -67,7 +67,7 @@ export default function Wizard() {
         </div>
         <h1 className="font-mono text-2xl font-bold text-primary-c">{tool.name} is set up</h1>
         <p className="text-secondary-c mt-2">
-          {allVerified ? "All validation checkpoints passed." : "You skipped some checkpoints — revisit them if the agent misbehaves."}
+          {allVerified ? "All validation checkpoints passed." : "You skipped some checkpoints - revisit them if the agent misbehaves."}
         </p>
         <div className="flex items-center justify-center gap-3 mt-7">
           <button onClick={() => navigate("/")} data-testid="wizard-back-to-map" className="px-5 py-2.5 rounded-md border border-bright-c text-primary-c hover:surface-card">Back to ecosystem map</button>

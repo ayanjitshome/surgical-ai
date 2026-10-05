@@ -28,7 +28,7 @@ export const Sidebar = ({ onClose }) => {
           <Cpu className="w-5 h-5 text-black" />
         </div>
         <div className="leading-tight">
-          <div className="font-mono font-bold text-sm text-primary-c">Toolkit Hub</div>
+          <div className="font-mono font-bold text-sm text-primary-c">Surgical AI Hub</div>
           <div className="font-mono text-[10px] text-muted-c tracking-wide">agent-token-ops</div>
         </div>
       </div>

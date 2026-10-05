@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useEcosystem, useTools } from "@/hooks/useData";
 import { EcosystemMap } from "@/components/ecosystem/EcosystemMap";
 import { stageIcon } from "@/lib/icons";
-import { X, ArrowRight, BookOpen, Settings2, Compass, Layers, Zap, TrendingDown, Wand2 } from "lucide-react";
+import { X, ArrowRight, BookOpen, Settings2, Compass, Layers, Zap, TrendingDown, Wand2, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const StageLegend = ({ stages }) => (
@@ -87,7 +87,7 @@ export default function Home() {
           Orchestrate six tools to <span style={{ color: "#10B981" }}>starve token waste</span> out of your AI agents.
         </h1>
         <p className="text-base text-secondary-c mt-4 max-w-2xl leading-relaxed">
-          Opinionated setup & orchestration guidance for Graft, Serena, Graphify, Codebase Memory, Archify and Agentsview — tuned for VSCode agents across Mac, Windows, WSL, containers, remote SSH and locked-down corporate machines.
+          Opinionated setup & orchestration guidance for Graft, Serena, Graphify, Codebase Memory, Archify and Agentsview - tuned for VSCode agents across Mac, Windows, WSL, containers, remote SSH and locked-down corporate machines.
         </p>
         <div className="flex flex-wrap items-center gap-3 mt-6">
           <button onClick={() => navigate("/decide")} data-testid="hero-get-started-button" className="flex items-center gap-2 px-5 py-3 rounded-md font-semibold text-black transition-transform hover:scale-[1.03]" style={{ background: "#10B981" }}>
@@ -99,6 +99,13 @@ export default function Home() {
           <button onClick={() => navigate("/prompt")} data-testid="hero-prompt-button" className="flex items-center gap-2 px-5 py-3 rounded-md font-medium border border-bright-c text-primary-c hover:surface-card">
             <Wand2 className="w-4.5 h-4.5" style={{ color: "#F59E0B" }} /> Prompt Playbook
           </button>
+        </div>
+
+        <div className="mt-6 flex items-start gap-3 rounded-xl border p-4 max-w-3xl" style={{ borderColor: "rgba(245,158,11,0.4)", background: "rgba(245,158,11,0.08)" }} data-testid="evolving-landscape-note">
+          <Info className="w-5 h-5 mt-0.5 shrink-0" style={{ color: "#F59E0B" }} />
+          <p className="text-sm text-secondary-c leading-relaxed">
+            <span className="font-semibold text-primary-c">A note on the fast-moving landscape:</span> the six tools featured here reflect today's best-in-class stack. AI tooling evolves extremely fast, so expect some of these to change, merge, or be replaced over time. Treat the structure and principles as the durable part, and revalidate the specific tools before you commit to them.
+          </p>
         </div>
       </section>
 

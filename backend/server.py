@@ -21,7 +21,7 @@ db_name = os.environ.get('DB_NAME', 'toolkit_hub')
 client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
-app = FastAPI(title="AI Agent Toolkit Hub API")
+app = FastAPI(title="Surgical AI Hub API")
 api_router = APIRouter(prefix="/api")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -98,7 +98,7 @@ def _clean(doc: Dict[str, Any]) -> Dict[str, Any]:
 # ---------- Routes ----------
 @api_router.get("/")
 async def root():
-    return {"message": "AI Agent Toolkit Hub API", "status": "ok"}
+    return {"message": "Surgical AI Hub API", "status": "ok"}
 
 
 @api_router.get("/meta")
@@ -170,7 +170,7 @@ async def refresh_tool(tool_id: str):
         try:
             elapsed = (datetime.now(timezone.utc) - datetime.fromisoformat(last)).total_seconds()
             if elapsed < REFRESH_COOLDOWN_SECONDS:
-                raise HTTPException(status_code=429, detail=f"Refreshed recently — wait {int(REFRESH_COOLDOWN_SECONDS - elapsed)}s before retrying.")
+                raise HTTPException(status_code=429, detail=f"Refreshed recently - wait {int(REFRESH_COOLDOWN_SECONDS - elapsed)}s before retrying.")
         except ValueError:
             pass
     readme = await fetch_github_readme(doc["github_owner"], doc["github_name"])
@@ -210,7 +210,7 @@ app.include_router(api_router)
 _cors_origins = os.environ.get('CORS_ORIGINS', '*').split(',')
 app.add_middleware(
     CORSMiddleware,
-    # No cookie/session auth in v1 — credentials disabled so a wildcard origin is safe.
+    # No cookie/session auth in v1 - credentials disabled so a wildcard origin is safe.
     allow_credentials=False,
     allow_origins=_cors_origins,
     allow_methods=["*"],

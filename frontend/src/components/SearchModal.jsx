@@ -14,7 +14,7 @@ const buildIndex = (tools) => {
     });
     entries.push({
       type: "setup", toolId: t.id, color: t.color,
-      title: `${t.name} — Setup Wizard`, subtitle: "Guided install & validation",
+      title: `${t.name} - Setup Wizard`, subtitle: "Guided install & validation",
       path: `/tools/${t.id}/setup`,
       haystack: `${t.name} setup install wizard ${(t.setup_steps || []).map((s) => s.title).join(" ")}`.toLowerCase(),
     });

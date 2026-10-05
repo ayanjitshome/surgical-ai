@@ -7,9 +7,9 @@ import { cn } from "@/lib/utils";
 
 // Per-tool directive the agent should be told to honour when the tool is active.
 const TOOL_DIRECTIVES = {
-  graft: "Treat the grafted file slice as the complete scope. Do not request files outside it — if something essential seems missing, say so instead of pulling the whole repo.",
+  graft: "Treat the grafted file slice as the complete scope. Do not request files outside it - if something essential seems missing, say so instead of pulling the whole repo.",
   serena: "Stay within the token budget. Fetch specific symbols/functions via retrieval rather than pasting whole files, and keep your answer focused on the task.",
-  graphify: "Resolve \"where is X defined / used\" through the structural graph (symbols, call edges, imports) — never full-text grep or read many files to find them.",
+  graphify: "Resolve \"where is X defined / used\" through the structural graph (symbols, call edges, imports) - never full-text grep or read many files to find them.",
   "codebase-memory": "Consult persistent memory for existing conventions and prior decisions before asking. Record any new architectural decision you make so future sessions inherit it.",
   archify: "Obey the injected architectural invariants and layering rules. Every proposed change must pass `archify check`; do not introduce cross-layer imports.",
   agentsview: "This session's token usage is measured. Prefer the smallest sufficient context, avoid restating the obvious, and flag any step that would blow the budget.",
@@ -17,15 +17,15 @@ const TOOL_DIRECTIVES = {
 
 const ANATOMY = [
   { id: "role", icon: Target, title: "1 · Role & Objective", color: "#10B981",
-    body: "Open by naming the agent's role and the single, concrete objective. One task per prompt — ambiguity here is the most expensive kind of token waste because it causes wrong work and rework." },
+    body: "Open by naming the agent's role and the single, concrete objective. One task per prompt - ambiguity here is the most expensive kind of token waste because it causes wrong work and rework." },
   { id: "context", icon: Layers, title: "2 · Available Context (tool-provided)", color: "#06B6D4",
     body: "Explicitly tell the agent what its tooling already provides and to rely on it rather than rebuilding it. This is the heart of a tool-aware prompt: each active tool gets one directive so the agent uses the graph, the memory and the budget instead of brute-forcing the repo." },
   { id: "repo", icon: ListTree, title: "3 · Repository Facts", color: "#8B5CF6",
     body: "State the primary languages and target platform. This lets the agent pick the right structural queries (Graphify grammars) and platform-correct commands without guessing." },
   { id: "constraints", icon: ShieldCheck, title: "4 · Constraints", color: "#EC4899",
-    body: "Encode the hard rules: smallest-change principle, files not to touch, architectural invariants. Front-loading constraints is what Archify automates — doing it in the prompt too prevents rejected diffs." },
+    body: "Encode the hard rules: smallest-change principle, files not to touch, architectural invariants. Front-loading constraints is what Archify automates - doing it in the prompt too prevents rejected diffs." },
   { id: "output", icon: FileOutput, title: "5 · Expected Output", color: "#F59E0B",
-    body: "Define the exact shape of a good answer (unified diff? a plan first? which files?). A precise output contract stops the agent from over-producing — directly saving output tokens." },
+    body: "Define the exact shape of a good answer (unified diff? a plan first? which files?). A precise output contract stops the agent from over-producing - directly saving output tokens." },
   { id: "validation", icon: CheckCircle2, title: "6 · Validation Checklist", color: "#3B82F6",
     body: "Give the agent a self-check to run before responding. This mirrors the wizard's validation checkpoints and catches violations before they cost you a correction round-trip." },
 ];
@@ -39,7 +39,7 @@ const buildPrompt = ({ task, languages, platform, agentLabel, activeIds, tools, 
   const active = tools.filter((t) => activeIds.includes(t.id));
   const contextLines = active.length
     ? active.map((t) => `- **${t.name}** (${t.layer_name}): ${TOOL_DIRECTIVES[t.id]}`).join("\n")
-    : "- (no context tools active — work only from what is pasted below)";
+    : "- (no context tools active - work only from what is pasted below)";
 
   const langLine = languages?.trim() ? languages.trim() : "not specified";
   const constraintLines = (constraints?.trim()
@@ -52,7 +52,7 @@ You are an AI coding agent running in VSCode (${agentLabel}). Complete exactly o
 
 **Objective:** ${task?.trim() || "<describe the single concrete task here>"}
 
-# AVAILABLE CONTEXT — rely on your tooling, do not rebuild it
+# AVAILABLE CONTEXT - rely on your tooling, do not rebuild it
 ${contextLines}
 
 # REPOSITORY
@@ -66,7 +66,7 @@ ${constraintLines}
 # EXPECTED OUTPUT
 ${outputLine}
 
-# VALIDATION — run this checklist before you answer
+# VALIDATION - run this checklist before you answer
 1. Does the change stay inside the provided context scope (Graft slice)?
 2. Did you use the structural graph / memory instead of re-reading files?
 3. Does it respect the architectural invariants (no cross-layer imports)?
@@ -114,7 +114,7 @@ export default function PromptPlaybook() {
           Write prompts that <span style={{ color: "#10B981" }}>let the tools do the work</span>.
         </h1>
         <p className="text-secondary-c mt-3 max-w-2xl leading-relaxed">
-          Your six tools only save tokens if the agent is told to use them. A context-aware prompt names what each tool already provides and forbids the agent from brute-forcing the repo. Below is the anatomy — then build your own.
+          Your six tools only save tokens if the agent is told to use them. A context-aware prompt names what each tool already provides and forbids the agent from brute-forcing the repo. Below is the anatomy - then build your own.
         </p>
       </section>
 
@@ -153,7 +153,7 @@ export default function PromptPlaybook() {
       {/* Interactive builder */}
       <section data-testid="prompt-builder-section">
         <h2 className="font-mono text-2xl font-bold text-primary-c flex items-center gap-2 mb-1"><Sparkles className="w-6 h-6" style={{ color: "#F59E0B" }} /> Build your prompt</h2>
-        <p className="text-secondary-c text-sm mb-5">Fill these in — the structured, copy-ready prompt updates live.</p>
+        <p className="text-secondary-c text-sm mb-5">Fill these in - the structured, copy-ready prompt updates live.</p>
 
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Inputs */}

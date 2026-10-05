@@ -1,4 +1,4 @@
-"""Curated, opinionated seed content for the six AI Agent Toolkit tools.
+"""Curated, opinionated seed content for the six Surgical AI tools.
 
 This is the source of truth for tool metadata, deep-dive content, platform
 notes, guided setup steps, validation checkpoints and troubleshooting. GitHub
@@ -69,7 +69,7 @@ TOOLS = [
         "stats": {"token_saved": "35-45%", "latency": "-28%", "setup_time": "~6 min"},
         "overview": """**Graft** is the foundation layer. Before your AI agent reads a single line of code, Graft decides *which* files it is even allowed to see.
 
-Most agents waste tokens because they ingest the entire workspace — `node_modules`, build artifacts, lockfiles, generated code, vendored dependencies. Graft sits at the filesystem boundary and grafts a **surgical slice** of your repository onto the agent's view, driven by declarative include/exclude rules and relevance heuristics.
+Most agents waste tokens because they ingest the entire workspace - `node_modules`, build artifacts, lockfiles, generated code, vendored dependencies. Graft sits at the filesystem boundary and grafts a **surgical slice** of your repository onto the agent's view, driven by declarative include/exclude rules and relevance heuristics.
 
 ### Why it matters
 - Agents routinely burn 40%+ of their context window on files that have zero bearing on the task.
@@ -77,18 +77,18 @@ Most agents waste tokens because they ingest the entire workspace — `node_modu
 - It is the cleanest single win for token cost: filtering happens *before* embedding, parsing or prompting.""",
         "mechanics": """### How Graft reduces token waste
 
-1. **Pre-ingestion filtering** — rules are applied at the filesystem layer, so excluded files never get read, hashed or embedded. The savings compound downstream.
-2. **Relevance scoring** — Graft ranks files by recency, import-graph proximity to the open file, and task keywords, then keeps only the top slice that fits a configurable budget.
-3. **Deterministic slices** — the same prompt yields the same graft, which makes responses cacheable and reduces redundant re-reads.
+1. **Pre-ingestion filtering** - rules are applied at the filesystem layer, so excluded files never get read, hashed or embedded. The savings compound downstream.
+2. **Relevance scoring** - Graft ranks files by recency, import-graph proximity to the open file, and task keywords, then keeps only the top slice that fits a configurable budget.
+3. **Deterministic slices** - the same prompt yields the same graft, which makes responses cacheable and reduces redundant re-reads.
 
 > Rule of thumb: on a typical polyglot repo, Graft removes ~40% of tokens *before* any other tool runs. Everything layered on top inherits that reduction.""",
-        "adoption_note": "Install Graft **first**. It is the filesystem foundation every other tool reads from — a stable graft makes Graphify's parse scope smaller and Serena's budgeting more accurate.",
+        "adoption_note": "Install Graft **first**. It is the filesystem foundation every other tool reads from - a stable graft makes Graphify's parse scope smaller and Serena's budgeting more accurate.",
         "platform_notes": {
             "mac": "Works natively. Install via Homebrew. Grant Full Disk Access to VSCode if grafting files outside the workspace root.",
             "windows": "Use the native Windows build. Path separators are handled automatically, but prefer forward slashes in `.graftrc` glob patterns.",
             "wsl": "Install inside the WSL distro, not Windows. Keep your repo on the Linux filesystem (`~/project`, not `/mnt/c/...`) or file-watch performance collapses.",
             "container": "Add the Graft binary to your Dockerfile and mount `.graftrc` as part of the image. Disable the file-watcher daemon; run graft in one-shot mode on container start.",
-            "remote-ssh": "Install Graft on the remote host. The VSCode Remote-SSH extension runs the server remotely, so the graft must execute there too — a local install does nothing.",
+            "remote-ssh": "Install Graft on the remote host. The VSCode Remote-SSH extension runs the server remotely, so the graft must execute there too - a local install does nothing.",
             "corporate": "Fully offline-capable. No network calls required for core grafting. If your security team blocks unsigned binaries, build from source with the provided checksum.",
         },
         "setup_steps": [
@@ -144,7 +144,7 @@ Most agents waste tokens because they ingest the entire workspace — `node_modu
         "github_owner": "oraios",
         "github_name": "serena",
         "stats": {"token_saved": "25-30%", "latency": "-15%", "setup_time": "~8 min"},
-        "overview": """**Serena** is the context governor — a policy engine that sits between your filtered files and the model, deciding *how much* of what Graft selected actually enters each prompt.
+        "overview": """**Serena** is the context governor - a policy engine that sits between your filtered files and the model, deciding *how much* of what Graft selected actually enters each prompt.
 
 Serena treats the context window as a budget to be allocated, not a bucket to be filled. It throttles request rate, trims low-value context on the fly, and enforces per-turn token ceilings so a single runaway prompt can't blow your budget.
 
@@ -154,9 +154,9 @@ Serena treats the context window as a budget to be allocated, not a bucket to be
 - Works as an MCP server, so it is agent-agnostic (Claude, Copilot, Codex, Antigravity).""",
         "mechanics": """### How Serena reduces token waste
 
-1. **Window budgeting** — each turn gets a hard token ceiling; Serena drops the lowest-scoring context chunks to fit.
-2. **Rate throttling** — coalesces rapid-fire agent calls, preventing redundant round-trips that each re-send the system prompt.
-3. **Semantic retrieval over symbols** — rather than dumping files, Serena uses language-server symbols to send only the functions/classes referenced by the task.
+1. **Window budgeting** - each turn gets a hard token ceiling; Serena drops the lowest-scoring context chunks to fit.
+2. **Rate throttling** - coalesces rapid-fire agent calls, preventing redundant round-trips that each re-send the system prompt.
+3. **Semantic retrieval over symbols** - rather than dumping files, Serena uses language-server symbols to send only the functions/classes referenced by the task.
 
 > Serena shines *after* Graft: Graft decides the candidate set, Serena decides the per-turn allocation.""",
         "adoption_note": "Add Serena **second**, once Graft gives a stable file slice. Serena governs the budget within that slice; installing it before Graft means it governs a noisy, oversized candidate set.",
@@ -194,7 +194,7 @@ Serena treats the context window as a budget to be allocated, not a bucket to be
 }""",
                 "validation": {"command": "", "expected": "Serena appears in the agent's MCP server list as 'connected'."},
                 "troubleshooting": [
-                    {"problem": "Server shows 'disconnected'", "solution": "Check the agent's MCP logs. A non-zero exit usually means the uvx cache is stale — run `uv cache clean`."},
+                    {"problem": "Server shows 'disconnected'", "solution": "Check the agent's MCP logs. A non-zero exit usually means the uvx cache is stale - run `uv cache clean`."},
                 ],
             },
             {
@@ -227,7 +227,7 @@ throttle:
         "github_owner": "Graphify-Labs",
         "github_name": "graphify",
         "stats": {"token_saved": "40-50%", "latency": "-22%", "setup_time": "~10 min"},
-        "overview": """**Graphify** builds a structural graph of your codebase from the AST — every symbol, import, call edge and type reference becomes a node the agent can traverse instead of re-reading files.
+        "overview": """**Graphify** builds a structural graph of your codebase from the AST - every symbol, import, call edge and type reference becomes a node the agent can traverse instead of re-reading files.
 
 When an agent understands *structure*, it stops pasting whole files to answer "where is this used?" A graph query returns the three relevant functions instead of thirty files.
 
@@ -237,9 +237,9 @@ When an agent understands *structure*, it stops pasting whole files to answer "w
 - The graph is the substrate Codebase Memory and Archify both build on.""",
         "mechanics": """### How Graphify reduces token waste
 
-1. **Symbol-level retrieval** — instead of a 400-line file, the agent fetches the one 12-line function the graph says is relevant.
-2. **Call/import edges** — "who calls this?" is a graph walk, not a repo-wide grep dumped into context.
-3. **Incremental re-indexing** — only changed files re-parse, so the graph stays cheap to maintain.
+1. **Symbol-level retrieval** - instead of a 400-line file, the agent fetches the one 12-line function the graph says is relevant.
+2. **Call/import edges** - "who calls this?" is a graph walk, not a repo-wide grep dumped into context.
+3. **Incremental re-indexing** - only changed files re-parse, so the graph stays cheap to maintain.
 
 > Graphify needs a stable file slice to parse. Point it at the Graft output and it only indexes files that matter.""",
         "adoption_note": "Layer in Graphify **third**, once your Graft slice is stable. Its graph quality depends on a clean parse scope; a noisy workspace produces a bloated graph that costs more than it saves.",
@@ -249,7 +249,7 @@ When an agent understands *structure*, it stops pasting whole files to answer "w
             "wsl": "Install build-essential inside WSL. Keep the repo on the Linux filesystem for fast incremental indexing.",
             "container": "Run the full index once at build time and bake the graph into the image. Incremental re-index at runtime on changed files only.",
             "remote-ssh": "Index on the remote host where the code lives. The graph DB should be stored remotely, not synced to the client.",
-            "corporate": "Fully local — tree-sitter grammars can be vendored into the repo so no download is needed behind a firewall.",
+            "corporate": "Fully local - tree-sitter grammars can be vendored into the repo so no download is needed behind a firewall.",
         },
         "setup_steps": [
             {
@@ -299,7 +299,7 @@ GET /symbols/usages?name=parseConfig
         "github_owner": "DeusData",
         "github_name": "codebase-memory-mcp",
         "stats": {"token_saved": "30-40%", "latency": "-18%", "setup_time": "~9 min"},
-        "overview": """**Codebase Memory** is a persistent MCP server that gives your agent long-term memory of the repo — a semantic vector index plus a key-value store of decisions, conventions and prior answers.
+        "overview": """**Codebase Memory** is a persistent MCP server that gives your agent long-term memory of the repo - a semantic vector index plus a key-value store of decisions, conventions and prior answers.
 
 Without memory, every session re-discovers the same facts, paying tokens to re-read the same files to re-learn "we use Zod for validation." Codebase Memory remembers, and retrieves only the relevant snippet on demand.
 
@@ -309,17 +309,17 @@ Without memory, every session re-discovers the same facts, paying tokens to re-r
 - Complements Graphify: the graph gives structure, memory gives semantics and history.""",
         "mechanics": """### How Codebase Memory reduces token waste
 
-1. **Persistent retrieval** — facts learned in session 1 are recalled in session 50 without re-reading source.
-2. **Semantic chunking** — queries return the single most relevant chunk by embedding similarity, not whole files.
-3. **Decision log** — architectural choices are stored once and injected only when relevant.
+1. **Persistent retrieval** - facts learned in session 1 are recalled in session 50 without re-reading source.
+2. **Semantic chunking** - queries return the single most relevant chunk by embedding similarity, not whole files.
+3. **Decision log** - architectural choices are stored once and injected only when relevant.
 
 > Pairs naturally with Graphify: structure from the graph, semantics and history from memory. For polyglot repos, memory handles languages the graph grammar may not cover.""",
-        "adoption_note": "Add Codebase Memory **after Graphify**. The two overlap — use Graphify for precise structural queries and Codebase Memory for semantic recall and history, especially in polyglot repos.",
+        "adoption_note": "Add Codebase Memory **after Graphify**. The two overlap - use Graphify for precise structural queries and Codebase Memory for semantic recall and history, especially in polyglot repos.",
         "platform_notes": {
             "mac": "Runs as an MCP server. Embeddings compute locally by default; first index can take a few minutes on large repos.",
             "windows": "Store the vector DB on a local SSD path, not a network drive, or query latency spikes.",
             "wsl": "Keep the vector store inside WSL. Cross-filesystem (`/mnt/c`) access makes embedding writes very slow.",
-            "container": "Mount the vector DB as a named volume so memory persists across container restarts — otherwise you re-index every boot.",
+            "container": "Mount the vector DB as a named volume so memory persists across container restarts - otherwise you re-index every boot.",
             "remote-ssh": "Run the memory server remotely with the vector DB on the remote host for locality to the code.",
             "corporate": "Use a local embedding model to avoid sending code to an external embedding API. Configure the offline model in the MCP config.",
         },
@@ -376,7 +376,7 @@ Without memory, every session re-discovers the same facts, paying tokens to re-r
         "github_owner": "tt-a1i",
         "github_name": "archify",
         "stats": {"token_saved": "20-25%", "latency": "-10%", "setup_time": "~7 min"},
-        "overview": """**Archify** injects your architectural rules and design invariants into the agent's context *and* checks generated code against them — so the agent stops proposing changes that violate your conventions.
+        "overview": """**Archify** injects your architectural rules and design invariants into the agent's context *and* checks generated code against them - so the agent stops proposing changes that violate your conventions.
 
 Rework is the silent token killer: the agent writes code, you reject it for breaking a layering rule, it rewrites. Archify front-loads the rules so the first answer is already compliant.
 
@@ -386,9 +386,9 @@ Rework is the silent token killer: the agent writes code, you reject it for brea
 - Reads structural facts from Graphify to check invariants precisely.""",
         "mechanics": """### How Archify reduces token waste
 
-1. **Spec injection** — a compact, prioritized rule-set enters the prompt instead of the agent re-deriving conventions from scattered files.
-2. **Invariant checks** — generated diffs are validated against layering/dependency rules before you ever see them, cutting rework turns.
-3. **Targeted context** — rules reference Graphify nodes, so only the implicated modules are pulled in.
+1. **Spec injection** - a compact, prioritized rule-set enters the prompt instead of the agent re-deriving conventions from scattered files.
+2. **Invariant checks** - generated diffs are validated against layering/dependency rules before you ever see them, cutting rework turns.
+3. **Targeted context** - rules reference Graphify nodes, so only the implicated modules are pulled in.
 
 > Archify is a governor: it works best with Graphify feeding it structural facts and Serena budgeting how much rule context to inject.""",
         "adoption_note": "Introduce Archify **after Graphify**, once there is a structural graph to check invariants against. Earlier than that, it can only inject static specs without verification.",
@@ -456,7 +456,7 @@ graph: http://localhost:7803""",
         "github_owner": "kenn-io",
         "github_name": "agentsview",
         "stats": {"token_saved": "15-20%", "latency": "n/a", "setup_time": "~5 min"},
-        "overview": """**Agentsview** is the cockpit — a VSCode sidebar that visualizes, in real time, exactly what every tool below it is doing: which files Graft included, how Serena budgeted the window, what Graphify retrieved, and live token spend per turn.
+        "overview": """**Agentsview** is the cockpit - a VSCode sidebar that visualizes, in real time, exactly what every tool below it is doing: which files Graft included, how Serena budgeted the window, what Graphify retrieved, and live token spend per turn.
 
 You can't optimize what you can't see. Agentsview turns token cost from an opaque monthly bill into a per-turn dashboard, surfacing the exact moments you overspend.
 
@@ -466,11 +466,11 @@ You can't optimize what you can't see. Agentsview turns token cost from an opaqu
 - Closes the loop: observe, tune a config, watch the savings.""",
         "mechanics": """### How Agentsview reduces token waste
 
-1. **Per-turn token meter** — see spend as it happens and catch runaway prompts immediately.
-2. **Pipeline inspector** — confirms each lower tool is engaged; a silent misconfig (e.g. Graft bypassed) becomes obvious.
-3. **Savings attribution** — shows how many tokens each tool saved, so you know what's pulling its weight.
+1. **Per-turn token meter** - see spend as it happens and catch runaway prompts immediately.
+2. **Pipeline inspector** - confirms each lower tool is engaged; a silent misconfig (e.g. Graft bypassed) becomes obvious.
+3. **Savings attribution** - shows how many tokens each tool saved, so you know what's pulling its weight.
 
-> Agentsview sits at the top of the pipeline and reads telemetry from every tool beneath it — install it last so it has something to observe.""",
+> Agentsview sits at the top of the pipeline and reads telemetry from every tool beneath it - install it last so it has something to observe.""",
         "adoption_note": "Install Agentsview **last**. It observes the whole stack, so it's only useful once Graft, Serena, Graphify, Codebase Memory and Archify are emitting telemetry.",
         "platform_notes": {
             "mac": "Install from the VSCode Marketplace. No extra deps.",
@@ -535,12 +535,12 @@ def decision_recommendation(answers: dict):
     cost = answers.get("cost_sensitivity", "medium")
 
     recommended = ["graft"]  # everyone starts with Graft
-    reasons = {"graft": "Filesystem filtering is the highest-leverage first win on any repo — it cuts tokens before every other layer."}
+    reasons = {"graft": "Filesystem filtering is the highest-leverage first win on any repo - it cuts tokens before every other layer."}
 
     # Serena: anyone cost-sensitive or on medium+ repos
     if cost in ("high", "medium") or repo_size in ("medium", "large", "huge"):
         recommended.append("serena")
-        reasons["serena"] = "Per-turn window budgeting prevents context stuffing — essential when cost matters or repos are non-trivial."
+        reasons["serena"] = "Per-turn window budgeting prevents context stuffing - essential when cost matters or repos are non-trivial."
 
     # Graphify: medium+ repos benefit most from structural retrieval
     if repo_size in ("medium", "large", "huge"):
@@ -559,7 +559,7 @@ def decision_recommendation(answers: dict):
     # Archify: teams or large repos where conventions drift
     if team_size in ("small-team", "large-team") or repo_size in ("large", "huge"):
         recommended.append("archify")
-        reasons["archify"] = "Enforcing architectural invariants cuts costly rework turns — most valuable with multiple contributors or large surface area."
+        reasons["archify"] = "Enforcing architectural invariants cuts costly rework turns - most valuable with multiple contributors or large surface area."
 
     # Agentsview: anyone highly cost-sensitive, or always as the cockpit
     if cost == "high" or len(recommended) >= 3:
@@ -599,7 +599,7 @@ TRADEOFFS = [
         "title": "Serena vs Archify as your context governor",
         "option_a": "Serena",
         "option_b": "Archify",
-        "guidance": "They govern different things. Serena budgets *quantity* (how many tokens per turn). Archify governs *correctness* (what rules the output must obey). They are complementary, not competing — but if you can only run one, pick Serena for pure cost control, Archify for teams fighting convention drift and rework.",
+        "guidance": "They govern different things. Serena budgets *quantity* (how many tokens per turn). Archify governs *correctness* (what rules the output must obey). They are complementary, not competing - but if you can only run one, pick Serena for pure cost control, Archify for teams fighting convention drift and rework.",
         "winner_when": {"Serena": "Raw token-cost control on any repo", "Archify": "Teams where rejected/rewritten diffs are the main waste"},
     },
 ]
@@ -621,8 +621,8 @@ PLATFORM_STEP_OVERRIDES = {
     "graft": {
         "windows": {"note": "Run in an elevated PowerShell if you hit EPERM. Use forward slashes in .graftrc glob patterns."},
         "wsl": {"note": "Install inside the WSL distro (not Windows). Keep the repo under ~/ on the Linux filesystem, not /mnt/c."},
-        "container": {"commands": ["RUN npm install -g @trailhq/graft"], "note": "Add to your Dockerfile and run graft in one-shot mode (graft plan) on start — disable the watcher daemon."},
-        "remote-ssh": {"note": "Install on the remote host — the VSCode server runs there. A local install has no effect."},
+        "container": {"commands": ["RUN npm install -g @trailhq/graft"], "note": "Add to your Dockerfile and run graft in one-shot mode (graft plan) on start - disable the watcher daemon."},
+        "remote-ssh": {"note": "Install on the remote host - the VSCode server runs there. A local install has no effect."},
         "corporate": {"commands": ["npm install -g @trailhq/graft --registry=$NPM_PROXY"], "note": "If npm is proxied, set --registry to your internal mirror. Core grafting itself needs no network."},
     },
     "serena": {
@@ -649,9 +649,9 @@ PLATFORM_STEP_OVERRIDES = {
     "archify": {
         "windows": {"note": "Use forward slashes in module path patterns in archify.yml for portability."},
         "wsl": {"note": "Runs identically to Linux; keep archify.yml committed so it syncs across environments."},
-        "container": {"commands": ["RUN npm install -g @archify/cli"], "note": "Bake archify.yml into the image — rules are static config with no runtime download."},
+        "container": {"commands": ["RUN npm install -g @archify/cli"], "note": "Bake archify.yml into the image - rules are static config with no runtime download."},
         "remote-ssh": {"note": "Run on the remote host next to Graphify and share the same graph endpoint."},
-        "corporate": {"note": "Entirely local and offline — ideal for locked-down environments since no external calls are made."},
+        "corporate": {"note": "Entirely local and offline - ideal for locked-down environments since no external calls are made."},
     },
     "agentsview": {
         "windows": {"note": "If the sidebar is blank, allow the extension host through the firewall for local telemetry ports."},

@@ -9,8 +9,8 @@ const QUESTIONS = [
     key: "repo_size", label: "How big is your repository?", type: "single",
     options: [
       { v: "small", l: "Small", d: "< 10k LOC, single service" },
-      { v: "medium", l: "Medium", d: "10k–100k LOC" },
-      { v: "large", l: "Large", d: "100k–500k LOC, multi-package" },
+      { v: "medium", l: "Medium", d: "10k-100k LOC" },
+      { v: "large", l: "Large", d: "100k-500k LOC, multi-package" },
       { v: "huge", l: "Huge", d: "> 500k LOC, monorepo" },
     ],
   },
@@ -26,7 +26,7 @@ const QUESTIONS = [
     key: "team_size", label: "Who works in this repo?", type: "single",
     options: [
       { v: "solo", l: "Just me", d: "Solo developer" },
-      { v: "small-team", l: "Small team", d: "2–8 contributors" },
+      { v: "small-team", l: "Small team", d: "2-8 contributors" },
       { v: "large-team", l: "Large team", d: "9+ contributors" },
     ],
   },
