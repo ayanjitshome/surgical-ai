@@ -15,9 +15,11 @@ import seed_data
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-mongo_url = os.environ['MONGO_URL']
+# Env vars take precedence; local defaults let a fresh clone run out-of-the-box.
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+db_name = os.environ.get('DB_NAME', 'toolkit_hub')
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[db_name]
 
 app = FastAPI(title="AI Agent Toolkit Hub API")
 api_router = APIRouter(prefix="/api")
