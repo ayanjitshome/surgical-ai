@@ -81,7 +81,9 @@ memory/test_credentials.md
 # Mobile development
 android-sdk/
 
-# Emergent platform files — not needed when running locally
+# Emergent platform files - not needed when running locally
+/.emergent/
+.emergent/
 **/.emergent/
 .env
 .env.*
