@@ -9,6 +9,7 @@ import Wizard from "@/pages/Wizard";
 import Decide from "@/pages/Decide";
 import Guidance from "@/pages/Guidance";
 import PromptPlaybook from "@/pages/PromptPlaybook";
+import PromptBuilder from "@/pages/PromptBuilder";
 import PlatformView from "@/pages/PlatformView";
 import StageView from "@/pages/StageView";
 
@@ -23,6 +24,7 @@ function App() {
               <Route path="/decide" element={<Decide />} />
               <Route path="/guidance" element={<Guidance />} />
               <Route path="/prompt" element={<PromptPlaybook />} />
+              <Route path="/prompt/builder" element={<PromptBuilder />} />
               <Route path="/tools/:id" element={<ToolDetail />} />
               <Route path="/tools/:id/setup" element={<Wizard />} />
               <Route path="/platform/:id" element={<PlatformView />} />
