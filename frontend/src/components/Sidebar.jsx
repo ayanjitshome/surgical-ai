@@ -29,7 +29,7 @@ export const Sidebar = ({ onClose }) => {
         </div>
         <div className="leading-tight">
           <div className="font-mono font-bold text-sm text-primary-c">Surgical AI Hub</div>
-          <div className="font-mono text-[10px] text-muted-c tracking-wide">agent-token-ops</div>
+          <div className="font-mono text-[10px] text-muted-c tracking-wide">Optimising token usage</div>
         </div>
       </div>
 
