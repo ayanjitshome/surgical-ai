@@ -36,7 +36,7 @@ An internal knowledge-product SPA that gives opinionated guidance on setting up 
 
 ## Prerequisites
 
-- **Python 3.8+**
+- **Python 3.8+** (tested through Python 3.13 — all backend deps ship prebuilt wheels, no compiler/Rust needed)
 - **Node.js 18+** and **Yarn** (`npm install -g yarn`)
 - **MongoDB** — install locally, or run with Docker:
   ```bash
