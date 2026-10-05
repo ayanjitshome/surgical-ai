@@ -33,7 +33,7 @@ export default function ToolDetail() {
       toast.success(d.fetched ? `Fetched README (${d.length} chars)` : "No README returned from GitHub");
       qc.invalidateQueries({ queryKey: ["tool", id] });
     },
-    onError: () => toast.error("GitHub refresh failed"),
+    onError: (err) => toast.error(err?.response?.data?.detail || "GitHub refresh failed"),
   });
 
   if (isLoading || !tool) {

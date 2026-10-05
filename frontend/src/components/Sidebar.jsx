@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useTools, useMeta } from "@/hooks/useData";
 import { platformIcon, stageIcon } from "@/lib/icons";
-import { Boxes, Compass, Network, ChevronRight, Layers, Cpu } from "lucide-react";
+import { Boxes, Compass, Network, ChevronRight, Layers, Cpu, Wand2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const SectionLabel = ({ children }) => (
@@ -46,6 +46,10 @@ export const Sidebar = ({ onClose }) => {
           <NavLink to="/guidance" onClick={onClose} data-testid="nav-link-guidance"
             className={({ isActive }) => cn(linkBase, isActive ? "surface-card text-primary-c border border-c" : "text-secondary-c hover:text-primary-c")}>
             <Network className="w-4 h-4" style={{ color: "#8B5CF6" }} /> Adoption & Tradeoffs
+          </NavLink>
+          <NavLink to="/prompt" onClick={onClose} data-testid="nav-link-prompt"
+            className={({ isActive }) => cn(linkBase, isActive ? "surface-card text-primary-c border border-c" : "text-secondary-c hover:text-primary-c")}>
+            <Wand2 className="w-4 h-4" style={{ color: "#F59E0B" }} /> Prompt Playbook
           </NavLink>
         </div>
 

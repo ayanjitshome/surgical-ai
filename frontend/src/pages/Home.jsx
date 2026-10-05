@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useEcosystem, useTools } from "@/hooks/useData";
 import { EcosystemMap } from "@/components/ecosystem/EcosystemMap";
 import { stageIcon } from "@/lib/icons";
-import { X, ArrowRight, BookOpen, Settings2, Compass, Layers, Zap, TrendingDown } from "lucide-react";
+import { X, ArrowRight, BookOpen, Settings2, Compass, Layers, Zap, TrendingDown, Wand2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const StageLegend = ({ stages }) => (
@@ -95,6 +95,9 @@ export default function Home() {
           </button>
           <button onClick={() => navigate("/guidance")} data-testid="hero-adoption-button" className="flex items-center gap-2 px-5 py-3 rounded-md font-medium border border-bright-c text-primary-c hover:surface-card">
             <Layers className="w-4.5 h-4.5" /> Recommended adoption order
+          </button>
+          <button onClick={() => navigate("/prompt")} data-testid="hero-prompt-button" className="flex items-center gap-2 px-5 py-3 rounded-md font-medium border border-bright-c text-primary-c hover:surface-card">
+            <Wand2 className="w-4.5 h-4.5" style={{ color: "#F59E0B" }} /> Prompt Playbook
           </button>
         </div>
       </section>

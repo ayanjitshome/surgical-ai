@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -26,6 +26,20 @@ api_router = APIRouter(prefix="/api")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# Maintenance endpoints (bulk refresh / reseed) require this token via the
+# X-Admin-Token header. If unset, those endpoints are disabled (secure default).
+ADMIN_TOKEN = os.environ.get('ADMIN_TOKEN')
+# Minimum seconds between per-tool GitHub refreshes (bounds outbound-call abuse).
+REFRESH_COOLDOWN_SECONDS = 15
+
+
+def require_admin(x_admin_token: Optional[str] = Header(default=None)):
+    if not ADMIN_TOKEN:
+        raise HTTPException(status_code=503, detail="Admin endpoints are disabled (ADMIN_TOKEN not configured).")
+    if not x_admin_token or x_admin_token != ADMIN_TOKEN:
+        raise HTTPException(status_code=401, detail="Invalid or missing admin token.")
+    return True
 
 
 # ---------- Models ----------
@@ -150,44 +164,55 @@ async def refresh_tool(tool_id: str):
     doc = await db.tools.find_one({"_id": tool_id})
     if not doc:
         raise HTTPException(status_code=404, detail="Tool not found")
+    # Rate-limit per tool to curb outbound-call abuse.
+    last = doc.get("github_fetched_at")
+    if last:
+        try:
+            elapsed = (datetime.now(timezone.utc) - datetime.fromisoformat(last)).total_seconds()
+            if elapsed < REFRESH_COOLDOWN_SECONDS:
+                raise HTTPException(status_code=429, detail=f"Refreshed recently — wait {int(REFRESH_COOLDOWN_SECONDS - elapsed)}s before retrying.")
+        except ValueError:
+            pass
     readme = await fetch_github_readme(doc["github_owner"], doc["github_name"])
     now = datetime.now(timezone.utc).isoformat()
-    await db.tools.update_one(
-        {"_id": tool_id},
-        {"$set": {"github_cache": readme, "github_fetched_at": now}},
-    )
+    update = {"github_fetched_at": now}
+    if readme is not None:  # never blank out a previously good cache on failure
+        update["github_cache"] = readme
+    await db.tools.update_one({"_id": tool_id}, {"$set": update})
     return {"tool_id": tool_id, "fetched": readme is not None,
             "fetched_at": now, "length": len(readme) if readme else 0}
 
 
 @api_router.post("/admin/refresh")
-async def refresh_all():
+async def refresh_all(_: bool = Depends(require_admin)):
     docs = await db.tools.find({}).to_list(100)
     results = []
     for doc in docs:
         readme = await fetch_github_readme(doc["github_owner"], doc["github_name"])
         now = datetime.now(timezone.utc).isoformat()
-        await db.tools.update_one(
-            {"_id": doc["_id"]},
-            {"$set": {"github_cache": readme, "github_fetched_at": now}},
-        )
+        update = {"github_fetched_at": now}
+        if readme is not None:
+            update["github_cache"] = readme
+        await db.tools.update_one({"_id": doc["_id"]}, {"$set": update})
         results.append({"tool_id": doc["_id"], "fetched": readme is not None,
                         "length": len(readme) if readme else 0})
     return {"results": results}
 
 
 @api_router.post("/admin/reseed")
-async def reseed():
+async def reseed(_: bool = Depends(require_admin)):
     await seed_database(force=True)
     return {"status": "reseeded"}
 
 
 app.include_router(api_router)
 
+_cors_origins = os.environ.get('CORS_ORIGINS', '*').split(',')
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    # No cookie/session auth in v1 — credentials disabled so a wildcard origin is safe.
+    allow_credentials=False,
+    allow_origins=_cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
