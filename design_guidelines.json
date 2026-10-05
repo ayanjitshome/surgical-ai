@@ -1,0 +1,172 @@
+{
+  "theme": {
+    "mode": "dark-default-with-light-toggle",
+    "style_archetype": "Developer Terminal & Modern Docs Hybrid",
+    "description": "Blends dark high-contrast IDE/terminal vibe with clean, highly readable modern documentation architecture. Features glowing status dots, subtle scanlines, monospace accents, copy-to-clipboard code blocks, and crisp structural borders."
+  },
+  "typography": {
+    "font_imports": [
+      "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    ],
+    "headings": {
+      "family": "'JetBrains Mono', monospace",
+      "h1": "text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight",
+      "h2": "text-2xl sm:text-3xl font-bold tracking-tight",
+      "h3": "text-xl sm:text-2xl font-semibold",
+      "h4": "text-lg font-medium",
+      "eyebrow": "font-mono text-xs uppercase tracking-[0.25em] text-emerald-400 font-semibold"
+    },
+    "body": {
+      "family": "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+      "base": "text-sm sm:text-base leading-relaxed",
+      "code": "font-mono text-xs sm:text-sm bg-slate-900/90 text-emerald-300 px-2 py-0.5 rounded border border-slate-700/60"
+    }
+  },
+  "colors": {
+    "dark": {
+      "bg_primary": "#0B0F17",
+      "bg_secondary": "#111827",
+      "bg_card": "#161E2E",
+      "bg_card_hover": "#1F293D",
+      "border": "#1E293B",
+      "border_bright": "#334155",
+      "text_primary": "#F8FAFC",
+      "text_secondary": "#94A3B8",
+      "text_muted": "#64748B",
+      "accent_emerald": "#10B981",
+      "accent_emerald_glow": "rgba(16, 185, 129, 0.25)",
+      "accent_cyan": "#06B6D4",
+      "accent_amber": "#F59E0B",
+      "accent_purple": "#8B5CF6",
+      "accent_rose": "#F43F5E"
+    },
+    "light": {
+      "bg_primary": "#F8FAFC",
+      "bg_secondary": "#FFFFFF",
+      "bg_card": "#FFFFFF",
+      "bg_card_hover": "#F1F5F9",
+      "border": "#E2E8F0",
+      "border_bright": "#CBD5E1",
+      "text_primary": "#0F172A",
+      "text_secondary": "#475569",
+      "text_muted": "#64748B",
+      "accent_emerald": "#059669",
+      "accent_cyan": "#0891B2",
+      "accent_amber": "#D97706",
+      "accent_purple": "#7C3AED",
+      "accent_rose": "#E11D48"
+    }
+  },
+  "ecosystem_tools": [
+    {
+      "id": "graft",
+      "name": "Graft",
+      "layer": "Filesystem",
+      "layer_order": 1,
+      "tagline": "Surgical Context Slicing & File Tree Filtering",
+      "token_waste_reduction": "35-45%",
+      "color": "#10B981"
+    },
+    {
+      "id": "serena",
+      "name": "Serena",
+      "layer": "Context Governor",
+      "layer_order": 2,
+      "tagline": "Dynamic Prompt Window Budgeting & Rate Throttling",
+      "token_waste_reduction": "25-30%",
+      "color": "#06B6D4"
+    },
+    {
+      "id": "graphify",
+      "name": "Graphify",
+      "layer": "Structural Graph",
+      "layer_order": 3,
+      "tagline": "AST Dependency Graph Construction & Code Symbol Mapping",
+      "token_waste_reduction": "40-50%",
+      "color": "#8B5CF6"
+    },
+    {
+      "id": "codebase-memory",
+      "name": "Codebase Memory",
+      "layer": "Structural Graph",
+      "layer_order": 3,
+      "tagline": "Persistent Semantic Vector & Key-Value Index for Repo Context",
+      "token_waste_reduction": "30-40%",
+      "color": "#F59E0B"
+    },
+    {
+      "id": "archify",
+      "name": "Archify",
+      "layer": "Context Governor",
+      "layer_order": 2,
+      "tagline": "Architectural Invariant Enforcement & Design Spec Injector",
+      "token_waste_reduction": "20-25%",
+      "color": "#EC4899"
+    },
+    {
+      "id": "agentsview",
+      "name": "Agentsview",
+      "layer": "Agent Interface",
+      "layer_order": 4,
+      "tagline": "VSCode Sidebar & Real-time Token Analytics Dashboard",
+      "token_waste_reduction": "15-20%",
+      "color": "#3B82F6"
+    }
+  ],
+  "visual_enhancers": {
+    "grid_background": "subtle terminal grid pattern (1px slate lines on 32px spacing)",
+    "terminal_topbar": "Mac style dots (red, yellow, green) with filepath indicator in header of code blocks",
+    "glowing_edges": "border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]",
+    "badges": "rounded-full px-2.5 py-0.5 text-xs font-mono font-medium border"
+  },
+  "component_guidelines": {
+    "navigation": {
+      "sidebar": "Collapsible left nav with active tool indicators, platform filter pills (Mac, Windows, WSL, Container, Remote SSH, Corporate), workflow stage accordion, and keyboard shortcut search trigger (Cmd+K).",
+      "header": "Sticky top bar with breadcrumb trail, quick status indicators, theme switcher, and 'Get Started / Decision Guide' primary CTA."
+    },
+    "interactive_ecosystem_map": {
+      "container": "Hero visual canvas with React Flow pan/zoom, layer backgrounds (Filesystem -> Context Governor -> Structural Graph -> Agent Interface), node status indicators, animated data edges, node click inspector side drawer.",
+      "controls": "Zoom in/out/reset fit view, layout toggle (horizontal pipeline / vertical stack / layer grouped), search/filter by tool or layer."
+    },
+    "knowledge_base": {
+      "structure": "Tool hero header, quick stats bar (Token Cost Saved, Latency Reduction, Recommended Setup Time), Deep Dive Tabs: (1) What & Why, (2) Token Waste Reduction Mechanics, (3) Recommended Adoption Order, (4) Platform Notes (Mac, Windows, WSL, Docker/Containers, Remote SSH, Corporate Proxies)."
+    },
+    "guided_setup_wizard": {
+      "structure": "Step-by-step progress stepper per tool, OS/Environment selector tabs, step instructions, copy-to-clipboard command blocks with instant visual toast, validation checkpoint toggle (Mark Step Tested & Verified), troubleshooting drawer with collapsible common error solutions."
+    },
+    "decision_support_guide": {
+      "questionnaire": "5-step interactive questionnaire (Repo Size, Primary Languages, Team Size, AI Agent Model e.g. Claude 3.7 / GPT-4.5, Monthly Token Budget / Cost Sensitivity).",
+      "output": "Dynamic Recommended Stack calculation, architecture diagram breakdown, cost savings projection calculator, tradeoff matrix table, cost-optimization playbook."
+    }
+  },
+  "image_urls": {
+    "hero_workspace": {
+      "url": "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "category": "developer_workspace",
+      "description": "Code monitor background for hero background texture"
+    },
+    "ide_screen": {
+      "url": "https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "category": "ide_demo",
+      "description": "VSCode editor layout demo graphic"
+    }
+  },
+  "testing_attributes": {
+    "rule": "Every button, link, tab, input, checkbox, modal, and tool node MUST contain data-testid attribute in kebab-case.",
+    "examples": {
+      "ecosystem_node": "data-testid=\"ecosystem-node-graft\"",
+      "setup_wizard_step": "data-testid=\"setup-step-command-copy-button\"",
+      "decision_question": "data-testid=\"decision-option-repo-size-large\"",
+      "sidebar_nav": "data-testid=\"nav-link-knowledge-graft\"",
+      "theme_toggle": "data-testid=\"theme-toggle-button\""
+    }
+  },
+  "instructions_to_main_agent": [
+    "Build a single-page React SPA with smooth state-driven navigation (or React Router) for Hub Hero, Ecosystem Map, Knowledge Base pages, Guided Setup Wizard, Decision Support Guide, and Search Modal.",
+    "Ensure dark mode is default with a clean light mode toggle that persists in state.",
+    "Include copy-to-clipboard support using navigator.clipboard or fallback with visual toast notification (sonner).",
+    "Integrate interactive SVG/Canvas or custom React Flow graph component for the Ecosystem Map with click-to-open drawer, layer badges, animated edges, and node filtering.",
+    "Make sure all 6 tools (Graft, Serena, Graphify, Codebase Memory, Archify, Agentsview) have rich deep-dive content, realistic code snippets, terminal setup commands, validation commands, and troubleshooting guides.",
+    "Ensure every interactive element has explicit data-testid attributes for automated testing."
+  ]
+}
