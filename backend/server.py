@@ -7,7 +7,7 @@ import logging
 import httpx
 from pathlib import Path
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Literal
 from datetime import datetime, timezone
 
 import seed_data
@@ -28,11 +28,11 @@ logger = logging.getLogger(__name__)
 
 # ---------- Models ----------
 class DecisionAnswers(BaseModel):
-    repo_size: str = "medium"
+    repo_size: Literal["small", "medium", "large", "huge"] = "medium"
     languages: List[str] = []
-    team_size: str = "solo"
-    agent: str = "claude"
-    cost_sensitivity: str = "medium"
+    team_size: Literal["solo", "small-team", "large-team"] = "solo"
+    agent: Literal["claude", "copilot", "codex", "antigravity"] = "claude"
+    cost_sensitivity: Literal["low", "medium", "high"] = "medium"
 
 
 # ---------- Seeding ----------

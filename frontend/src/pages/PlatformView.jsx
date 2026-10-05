@@ -22,7 +22,7 @@ export default function PlatformView() {
         {tools.map((t) => (
           <div key={t.id} className="surface-card border border-c rounded-xl p-4" data-testid={`platform-tool-${t.id}`}>
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <button onClick={() => navigate(`/tools/${t.id}`)} className="font-mono font-bold text-lg text-primary-c flex items-center gap-2 hover:underline" style={{ textDecorationColor: t.color }}>
+              <button onClick={() => navigate(`/tools/${t.id}`)} data-testid={`platform-tool-link-${t.id}`} className="font-mono font-bold text-lg text-primary-c flex items-center gap-2 hover:underline" style={{ textDecorationColor: t.color }}>
                 <span className="w-2.5 h-2.5 rounded-full" style={{ background: t.color, boxShadow: `0 0 8px ${t.color}` }} /> {t.name}
               </button>
               <button onClick={() => navigate(`/tools/${t.id}/setup`)} data-testid={`platform-setup-${t.id}`} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-c text-primary-c hover:border-bright-c"><Settings2 className="w-3.5 h-3.5" /> Setup</button>

@@ -612,3 +612,58 @@ COST_PLAYBOOK = [
     {"tool": "archify", "when": "Multi-contributor repos with strong conventions", "savings": "20-25%", "note": "Cuts rework round-trips by front-loading rules."},
     {"tool": "agentsview", "when": "Once 3+ tools are active", "savings": "15-20%", "note": "Observability that surfaces the costliest turns to tune."},
 ]
+
+
+# Platform-specific overrides for the install (step 0) of each tool. macOS is the
+# base; only the platforms that genuinely differ carry an override. Each override
+# may provide its own commands and always carries a platform tip note.
+PLATFORM_STEP_OVERRIDES = {
+    "graft": {
+        "windows": {"note": "Run in an elevated PowerShell if you hit EPERM. Use forward slashes in .graftrc glob patterns."},
+        "wsl": {"note": "Install inside the WSL distro (not Windows). Keep the repo under ~/ on the Linux filesystem, not /mnt/c."},
+        "container": {"commands": ["RUN npm install -g @trailhq/graft"], "note": "Add to your Dockerfile and run graft in one-shot mode (graft plan) on start — disable the watcher daemon."},
+        "remote-ssh": {"note": "Install on the remote host — the VSCode server runs there. A local install has no effect."},
+        "corporate": {"commands": ["npm install -g @trailhq/graft --registry=$NPM_PROXY"], "note": "If npm is proxied, set --registry to your internal mirror. Core grafting itself needs no network."},
+    },
+    "serena": {
+        "windows": {"commands": ["powershell -c \"irm https://astral.sh/uv/install.ps1 | iex\"", "uvx --from git+https://github.com/oraios/serena serena-mcp-server"], "note": "Use the PowerShell installer and allow the MCP port through Windows Defender Firewall."},
+        "wsl": {"note": "Install uv inside WSL; point the Windows-side VSCode MCP config at the WSL server via the WSL loopback address."},
+        "container": {"commands": ["RUN curl -LsSf https://astral.sh/uv/install.sh | sh"], "note": "Pin the Serena ref and run it as a sidecar; expose the MCP port only on the container network."},
+        "remote-ssh": {"note": "Run Serena on the remote host and forward the MCP port through the existing SSH tunnel."},
+        "corporate": {"commands": ["export HTTPS_PROXY=$CORP_PROXY", "curl -LsSf https://astral.sh/uv/install.sh | sh"], "note": "Set HTTPS_PROXY before launching uvx so it can reach your model provider."},
+    },
+    "graphify": {
+        "windows": {"note": "Install the MSVC Build Tools first, then run the initial index from the x64 Native Tools prompt."},
+        "wsl": {"commands": ["sudo apt-get install -y build-essential", "pipx install graphify-cli"], "note": "Install build-essential in WSL and keep the repo on the Linux filesystem for fast incremental indexing."},
+        "container": {"commands": ["RUN pipx install graphify-cli"], "note": "Index once at build time and bake the graph into the image; incremental re-index at runtime."},
+        "remote-ssh": {"note": "Install and index on the remote host; store the graph DB remotely, not synced to the client."},
+        "corporate": {"note": "Vendor the tree-sitter grammars into the repo so no grammar download is needed behind the firewall."},
+    },
+    "codebase-memory": {
+        "windows": {"note": "Store the vector DB on a local SSD path, not a network drive, or query latency spikes."},
+        "wsl": {"note": "Keep the vector store inside WSL; writing embeddings across /mnt/c is very slow."},
+        "container": {"commands": ["RUN pipx install codebase-memory-mcp"], "note": "Mount the vector DB as a named volume so memory persists across container restarts."},
+        "remote-ssh": {"note": "Run the memory server on the remote host with the vector DB local to the code."},
+        "corporate": {"commands": ["codebase-memory --embed-model /opt/models/local-embed"], "note": "Use a local embedding model to avoid sending code to an external embedding API."},
+    },
+    "archify": {
+        "windows": {"note": "Use forward slashes in module path patterns in archify.yml for portability."},
+        "wsl": {"note": "Runs identically to Linux; keep archify.yml committed so it syncs across environments."},
+        "container": {"commands": ["RUN npm install -g @archify/cli"], "note": "Bake archify.yml into the image — rules are static config with no runtime download."},
+        "remote-ssh": {"note": "Run on the remote host next to Graphify and share the same graph endpoint."},
+        "corporate": {"note": "Entirely local and offline — ideal for locked-down environments since no external calls are made."},
+    },
+    "agentsview": {
+        "windows": {"note": "If the sidebar is blank, allow the extension host through the firewall for local telemetry ports."},
+        "wsl": {"note": "Install the extension in the WSL context so it reads telemetry from the WSL-hosted servers."},
+        "container": {"commands": ["# devcontainer.json\n\"customizations\": { \"vscode\": { \"extensions\": [\"kenn-io.agentsview\"] } }"], "note": "Use the devcontainer extensions list to auto-install Agentsview when the container attaches."},
+        "remote-ssh": {"note": "Install in the Remote-SSH context; telemetry ports are read over the existing SSH tunnel."},
+        "corporate": {"commands": ["code --install-extension ./agentsview.vsix"], "note": "If the Marketplace is blocked, sideload the signed .vsix your security team approves."},
+    },
+}
+
+# Attach overrides to each tool's install step (step 0)
+for _tool in TOOLS:
+    _ov = PLATFORM_STEP_OVERRIDES.get(_tool["id"])
+    if _ov and _tool["setup_steps"]:
+        _tool["setup_steps"][0]["platform_overrides"] = _ov

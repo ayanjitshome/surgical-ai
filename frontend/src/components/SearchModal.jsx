@@ -73,7 +73,7 @@ export const SearchModal = ({ open, onClose }) => {
               if (e.key === "Escape") onClose();
             }}
           />
-          <button onClick={onClose} className="p-1 text-muted-c hover:text-primary-c"><X className="w-4 h-4" /></button>
+          <button onClick={onClose} data-testid="search-close-button" className="p-1 text-muted-c hover:text-primary-c"><X className="w-4 h-4" /></button>
         </div>
         <div className="max-h-[52vh] overflow-y-auto p-2">
           {results.length === 0 && (

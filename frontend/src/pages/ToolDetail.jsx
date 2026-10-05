@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import { getTool, refreshTool } from "@/lib/api";
 import { platformIcon } from "@/lib/icons";
 import { Settings2, Github, RefreshCw, TrendingDown, Zap, Clock, ArrowLeft, Layers, BookText } from "lucide-react";
@@ -44,7 +46,7 @@ export default function ToolDetail() {
 
   return (
     <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8 fade-up" data-testid={`tool-detail-${tool.id}`}>
-      <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-c hover:text-primary-c mb-5">
+      <Link to="/" data-testid="tool-back-link" className="inline-flex items-center gap-1.5 text-sm text-muted-c hover:text-primary-c mb-5">
         <ArrowLeft className="w-4 h-4" /> Ecosystem Hub
       </Link>
 
@@ -146,7 +148,7 @@ export default function ToolDetail() {
               </button>
             </div>
             {tool.github_cache ? (
-              <div className="md-content surface-card border border-c rounded-lg p-5"><ReactMarkdown>{tool.github_cache}</ReactMarkdown></div>
+              <div className="md-content surface-card border border-c rounded-lg p-5"><ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSanitize]}>{tool.github_cache}</ReactMarkdown></div>
             ) : (
               <div className="surface-card border border-dashed border-bright-c rounded-lg p-8 text-center">
                 <Github className="w-8 h-8 mx-auto text-muted-c mb-3" />

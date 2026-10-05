@@ -54,6 +54,9 @@ export default function Wizard() {
   const isLast = step === steps.length - 1;
   const current = steps[step];
   const PlatIcon = platformIcon(platform);
+  const override = current?.platform_overrides?.[platform];
+  const stepCommands = override?.commands || current?.commands || [];
+  const platformTip = override?.note;
 
   // Completion screen
   if (step >= steps.length) {
@@ -107,9 +110,16 @@ export default function Wizard() {
         <h2 className="font-mono text-2xl font-bold text-primary-c">{current.title}</h2>
         <p className="text-secondary-c mt-2 leading-relaxed">{current.description}</p>
 
-        {current.commands?.length > 0 && (
+        {platformTip && (
+          <div className="mt-4 flex items-start gap-2.5 rounded-lg p-3 border" style={{ borderColor: `${tool.color}55`, background: `${tool.color}14` }} data-testid={`platform-tip-${step}`}>
+            <PlatIcon className="w-4 h-4 mt-0.5 shrink-0" style={{ color: tool.color }} />
+            <p className="text-sm text-secondary-c leading-relaxed"><span className="font-mono text-xs uppercase tracking-wider" style={{ color: tool.color }}>{platform} · </span>{platformTip}</p>
+          </div>
+        )}
+
+        {stepCommands.length > 0 && (
           <div className="mt-4">
-            {current.commands.map((cmd, ci) => (
+            {stepCommands.map((cmd, ci) => (
               <CodeBlock key={ci} code={cmd} label={`${platform} • terminal`} testId={`setup-step-command-copy-button-${step}-${ci}`} />
             ))}
           </div>

@@ -21,7 +21,7 @@ export default function Guidance() {
           {tools.map((t, i) => (
             <div key={t.id} className="relative pb-6 last:pb-0 fade-up" style={{ animationDelay: `${i * 70}ms` }} data-testid={`adoption-step-${t.id}`}>
               <div className="absolute -left-6 top-1 w-6 h-6 rounded-full flex items-center justify-center font-mono text-xs font-bold text-black z-10" style={{ background: t.color }}>{i + 1}</div>
-              <button onClick={() => navigate(`/tools/${t.id}`)} className="w-full text-left surface-card border border-c rounded-xl p-4 ml-2 hover:border-bright-c transition-colors group">
+              <button onClick={() => navigate(`/tools/${t.id}`)} data-testid={`adoption-step-link-${t.id}`} className="w-full text-left surface-card border border-c rounded-xl p-4 ml-2 hover:border-bright-c transition-colors group">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <span className="font-mono font-bold text-lg text-primary-c flex items-center gap-2">{t.name}
                     <ArrowRight className="w-4 h-4 text-muted-c opacity-0 group-hover:opacity-100 transition-opacity" />
