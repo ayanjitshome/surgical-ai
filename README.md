@@ -1,6 +1,8 @@
 # Surgical AI Hub
 
-![Surgical AI](/assets/surgical-ai.png)
+<p align="center">
+  <img src="assets/surgical-ai-hub-logo.png" alt="Surgical AI Hub" width="300" />
+</p>
 
 An internal knowledge-product SPA that gives opinionated guidance on setting up and orchestrating seven developer tools - **Ponytail, Graft, Serena, Graphify, Codebase Memory, Archify, Agentsview** - to reduce AI-agent token waste in VSCode.
 
