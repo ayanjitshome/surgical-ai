@@ -1,5 +1,7 @@
 # Surgical AI Hub
 
+![Surgical AI](/assets/surgical-ai.png)
+
 An internal knowledge-product SPA that gives opinionated guidance on setting up and orchestrating six developer tools - **Graft, Serena, Graphify, Codebase Memory, Archify, Agentsview** - to reduce AI-agent token waste in VSCode.
 
 - **Knowledge Base** - per-tool deep-dive pages (what, why, token mechanics, adoption order, platform notes, cached GitHub README)
@@ -23,6 +25,7 @@ Then open **http://localhost:9999**.
 That's it. Inside the container, nginx serves the production React build and proxies `/api` to the FastAPI backend, while `mongod` runs alongside them (managed by supervisor). The database is seeded automatically on first boot.
 
 **Notes**
+
 - **Data is ephemeral** by default (resets when the container is removed). The app re-seeds its content on every start, so this is fine for normal use. To persist MongoDB data across container removals, mount a volume
 - **Multi-arch**: builds and runs on both Apple Silicon (arm64) and Intel/AMD (amd64).
 - **Run in the background**: add `-d` (and drop `--rm`), then stop with `docker stop surgical-ai-hub`.
@@ -34,13 +37,14 @@ That's it. Inside the container, nginx serves the production React build and pro
 
 ## Tech Stack
 
-| Layer      | Choice                                                        |
-| ---------- | ------------------------------------------------------------- |
-| Frontend   | React 19 (CRA + craco), React Router, Tailwind CSS            |
-| Viz        | React Flow (`@xyflow/react`)                                  |
-| Backend    | FastAPI (Python)                                              |
-| Database   | MongoDB (via Motor)                                           |
-| GitHub     | GitHub REST API (unauthenticated) via `httpx`, cached in Mongo|
+
+| Layer    | Choice                                                        |
+| ---------- | --------------------------------------------------------------- |
+| Frontend | React 19 (CRA + craco), React Router, Tailwind CSS            |
+| Viz      | React Flow (`@xyflow/react`)                                  |
+| Backend  | FastAPI (Python)                                              |
+| Database | MongoDB (via Motor)                                           |
+| GitHub   | GitHub REST API (unauthenticated) via`httpx`, cached in Mongo |
 
 ```
 .
@@ -70,32 +74,40 @@ That's it. Inside the container, nginx serves the production React build and pro
 The backend needs a running MongoDB reachable at `mongodb://localhost:27017`. Pick the option for your OS. The database and collections are created automatically on first run - no manual DB creation needed.
 
 ### Option A - Docker (any platform, simplest)
+
 Works identically on macOS, Windows, Linux and WSL. Requires Docker Desktop / Docker Engine.
+
 ```bash
 docker run -d --name surgical-ai-mongo -p 27017:27017 -v surgical-ai-mongo-data:/data/db mongo:7
 ```
+
 - `-v ...-data:/data/db` persists your data across restarts.
 - Start/stop later with `docker start surgical-ai-mongo` / `docker stop surgical-ai-mongo`.
 
 ### macOS (Homebrew)
+
 ```bash
 brew tap mongodb/brew
 brew install mongodb-community@7.0
 brew services start mongodb-community@7.0   # runs on localhost:27017
 ```
+
 Stop with `brew services stop mongodb-community@7.0`.
 
 ### Windows
+
 1. Download the **MongoDB Community Server** MSI from https://www.mongodb.com/try/download/community
 2. Run the installer, choose **Complete**, and tick **Install MongoDB as a Service** (it then auto-starts on `localhost:27017`).
 3. (Optional) Install **MongoDB Compass** for a GUI.
 
 Or with Chocolatey:
+
 ```powershell
 choco install mongodb
 ```
 
 ### Linux (Ubuntu / Debian)
+
 ```bash
 sudo apt-get update
 sudo apt-get install -y gnupg curl
@@ -107,13 +119,17 @@ sudo systemctl enable --now mongod   # runs on localhost:27017
 ```
 
 ### WSL (Windows Subsystem for Linux)
+
 Easiest is **Docker Desktop** with WSL integration (Option A). If you prefer a native install, follow the **Linux (Ubuntu)** steps **inside** your WSL distro, then start it with:
+
 ```bash
 sudo systemctl start mongod          # or: sudo service mongod start
 ```
+
 Keep the connection string as `mongodb://localhost:27017` - WSL forwards localhost to the Windows host.
 
 ### Verify MongoDB is up
+
 ```bash
 mongosh --eval "db.runCommand({ ping: 1 })"   # expect { ok: 1 }
 ```
@@ -132,6 +148,7 @@ cd <your-repo-name>
 `.env` files are **not** committed to Git (an `.env.example` is provided in each folder as a template - copy it to `.env`). Create them manually:
 
 **`backend/.env`**
+
 ```env
 MONGO_URL=mongodb://localhost:27017
 DB_NAME=surgical_ai_hub
@@ -143,6 +160,7 @@ ADMIN_TOKEN=change-me-to-a-long-random-string
 ```
 
 **`frontend/.env`**
+
 ```env
 REACT_APP_BACKEND_URL=http://localhost:8001
 ```
@@ -184,17 +202,18 @@ On first boot the backend **auto-seeds** all six tools into MongoDB - no manual 
 
 ## API Endpoints (all prefixed with `/api`)
 
-| Method | Path                         | Purpose                                   |
-| ------ | ---------------------------- | ----------------------------------------- |
-| GET    | `/api/meta`                  | Platforms, workflow stages, adoption order|
-| GET    | `/api/tools`                 | All six tools (adoption order)            |
-| GET    | `/api/tools/{id}`            | Full tool detail                          |
-| GET    | `/api/ecosystem`             | Nodes + edges for the dependency map      |
-| POST   | `/api/decision`              | Rule-based stack recommendation           |
-| GET    | `/api/guidance/tradeoffs`    | Tradeoffs + cost playbook                 |
-| POST   | `/api/admin/refresh/{id}`    | Fetch & cache one tool's GitHub README    |
-| POST   | `/api/admin/refresh`         | Refresh all READMEs                       |
-| POST   | `/api/admin/reseed`          | Re-seed tool content                      |
+
+| Method | Path                      | Purpose                                    |
+| -------- | --------------------------- | -------------------------------------------- |
+| GET    | `/api/meta`               | Platforms, workflow stages, adoption order |
+| GET    | `/api/tools`              | All six tools (adoption order)             |
+| GET    | `/api/tools/{id}`         | Full tool detail                           |
+| GET    | `/api/ecosystem`          | Nodes + edges for the dependency map       |
+| POST   | `/api/decision`           | Rule-based stack recommendation            |
+| GET    | `/api/guidance/tradeoffs` | Tradeoffs + cost playbook                  |
+| POST   | `/api/admin/refresh/{id}` | Fetch & cache one tool's GitHub README     |
+| POST   | `/api/admin/refresh`      | Refresh all READMEs                        |
+| POST   | `/api/admin/reseed`       | Re-seed tool content                       |
 
 GitHub README fetching is **unauthenticated** - no token required. Use the "Refresh from GitHub" button on a tool page (or the endpoints above) to populate the README cache.
 
@@ -214,15 +233,16 @@ GitHub README fetching is **unauthenticated** - no token required. Use the "Refr
 
 Everything the user actually interacts with is loaded from the API (there is no static/offline fallback), so with the backend down:
 
-| Area | Behaviour with backend OFF |
-| ---- | -------------------------- |
-| Page shell (sidebar, header, hero text, theme toggle) | ✅ Renders fine - it's static |
-| **Ecosystem map** (home) | ❌ Empty bordered box - it only renders when `/api/ecosystem` returns (`{eco && <EcosystemMap/>}`) |
-| **Sidebar tool list / stages / platforms** | ❌ Empty - populated from `/api/tools` and `/api/meta` |
-| **Tool detail pages** | ❌ Stuck on "Loading tool…" (the `/api/tools/{id}` query never resolves) |
-| **Decision questionnaire** | ⚠️ Questions render (they're hardcoded), but **Submit fails** - it POSTs to `/api/decision` |
-| **Guidance / tradeoffs / adoption order** | ❌ Empty - from `/api/guidance` and `/api/tools` |
-| **Search (Cmd+K)** | ⚠️ Opens, but returns no results (the index is built from `/api/tools`) |
+
+| Area                                                  | Behaviour with backend OFF                                                                        |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Page shell (sidebar, header, hero text, theme toggle) | ✅ Renders fine - it's static                                                                     |
+| **Ecosystem map** (home)                              | ❌ Empty bordered box - it only renders when`/api/ecosystem` returns (`{eco && <EcosystemMap/>}`) |
+| **Sidebar tool list / stages / platforms**            | ❌ Empty - populated from`/api/tools` and `/api/meta`                                             |
+| **Tool detail pages**                                 | ❌ Stuck on "Loading tool…" (the`/api/tools/{id}` query never resolves)                          |
+| **Decision questionnaire**                            | ⚠️ Questions render (they're hardcoded), but**Submit fails** - it POSTs to `/api/decision`      |
+| **Guidance / tradeoffs / adoption order**             | ❌ Empty - from`/api/guidance` and `/api/tools`                                                   |
+| **Search (Cmd+K)**                                    | ⚠️ Opens, but returns no results (the index is built from`/api/tools`)                          |
 
 **Why:** the frontend has no hardcoded content - all tool metadata, the dependency graph, the recommendation logic and the GitHub READMEs live in the backend + MongoDB. React Query requests simply fail (network error / pending), and components either show empty defaults (`[]`) or a loading state.
 
