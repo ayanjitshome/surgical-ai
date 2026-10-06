@@ -1,11 +1,12 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useRef, useState, useEffect } from "react";
 import {
-  ReactFlow, Background, Controls, MiniMap,
+  ReactFlow, Background, Controls, ControlButton,
   useNodesState, useEdgesState, MarkerType,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { ToolNode } from "@/components/ecosystem/ToolNode";
 import { useTheme } from "@/context/ThemeContext";
+import { Maximize2, Minimize2 } from "lucide-react";
 
 const nodeTypes = { tool: ToolNode };
 
@@ -84,30 +85,55 @@ export const EcosystemMap = ({ data, onSelect, selectedId }) => {
 
   const handleNodeClick = useCallback((_, node) => onSelect(node.id), [onSelect]);
 
+  const wrapperRef = useRef(null);
+  const rfRef = useRef(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const onChange = () => {
+      const active = document.fullscreenElement === wrapperRef.current;
+      setIsFullscreen(active);
+      // Refit after the viewport resizes (both entering and exiting).
+      setTimeout(() => rfRef.current?.fitView({ padding: 0.15 }), 120);
+    };
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen?.();
+    } else {
+      wrapperRef.current?.requestFullscreen?.();
+    }
+  }, []);
+
   return (
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      onNodeClick={handleNodeClick}
-      nodeTypes={nodeTypes}
-      fitView
-      fitViewOptions={{ padding: 0.15 }}
-      minZoom={0.4}
-      maxZoom={1.6}
-      proOptions={{ hideAttribution: true }}
-      style={{ background: palette.primary }}
-    >
-      <Background color={palette.border} gap={28} size={1.5} />
-      <Controls showInteractive={false} />
-      <MiniMap
-        pannable
-        zoomable
-        nodeColor={(n) => n.data?.color || "#64748B"}
-        maskColor={theme === "dark" ? "rgba(11,15,23,0.6)" : "rgba(148,163,184,0.25)"}
-        style={{ background: palette.secondary, border: `1px solid ${palette.border}`, borderRadius: 8 }}
-      />
-    </ReactFlow>
+    <div ref={wrapperRef} style={{ width: "100%", height: "100%", background: palette.primary }}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onNodeClick={handleNodeClick}
+        onInit={(inst) => (rfRef.current = inst)}
+        nodeTypes={nodeTypes}
+        fitView
+        fitViewOptions={{ padding: 0.15 }}
+        minZoom={0.4}
+        maxZoom={1.6}
+        proOptions={{ hideAttribution: true }}
+        style={{ background: palette.primary }}
+      >
+        <Background color={palette.border} gap={28} size={1.5} />
+        <Controls showInteractive={false} showFitView={false}>
+          <ControlButton onClick={toggleFullscreen} title={isFullscreen ? "Exit full screen" : "Full screen"} data-testid="ecosystem-fullscreen-button">
+            {isFullscreen
+              ? <Minimize2 size={14} color={palette.textSecondary} />
+              : <Maximize2 size={14} color={palette.textSecondary} />}
+          </ControlButton>
+        </Controls>
+      </ReactFlow>
+    </div>
   );
 };
