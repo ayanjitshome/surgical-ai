@@ -18,7 +18,7 @@ export const AGENTS = [
   { v: "antigravity", l: "Antigravity" },
 ];
 
-export const buildPrompt = ({ task, languages, platform, agentLabel, activeIds, tools, constraints, output }) => {
+export const buildPrompt = ({ task, languages, platform, agentLabel, activeIds, tools, constraints, output, validation }) => {
   const active = tools.filter((t) => activeIds.includes(t.id));
   const contextLines = active.length
     ? active.map((t) => `- **${t.name}** (${t.layer_name}): ${TOOL_DIRECTIVES[t.id]}`).join("\n")
@@ -29,6 +29,14 @@ export const buildPrompt = ({ task, languages, platform, agentLabel, activeIds, 
     ? constraints.trim().split("\n").map((l) => `- ${l.replace(/^[-*]\s*/, "")}`).join("\n")
     : "- Make the smallest change that fully satisfies the objective.\n- Do not modify unrelated files or reformat untouched code.";
   const outputLine = output?.trim() ? output.trim() : "A brief plan, then a unified diff limited to the files you change.";
+  const defaultValidation = `1. Does the change stay inside the provided context scope (Graft slice)?
+2. Did you use the structural graph / memory instead of re-reading files?
+3. Does it respect the architectural invariants (no cross-layer imports)?
+4. Is this the smallest change that fully meets the objective?
+5. Is the output in the exact format requested above?`;
+  const validationLines = validation?.trim()
+    ? validation.trim().split("\n").filter((l) => l.trim()).map((l, i) => `${i + 1}. ${l.trim().replace(/^\d+[.)]\s*/, "").replace(/^[-*]\s*/, "")}`).join("\n")
+    : defaultValidation;
 
   return `# ROLE & OBJECTIVE
 You are an AI coding agent running in VSCode (${agentLabel}). Complete exactly one task, operating strictly within the constraints of the context tools listed below.
@@ -50,9 +58,5 @@ ${constraintLines}
 ${outputLine}
 
 # VALIDATION, run this checklist before you answer
-1. Does the change stay inside the provided context scope (Graft slice)?
-2. Did you use the structural graph / memory instead of re-reading files?
-3. Does it respect the architectural invariants (no cross-layer imports)?
-4. Is this the smallest change that fully meets the objective?
-5. Is the output in the exact format requested above?`;
+${validationLines}`;
 };

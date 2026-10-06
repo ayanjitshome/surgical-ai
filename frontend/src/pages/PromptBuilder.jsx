@@ -19,6 +19,7 @@ export default function PromptBuilder() {
   const [activeIds, setActiveIds] = useState([]);
   const [constraints, setConstraints] = useState("");
   const [output, setOutput] = useState("");
+  const [validation, setValidation] = useState("");
 
   useEffect(() => {
     if (tools.length) setActiveIds(tools.map((t) => t.id));
@@ -26,8 +27,8 @@ export default function PromptBuilder() {
 
   const agentLabel = AGENTS.find((a) => a.v === agent)?.l || "Claude";
   const prompt = useMemo(
-    () => buildPrompt({ task, languages, platform, agentLabel, activeIds, tools, constraints, output }),
-    [task, languages, platform, agentLabel, activeIds, tools, constraints, output]
+    () => buildPrompt({ task, languages, platform, agentLabel, activeIds, tools, constraints, output, validation }),
+    [task, languages, platform, agentLabel, activeIds, tools, constraints, output, validation]
   );
 
   const toggleTool = (id) =>
@@ -113,6 +114,12 @@ export default function PromptBuilder() {
             <label htmlFor="builder-output" className="font-mono text-xs uppercase tracking-wider text-muted-c">Expected output <span className="text-muted-c normal-case">(optional)</span></label>
             <textarea id="builder-output" data-testid="builder-output-input" value={output} onChange={(e) => setOutput(e.target.value)} rows={3}
               placeholder="Plan first, then a unified diff" className={cn(inputCls, "mt-1.5 resize-y")} />
+          </div>
+
+          <div>
+            <label htmlFor="builder-validation" className="font-mono text-xs uppercase tracking-wider text-muted-c">Validation <span className="text-muted-c normal-case">(one check per line, optional)</span></label>
+            <textarea id="builder-validation" data-testid="builder-validation-input" value={validation} onChange={(e) => setValidation(e.target.value)} rows={3}
+              placeholder={"Does the change stay inside the provided context scope?\nIs this the smallest change that meets the objective?"} className={cn(inputCls, "mt-1.5 resize-y")} />
           </div>
         </div>
 
