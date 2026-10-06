@@ -111,7 +111,8 @@ export default function PromptBuilder() {
 
           <div>
             <label htmlFor="builder-output" className="font-mono text-xs uppercase tracking-wider text-muted-c">Expected output <span className="text-muted-c normal-case">(optional)</span></label>
-            <input id="builder-output" data-testid="builder-output-input" value={output} onChange={(e) => setOutput(e.target.value)} placeholder="Plan first, then a unified diff" className={cn(inputCls, "mt-1.5")} />
+            <textarea id="builder-output" data-testid="builder-output-input" value={output} onChange={(e) => setOutput(e.target.value)} rows={3}
+              placeholder="Plan first, then a unified diff" className={cn(inputCls, "mt-1.5 resize-y")} />
           </div>
         </div>
 
