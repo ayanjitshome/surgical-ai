@@ -1,8 +1,9 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useTools, useMeta } from "@/hooks/useData";
 import { platformIcon, stageIcon } from "@/lib/icons";
-import { Boxes, Compass, Network, ChevronRight, Layers, Cpu, Wand2, Sparkles } from "lucide-react";
+import { Boxes, Compass, Network, ChevronRight, Layers, Wand2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import logo from "@/assets/logo.png";
 
 const SectionLabel = ({ children }) => (
   <div className="px-3 pt-5 pb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-c">
@@ -24,9 +25,7 @@ export const Sidebar = ({ onClose }) => {
   return (
     <nav className="h-full flex flex-col surface-secondary border-r border-c" data-testid="sidebar">
       <div className="px-4 h-16 flex items-center gap-2.5 border-b border-c shrink-0">
-        <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#10B981" }}>
-          <Cpu className="w-5 h-5 text-black" />
-        </div>
+        <img src={logo} alt="Surgical AI Hub" className="w-9 h-9 object-contain shrink-0" data-testid="app-logo" />
         <div className="leading-tight">
           <div className="font-mono font-bold text-sm text-primary-c">Surgical AI Hub</div>
           <div className="font-mono text-[10px] text-muted-c tracking-wide">Optimising token usage</div>
