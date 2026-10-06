@@ -12,9 +12,9 @@ export default function Guidance() {
     <div className="max-w-4xl mx-auto px-5 sm:px-8 py-10 space-y-12 fade-up">
       {/* Adoption order */}
       <section data-testid="adoption-order-section">
-        <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: "#8B5CF6" }}>// opinionated sequence</div>
+        <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: "#8B5CF6" }}>{"// opinionated sequence"}</div>
         <h1 className="font-mono text-3xl font-bold text-primary-c flex items-center gap-2"><Layers className="w-7 h-7" style={{ color: "#8B5CF6" }} /> Recommended adoption order</h1>
-        <p className="text-secondary-c mt-2 max-w-2xl">Derived from the tools' dependency layers - Filesystem first, Agent Interface last. Each layer makes the next one cheaper and more accurate.</p>
+        <p className="text-secondary-c mt-2 max-w-2xl">Derived from the tools&apos; dependency layers - Filesystem first, Agent Interface last. Each layer makes the next one cheaper and more accurate.</p>
 
         <div className="relative mt-7 pl-6">
           <div className="absolute left-[11px] top-2 bottom-2 w-0.5" style={{ background: "var(--line-bright)" }} />

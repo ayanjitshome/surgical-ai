@@ -26,7 +26,7 @@ export default function PromptPlaybook() {
       {/* Intro */}
       <section>
         <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3 flex items-center gap-2" style={{ color: "#10B981" }}>
-          <Wand2 className="w-4 h-4" /> // prompt playbook
+          <Wand2 className="w-4 h-4" aria-hidden="true" /> {"// prompt playbook"}
         </div>
         <h1 className="font-mono text-3xl sm:text-4xl font-bold text-primary-c max-w-3xl">
           Write prompts that <span style={{ color: "#10B981" }}>let the tools do the work</span>.

@@ -615,7 +615,6 @@ def decision_recommendation(answers: dict):
     repo_size = answers.get("repo_size", "medium")
     languages = answers.get("languages", []) or []
     team_size = answers.get("team_size", "solo")
-    agent = answers.get("agent", "claude")
     cost = answers.get("cost_sensitivity", "medium")
 
     recommended = ["ponytail", "graft"]  # everyone starts with Ponytail (zero infra) + Graft

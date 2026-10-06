@@ -7,7 +7,7 @@ import logging
 import httpx
 from pathlib import Path
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any, Literal
+from typing import Any, Literal
 from datetime import datetime, timezone
 
 import seed_data
@@ -39,7 +39,7 @@ if ADMIN_TOKEN and ADMIN_TOKEN.strip().lower() in _WEAK_ADMIN_TOKENS:
 REFRESH_COOLDOWN_SECONDS = 15
 
 
-def require_admin(x_admin_token: Optional[str] = Header(default=None)):
+def require_admin(x_admin_token: str | None = Header(default=None)):
     if not ADMIN_TOKEN:
         raise HTTPException(status_code=503, detail="Admin endpoints are disabled (ADMIN_TOKEN not configured).")
     if not x_admin_token or x_admin_token != ADMIN_TOKEN:
@@ -50,7 +50,7 @@ def require_admin(x_admin_token: Optional[str] = Header(default=None)):
 # ---------- Models ----------
 class DecisionAnswers(BaseModel):
     repo_size: Literal["small", "medium", "large", "huge"] = "medium"
-    languages: List[str] = []
+    languages: list[str] = []
     team_size: Literal["solo", "small-team", "large-team"] = "solo"
     agent: Literal["claude", "copilot", "codex", "antigravity"] = "claude"
     cost_sensitivity: Literal["low", "medium", "high"] = "medium"
@@ -79,7 +79,7 @@ async def on_startup():
 
 
 # ---------- GitHub fetch ----------
-async def fetch_github_readme(owner: str, name: str) -> Optional[str]:
+async def fetch_github_readme(owner: str, name: str) -> str | None:
     """Fetch README markdown from a public repo, unauthenticated."""
     api_url = f"https://api.github.com/repos/{owner}/{name}/readme"
     headers = {"Accept": "application/vnd.github.raw+json", "User-Agent": "toolkit-hub"}
@@ -95,7 +95,7 @@ async def fetch_github_readme(owner: str, name: str) -> Optional[str]:
         return None
 
 
-def _clean(doc: Dict[str, Any]) -> Dict[str, Any]:
+def _clean(doc: dict[str, Any]) -> dict[str, Any]:
     doc.pop("_id", None)
     return doc
 

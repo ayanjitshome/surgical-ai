@@ -15,7 +15,7 @@ export default function StageView() {
   return (
     <div className="max-w-4xl mx-auto px-5 sm:px-8 py-10 fade-up" data-testid={`stage-view-${id}`}>
       <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-c hover:text-primary-c mb-5"><ArrowLeft className="w-4 h-4" /> Ecosystem Hub</Link>
-      <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: "#8B5CF6" }}>// workflow stage {stage?.order}</div>
+      <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: "#8B5CF6" }}>{"// workflow stage "}{stage?.order}</div>
       <h1 className="font-mono text-3xl font-bold text-primary-c flex items-center gap-3"><Icon className="w-8 h-8" style={{ color: "#8B5CF6" }} /> {stage?.name || id}</h1>
       <p className="text-secondary-c mt-2 max-w-2xl">{stage?.description}</p>
 

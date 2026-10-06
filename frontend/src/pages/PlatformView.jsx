@@ -1,7 +1,7 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useTools, useMeta } from "@/hooks/useData";
 import { platformIcon } from "@/lib/icons";
-import { ArrowLeft, ArrowRight, Settings2 } from "lucide-react";
+import { ArrowLeft, Settings2 } from "lucide-react";
 
 export default function PlatformView() {
   const { id } = useParams();
@@ -14,7 +14,7 @@ export default function PlatformView() {
   return (
     <div className="max-w-4xl mx-auto px-5 sm:px-8 py-10 fade-up" data-testid={`platform-view-${id}`}>
       <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-c hover:text-primary-c mb-5"><ArrowLeft className="w-4 h-4" /> Ecosystem Hub</Link>
-      <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: "#10B981" }}>// platform guide</div>
+      <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: "#10B981" }}>{"// platform guide"}</div>
       <h1 className="font-mono text-3xl font-bold text-primary-c flex items-center gap-3"><Icon className="w-8 h-8" style={{ color: "#10B981" }} /> {platform?.name || id}</h1>
       <p className="text-secondary-c mt-2">Platform-specific notes for every tool on {platform?.name || id}.</p>
 

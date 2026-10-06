@@ -31,7 +31,7 @@ export default function Wizard() {
         <Link to={`/tools/${tool.id}`} className="inline-flex items-center gap-1.5 text-sm text-muted-c hover:text-primary-c mb-6">
           <ArrowLeft className="w-4 h-4" /> {tool.name}
         </Link>
-        <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: tool.color }}>// guided setup</div>
+        <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: tool.color }}>{"// guided setup"}</div>
         <h1 className="font-mono text-3xl font-bold text-primary-c">Set up {tool.name}</h1>
         <p className="text-secondary-c mt-2">First, where are you running VSCode? Commands and troubleshooting adapt to your platform.</p>
         <div className="grid sm:grid-cols-3 gap-3 mt-7">

@@ -8,7 +8,11 @@ export const ToolNode = memo(({ data, selected }) => {
   return (
     <div
       data-testid={`ecosystem-node-${data.id}`}
+      role="button"
+      tabIndex={0}
+      aria-label={`${name}: ${tagline}`}
       onClick={onOpen}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(); } }}
       className="rounded-xl border-2 cursor-pointer transition-all duration-200 w-[210px]"
       style={{
         background: p.card,

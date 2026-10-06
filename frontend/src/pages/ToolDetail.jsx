@@ -99,7 +99,7 @@ export default function ToolDetail() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mt-6 border-b border-c overflow-x-auto" role="tablist" aria-label="Tool information" onKeyDown={onTabKey}>
+      <div className="flex gap-1 mt-6 border-b border-c overflow-x-auto" role="tablist" aria-label="Tool information">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -111,6 +111,7 @@ export default function ToolDetail() {
             tabIndex={tab === t.id ? 0 : -1}
             data-testid={`tool-tab-${t.id}`}
             onClick={() => setTab(t.id)}
+            onKeyDown={onTabKey}
             className={cn(
               "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors",
               tab === t.id ? "text-primary-c" : "text-muted-c hover:text-secondary-c border-transparent"

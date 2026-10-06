@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useTools, useMeta } from "@/hooks/useData";
 import { platformIcon, stageIcon } from "@/lib/icons";
-import { Boxes, Compass, Network, ChevronRight, Layers, Wand2, Sparkles } from "lucide-react";
+import { Boxes, Compass, Network, ChevronRight, Wand2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
 

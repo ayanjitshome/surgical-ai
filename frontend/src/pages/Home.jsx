@@ -4,7 +4,6 @@ import { useEcosystem, useTools } from "@/hooks/useData";
 import { EcosystemMap } from "@/components/ecosystem/EcosystemMap";
 import { stageIcon } from "@/lib/icons";
 import { X, ArrowRight, BookOpen, Settings2, Compass, Layers, Zap, TrendingDown, Wand2, Info } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 const StageLegend = ({ stages }) => (
   <div className="flex flex-wrap gap-2">
@@ -86,7 +85,7 @@ export default function Home() {
     <div className="min-h-full">
       <section className="px-5 sm:px-8 pt-10 pb-6 max-w-6xl mx-auto fade-up">
         <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-4" style={{ color: "#10B981" }}>
-          // internal knowledge product
+          {"// internal knowledge product"}
         </div>
         <h1 className="font-mono text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-primary-c max-w-3xl">
           Orchestrate seven tools to <span style={{ color: "#10B981" }}>starve token waste</span> out of your AI agents.
@@ -109,7 +108,7 @@ export default function Home() {
         <div className="mt-6 flex items-start gap-3 rounded-xl border p-4 max-w-3xl" style={{ borderColor: "rgba(245,158,11,0.4)", background: "rgba(245,158,11,0.08)" }} data-testid="evolving-landscape-note">
           <Info className="w-5 h-5 mt-0.5 shrink-0" style={{ color: "#F59E0B" }} />
           <p className="text-sm text-secondary-c leading-relaxed">
-            <span className="font-semibold text-primary-c">A note on the fast-moving landscape:</span> the tools featured here reflect today's best-in-class stack. AI tooling evolves extremely fast, so expect some of these to change, merge, or be replaced over time. Treat the structure and principles as the durable part, and revalidate the specific tools before you commit to them.
+            <span className="font-semibold text-primary-c">A note on the fast-moving landscape:</span> the tools featured here reflect today&apos;s best-in-class stack. AI tooling evolves extremely fast, so expect some of these to change, merge, or be replaced over time. Treat the structure and principles as the durable part, and revalidate the specific tools before you commit to them.
           </p>
         </div>
       </section>

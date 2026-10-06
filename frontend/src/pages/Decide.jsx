@@ -86,7 +86,7 @@ export default function Decide() {
   if (result) {
     return (
       <div className="max-w-3xl mx-auto px-5 sm:px-8 py-10 fade-up" data-testid="decision-result">
-        <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: "#10B981" }}>// your recommended stack</div>
+        <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: "#10B981" }}>{"// your recommended stack"}</div>
         <div className="rounded-2xl border border-bright-c surface-secondary p-6 relative overflow-hidden">
           <div className="flex items-center gap-4 flex-wrap">
             <div className="w-16 h-16 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(16,185,129,0.15)" }}>

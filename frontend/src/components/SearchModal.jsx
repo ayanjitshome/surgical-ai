@@ -124,7 +124,7 @@ export const SearchModal = ({ open, onClose }) => {
         </div>
         <div className="max-h-[52vh] overflow-y-auto p-2" role="listbox" aria-label="Search results">
           {results.length === 0 && (
-            <div className="px-3 py-8 text-center text-muted-c text-sm">No matches for "{q}"</div>
+            <div className="px-3 py-8 text-center text-muted-c text-sm">{`No matches for "${q}"`}</div>
           )}
           {results.map((r, i) => (
             <button

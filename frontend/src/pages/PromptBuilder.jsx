@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { useTools, useMeta } from "@/hooks/useData";
 import { CodeBlock } from "@/components/CodeBlock";
 import { platformIcon } from "@/lib/icons";
-import { TOOL_DIRECTIVES, AGENTS, buildPrompt } from "@/lib/promptData";
-import { Sparkles, ArrowLeft, BookMarked } from "lucide-react";
+import { AGENTS, buildPrompt } from "@/lib/promptData";
+import { Sparkles, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function PromptBuilder() {
@@ -42,7 +42,7 @@ export default function PromptBuilder() {
       </Link>
 
       <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3 flex items-center gap-2" style={{ color: "#F59E0B" }}>
-        <Sparkles className="w-4 h-4" /> // prompt builder
+        <Sparkles className="w-4 h-4" aria-hidden="true" /> {"// prompt builder"}
       </div>
       <h1 className="font-mono text-3xl sm:text-4xl font-bold text-primary-c">Build your prompt</h1>
       <p className="text-secondary-c mt-2 max-w-2xl">Fill these in and the structured, copy-ready prompt updates live. Need a refresher on the structure? See the <Link to="/prompt" className="underline" style={{ color: "#F59E0B" }}>Prompt Playbook</Link>.</p>

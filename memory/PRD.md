@@ -55,3 +55,14 @@ Accessibility (WCAG 2.2 AA, all applied):
 - ToolDetail tabs use ARIA tab pattern (tablist/tab/tabpanel + arrow/Home/End keys).
 - Decide progress bar role=progressbar; options aria-pressed.
 Verified: backend restart + curl (tools 200, admin refresh/reseed 401 without token), frontend compiles, home smoke screenshot. User to self-verify in browser.
+
+## 2026-06 - Code quality (SonarQube-equivalent static analysis)
+Tooling used (no Sonar server in env): ESLint v9 (react/react-hooks/jsx-a11y), Ruff, Flake8.
+Backend (ruff real-smell set F,B,C90,SIM,UP,RUF,E7xx now fully clean):
+- Removed unused local var `agent` in seed_data.decision_recommendation (F841 reliability smell).
+- Modernized deprecated typing in server.py: List/Dict/Optional -> list/dict/X | None.
+Frontend (ESLint 0 errors on src, ui/ excluded as vendored):
+- Removed 5 unused imports (Sidebar Layers, Home cn, PlatformView ArrowRight, PromptBuilder TOOL_DIRECTIVES+BookMarked) and 1 unused vendor const (use-toast actionTypes) - S1128/S1481.
+- a11y: ecosystem ToolNode now keyboard-operable (role=button, tabIndex, Enter/Space); ToolDetail tab keyboard handler moved from tablist to tabs (interactive-supports-focus).
+- Fixed react/no-unescaped-entities (apostrophes/quotes) and react/jsx-no-comment-textnodes (wrapped "// ..." labels in braces).
+Not changed: E501 long-line warnings remain only on seed_data.py content/data string literals (intentional data; not reflowed to avoid altering content). Verified: linters clean, frontend compiles, /api/tools 200, decision engine + 7-node ecosystem intact, Prompt Builder smoke screenshot clean.
