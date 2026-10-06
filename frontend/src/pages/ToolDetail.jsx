@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ReactMarkdown from "react-markdown";
@@ -24,6 +24,21 @@ export default function ToolDetail() {
   const qc = useQueryClient();
   const [tab, setTab] = useState("what");
   const [activePlatform, setActivePlatform] = useState("mac");
+  const tabRefs = useRef({});
+
+  const onTabKey = (e) => {
+    const i = TABS.findIndex((t) => t.id === tab);
+    let ni = null;
+    if (e.key === "ArrowRight") ni = (i + 1) % TABS.length;
+    else if (e.key === "ArrowLeft") ni = (i - 1 + TABS.length) % TABS.length;
+    else if (e.key === "Home") ni = 0;
+    else if (e.key === "End") ni = TABS.length - 1;
+    if (ni === null) return;
+    e.preventDefault();
+    const id = TABS[ni].id;
+    setTab(id);
+    tabRefs.current[id]?.focus();
+  };
 
   const { data: tool, isLoading } = useQuery({ queryKey: ["tool", id], queryFn: () => getTool(id) });
 
@@ -84,10 +99,16 @@ export default function ToolDetail() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mt-6 border-b border-c overflow-x-auto">
+      <div className="flex gap-1 mt-6 border-b border-c overflow-x-auto" role="tablist" aria-label="Tool information" onKeyDown={onTabKey}>
         {TABS.map((t) => (
           <button
             key={t.id}
+            ref={(el) => (tabRefs.current[t.id] = el)}
+            id={`tab-${t.id}`}
+            role="tab"
+            aria-selected={tab === t.id}
+            aria-controls={`panel-${t.id}`}
+            tabIndex={tab === t.id ? 0 : -1}
             data-testid={`tool-tab-${t.id}`}
             onClick={() => setTab(t.id)}
             className={cn(
@@ -96,16 +117,16 @@ export default function ToolDetail() {
             )}
             style={tab === t.id ? { borderColor: tool.color } : {}}
           >
-            <t.icon className="w-4 h-4" /> {t.label}
+            <t.icon className="w-4 h-4" aria-hidden="true" /> {t.label}
           </button>
         ))}
       </div>
 
       <div className="py-6">
-        {tab === "what" && <div className="md-content" data-testid="tab-content-what"><ReactMarkdown>{tool.overview}</ReactMarkdown></div>}
-        {tab === "mechanics" && <div className="md-content" data-testid="tab-content-mechanics"><ReactMarkdown>{tool.mechanics}</ReactMarkdown></div>}
+        {tab === "what" && <div className="md-content" role="tabpanel" id="panel-what" aria-labelledby="tab-what" tabIndex={0} data-testid="tab-content-what"><ReactMarkdown>{tool.overview}</ReactMarkdown></div>}
+        {tab === "mechanics" && <div className="md-content" role="tabpanel" id="panel-mechanics" aria-labelledby="tab-mechanics" tabIndex={0} data-testid="tab-content-mechanics"><ReactMarkdown>{tool.mechanics}</ReactMarkdown></div>}
         {tab === "adoption" && (
-          <div data-testid="tab-content-adoption">
+          <div role="tabpanel" id="panel-adoption" aria-labelledby="tab-adoption" tabIndex={0} data-testid="tab-content-adoption">
             <div className="surface-card border-l-4 rounded-r-lg p-4" style={{ borderColor: tool.color }}>
               <div className="font-mono text-xs uppercase tracking-wider text-muted-c mb-2">Opinionated placement</div>
               <div className="md-content"><ReactMarkdown>{tool.adoption_note}</ReactMarkdown></div>
@@ -116,7 +137,7 @@ export default function ToolDetail() {
           </div>
         )}
         {tab === "platform" && (
-          <div data-testid="tab-content-platform">
+          <div role="tabpanel" id="panel-platform" aria-labelledby="tab-platform" tabIndex={0} data-testid="tab-content-platform">
             <div className="flex flex-wrap gap-2 mb-4">
               {platformIds.map((pid) => {
                 const Icon = platformIcon(pid);
@@ -137,7 +158,7 @@ export default function ToolDetail() {
           </div>
         )}
         {tab === "readme" && (
-          <div data-testid="tab-content-readme">
+          <div role="tabpanel" id="panel-readme" aria-labelledby="tab-readme" tabIndex={0} data-testid="tab-content-readme">
             <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
               <div className="text-sm text-muted-c font-mono">
                 {tool.github_fetched_at ? `Cached ${new Date(tool.github_fetched_at).toLocaleString()}` : "Not yet fetched from GitHub"}

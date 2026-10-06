@@ -23,7 +23,7 @@ export const Sidebar = ({ onClose }) => {
     "flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors font-medium";
 
   return (
-    <nav className="h-full flex flex-col surface-secondary border-r border-c" data-testid="sidebar">
+    <nav className="h-full flex flex-col surface-secondary border-r border-c" aria-label="Primary navigation" data-testid="sidebar">
       <div className="px-4 h-16 flex items-center gap-2.5 border-b border-c shrink-0">
         <img src={logo} alt="Surgical AI Hub" className="w-9 h-9 object-contain shrink-0" data-testid="app-logo" />
         <div className="leading-tight">

@@ -132,7 +132,7 @@ export const EcosystemMap = ({ data, onSelect, selectedId }) => {
       >
         <Background color={palette.border} gap={28} size={1.5} />
         <Controls showInteractive={false} showFitView={false}>
-          <ControlButton onClick={toggleFullscreen} title={isFullscreen ? "Exit full screen" : "Full screen"} data-testid="ecosystem-fullscreen-button">
+          <ControlButton onClick={toggleFullscreen} aria-label={isFullscreen ? "Exit full screen" : "Full screen"} title={isFullscreen ? "Exit full screen" : "Full screen"} data-testid="ecosystem-fullscreen-button">
             {isFullscreen
               ? <Minimize2 size={14} color={palette.textSecondary} />
               : <Maximize2 size={14} color={palette.textSecondary} />}

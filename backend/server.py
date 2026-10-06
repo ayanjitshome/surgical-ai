@@ -30,6 +30,11 @@ logger = logging.getLogger(__name__)
 # Maintenance endpoints (bulk refresh / reseed) require this token via the
 # X-Admin-Token header. If unset, those endpoints are disabled (secure default).
 ADMIN_TOKEN = os.environ.get('ADMIN_TOKEN')
+# Reject well-known placeholder tokens so a default-config deploy can't be abused (SEC-001).
+_WEAK_ADMIN_TOKENS = {"change-me-in-production", "change-me", "changeme", "admin", "secret", "password", "token"}
+if ADMIN_TOKEN and ADMIN_TOKEN.strip().lower() in _WEAK_ADMIN_TOKENS:
+    logger.warning("ADMIN_TOKEN is a known placeholder value; disabling admin endpoints until a strong token is set.")
+    ADMIN_TOKEN = None
 # Minimum seconds between per-tool GitHub refreshes (bounds outbound-call abuse).
 REFRESH_COOLDOWN_SECONDS = 15
 

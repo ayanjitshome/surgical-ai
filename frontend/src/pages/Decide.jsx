@@ -150,18 +150,18 @@ export default function Decide() {
         <span className="font-mono text-xs text-muted-c">{step + 1} / {QUESTIONS.length}</span>
       </div>
 
-      <div className="h-1 rounded-full surface-card mb-8 overflow-hidden">
-        <div className="h-full rounded-full transition-all duration-300" style={{ width: `${((step + 1) / QUESTIONS.length) * 100}%`, background: "#06B6D4" }} />
+      <div className="h-1 rounded-full surface-card mb-8 overflow-hidden" role="progressbar" aria-valuemin={1} aria-valuemax={QUESTIONS.length} aria-valuenow={step + 1} aria-valuetext={`Question ${step + 1} of ${QUESTIONS.length}`}>
+        <div className="h-full rounded-full transition-all duration-300" style={{ width: `${((step + 1) / QUESTIONS.length) * 100}%`, background: "#06B6D4" }} aria-hidden="true" />
       </div>
 
       <h1 className="font-mono text-2xl sm:text-3xl font-bold text-primary-c mb-1.5">{q.label}</h1>
       <p className="text-sm text-muted-c mb-6">{q.type === "multi" ? "Select all that apply." : "Pick one."}</p>
 
-      <div className={cn("grid gap-3", q.type === "multi" ? "grid-cols-2 sm:grid-cols-3" : "sm:grid-cols-2")}>
+      <div className={cn("grid gap-3", q.type === "multi" ? "grid-cols-2 sm:grid-cols-3" : "sm:grid-cols-2")} role="group" aria-label={q.label}>
         {q.options.map((opt) => {
           const active = q.type === "multi" ? value.includes(opt.v) : value === opt.v;
           return (
-            <button key={opt.v} data-testid={`decision-option-${q.key}-${opt.v}`} onClick={() => select(opt.v)}
+            <button key={opt.v} data-testid={`decision-option-${q.key}-${opt.v}`} onClick={() => select(opt.v)} aria-pressed={active}
               className={cn("text-left surface-card border rounded-xl p-4 transition-all relative", active ? "border-bright-c" : "border-c hover:border-bright-c")}
               style={active ? { borderColor: "#06B6D4", boxShadow: "0 0 16px rgba(6,182,212,0.2)" } : {}}>
               {active && <Check className="w-4 h-4 absolute top-3 right-3" style={{ color: "#06B6D4" }} />}

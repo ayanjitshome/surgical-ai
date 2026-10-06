@@ -51,18 +51,18 @@ export default function PromptBuilder() {
         {/* Inputs */}
         <div className="space-y-4">
           <div>
-            <label className="font-mono text-xs uppercase tracking-wider text-muted-c">Task / objective</label>
-            <textarea data-testid="builder-task-input" value={task} onChange={(e) => setTask(e.target.value)} rows={3}
+            <label htmlFor="builder-task" className="font-mono text-xs uppercase tracking-wider text-muted-c">Task / objective</label>
+            <textarea id="builder-task" data-testid="builder-task-input" value={task} onChange={(e) => setTask(e.target.value)} rows={3}
               placeholder="e.g. Add rate-limiting to the public /api/search endpoint" className={cn(inputCls, "mt-1.5 resize-y")} />
           </div>
 
           <div>
-            <label className="font-mono text-xs uppercase tracking-wider text-muted-c">Active context tools</label>
-            <div className="grid grid-cols-2 gap-2 mt-1.5">
+            <span id="builder-tools-label" className="font-mono text-xs uppercase tracking-wider text-muted-c">Active context tools</span>
+            <div className="grid grid-cols-2 gap-2 mt-1.5" role="group" aria-labelledby="builder-tools-label">
               {tools.map((t) => {
                 const on = activeIds.includes(t.id);
                 return (
-                  <button key={t.id} data-testid={`builder-tool-${t.id}`} onClick={() => toggleTool(t.id)}
+                  <button key={t.id} data-testid={`builder-tool-${t.id}`} onClick={() => toggleTool(t.id)} aria-pressed={on}
                     className={cn("flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-colors", on ? "text-primary-c" : "text-muted-c border-c hover:text-secondary-c")}
                     style={on ? { borderColor: t.color, background: `${t.color}14` } : {}}>
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ background: on ? t.color : "var(--text-muted)" }} />
@@ -75,25 +75,25 @@ export default function PromptBuilder() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="font-mono text-xs uppercase tracking-wider text-muted-c">Language(s)</label>
-              <input data-testid="builder-languages-input" value={languages} onChange={(e) => setLanguages(e.target.value)} placeholder="TypeScript, Python" className={cn(inputCls, "mt-1.5")} />
+              <label htmlFor="builder-languages" className="font-mono text-xs uppercase tracking-wider text-muted-c">Language(s)</label>
+              <input id="builder-languages" data-testid="builder-languages-input" value={languages} onChange={(e) => setLanguages(e.target.value)} placeholder="TypeScript, Python" className={cn(inputCls, "mt-1.5")} />
             </div>
             <div>
-              <label className="font-mono text-xs uppercase tracking-wider text-muted-c">AI agent</label>
-              <select data-testid="builder-agent-select" value={agent} onChange={(e) => setAgent(e.target.value)} className={cn(inputCls, "mt-1.5")}>
+              <label htmlFor="builder-agent" className="font-mono text-xs uppercase tracking-wider text-muted-c">AI agent</label>
+              <select id="builder-agent" data-testid="builder-agent-select" value={agent} onChange={(e) => setAgent(e.target.value)} className={cn(inputCls, "mt-1.5")}>
                 {AGENTS.map((a) => <option key={a.v} value={a.v}>{a.l}</option>)}
               </select>
             </div>
           </div>
 
           <div>
-            <label className="font-mono text-xs uppercase tracking-wider text-muted-c">Platform</label>
-            <div className="flex flex-wrap gap-2 mt-1.5">
+            <span id="builder-platform-label" className="font-mono text-xs uppercase tracking-wider text-muted-c">Platform</span>
+            <div className="flex flex-wrap gap-2 mt-1.5" role="group" aria-labelledby="builder-platform-label">
               {platforms.map((p) => {
                 const Icon = platformIcon(p.id);
                 const on = platform === p.name;
                 return (
-                  <button key={p.id} data-testid={`builder-platform-${p.id}`} onClick={() => setPlatform(p.name)}
+                  <button key={p.id} data-testid={`builder-platform-${p.id}`} onClick={() => setPlatform(p.name)} aria-pressed={on}
                     className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors", on ? "text-primary-c" : "text-muted-c border-c hover:text-secondary-c")}
                     style={on ? { borderColor: "#10B981", background: "rgba(16,185,129,0.12)" } : {}}>
                     <Icon className="w-3.5 h-3.5" /> {p.name}
@@ -104,14 +104,14 @@ export default function PromptBuilder() {
           </div>
 
           <div>
-            <label className="font-mono text-xs uppercase tracking-wider text-muted-c">Constraints <span className="text-muted-c normal-case">(one per line, optional)</span></label>
-            <textarea data-testid="builder-constraints-input" value={constraints} onChange={(e) => setConstraints(e.target.value)} rows={2}
+            <label htmlFor="builder-constraints" className="font-mono text-xs uppercase tracking-wider text-muted-c">Constraints <span className="text-muted-c normal-case">(one per line, optional)</span></label>
+            <textarea id="builder-constraints" data-testid="builder-constraints-input" value={constraints} onChange={(e) => setConstraints(e.target.value)} rows={2}
               placeholder={"Don't touch the auth module\nKeep public API backwards-compatible"} className={cn(inputCls, "mt-1.5 resize-y")} />
           </div>
 
           <div>
-            <label className="font-mono text-xs uppercase tracking-wider text-muted-c">Expected output <span className="text-muted-c normal-case">(optional)</span></label>
-            <input data-testid="builder-output-input" value={output} onChange={(e) => setOutput(e.target.value)} placeholder="Plan first, then a unified diff" className={cn(inputCls, "mt-1.5")} />
+            <label htmlFor="builder-output" className="font-mono text-xs uppercase tracking-wider text-muted-c">Expected output <span className="text-muted-c normal-case">(optional)</span></label>
+            <input id="builder-output" data-testid="builder-output-input" value={output} onChange={(e) => setOutput(e.target.value)} placeholder="Plan first, then a unified diff" className={cn(inputCls, "mt-1.5")} />
           </div>
         </div>
 

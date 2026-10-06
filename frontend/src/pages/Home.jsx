@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEcosystem, useTools } from "@/hooks/useData";
 import { EcosystemMap } from "@/components/ecosystem/EcosystemMap";
@@ -24,15 +24,20 @@ const StageLegend = ({ stages }) => (
 
 const NodeDrawer = ({ tool, onClose }) => {
   const navigate = useNavigate();
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   if (!tool) return null;
   return (
-    <div className="absolute top-0 right-0 bottom-0 w-full sm:w-[380px] surface-secondary border-l border-bright-c z-20 flex flex-col fade-up" data-testid="ecosystem-node-drawer">
+    <div className="absolute top-0 right-0 bottom-0 w-full sm:w-[380px] surface-secondary border-l border-bright-c z-20 flex flex-col fade-up" role="dialog" aria-label={`${tool.name} details`} data-testid="ecosystem-node-drawer">
       <div className="p-5 border-b border-c">
         <div className="flex items-start justify-between">
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] px-2.5 py-1 rounded-full border" style={{ color: tool.color, borderColor: `${tool.color}66` }}>
             {tool.layer_name}
           </span>
-          <button onClick={onClose} data-testid="close-node-drawer" className="p-1 text-muted-c hover:text-primary-c"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} data-testid="close-node-drawer" aria-label="Close details" className="p-1 text-muted-c hover:text-primary-c"><X className="w-5 h-5" aria-hidden="true" /></button>
         </div>
         <h3 className="font-mono text-2xl font-bold text-primary-c mt-3">{tool.name}</h3>
         <p className="text-sm text-secondary-c mt-1">{tool.tagline}</p>
