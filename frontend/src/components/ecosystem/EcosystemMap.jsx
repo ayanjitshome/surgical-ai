@@ -9,7 +9,7 @@ import { useTheme } from "@/context/ThemeContext";
 
 const nodeTypes = { tool: ToolNode };
 
-const LAYERS = ["filesystem", "context-governor", "structural-graph", "agent-interface"];
+const LAYERS = ["filesystem", "context-governor", "structural-graph", "output-governor", "agent-interface"];
 
 const PALETTES = {
   dark: {

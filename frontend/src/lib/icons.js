@@ -1,4 +1,4 @@
-import { Laptop, MonitorDot, TerminalSquare, Box, Server, ShieldCheck, Folder, Scale, GitBranch, Gauge } from "lucide-react";
+import { Laptop, MonitorDot, TerminalSquare, Box, Server, ShieldCheck, Folder, Scale, GitBranch, Gauge, Scissors } from "lucide-react";
 
 export const platformIcon = (id) => {
   const map = {
@@ -17,6 +17,7 @@ export const stageIcon = (id) => {
     filesystem: Folder,
     "context-governor": Scale,
     "structural-graph": GitBranch,
+    "output-governor": Scissors,
     "agent-interface": Gauge,
   };
   return map[id] || Folder;

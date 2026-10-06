@@ -32,7 +32,7 @@ export default function PromptPlaybook() {
           Write prompts that <span style={{ color: "#10B981" }}>let the tools do the work</span>.
         </h1>
         <p className="text-secondary-c mt-3 max-w-2xl leading-relaxed">
-          Your six tools only save tokens if the agent is told to use them. A context-aware prompt names what each tool already provides and forbids the agent from brute-forcing the repo. Below is the anatomy, then jump into the builder to generate your own.
+          Your tools only save tokens if the agent is told to use them. A context-aware prompt names what each tool already provides and forbids the agent from brute-forcing the repo. Below is the anatomy, then jump into the builder to generate your own.
         </p>
         <Link to="/prompt/builder" data-testid="playbook-open-builder-button" className="inline-flex items-center gap-2 mt-5 px-5 py-3 rounded-md font-semibold text-black transition-transform hover:scale-[1.03]" style={{ background: "#F59E0B" }}>
           <Sparkles className="w-4.5 h-4.5" /> Open the Prompt Builder <ArrowRight className="w-4 h-4" />

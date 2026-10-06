@@ -84,10 +84,10 @@ export default function Home() {
           // internal knowledge product
         </div>
         <h1 className="font-mono text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-primary-c max-w-3xl">
-          Orchestrate six tools to <span style={{ color: "#10B981" }}>starve token waste</span> out of your AI agents.
+          Orchestrate seven tools to <span style={{ color: "#10B981" }}>starve token waste</span> out of your AI agents.
         </h1>
         <p className="text-base text-secondary-c mt-4 max-w-2xl leading-relaxed">
-          Opinionated setup & orchestration guidance for Graft, Serena, Graphify, Codebase Memory, Archify and Agentsview - tuned for VSCode agents across Mac, Windows, WSL, containers, remote SSH and locked-down corporate machines.
+          Opinionated setup & orchestration guidance for Ponytail, Graft, Serena, Graphify, Codebase Memory, Archify and Agentsview - tuned for VSCode agents across Mac, Windows, WSL, containers, remote SSH and locked-down corporate machines.
         </p>
         <div className="flex flex-wrap items-center gap-3 mt-6">
           <button onClick={() => navigate("/decide")} data-testid="hero-get-started-button" className="flex items-center gap-2 px-5 py-3 rounded-md font-semibold text-black transition-transform hover:scale-[1.03]" style={{ background: "#10B981" }}>
@@ -104,7 +104,7 @@ export default function Home() {
         <div className="mt-6 flex items-start gap-3 rounded-xl border p-4 max-w-3xl" style={{ borderColor: "rgba(245,158,11,0.4)", background: "rgba(245,158,11,0.08)" }} data-testid="evolving-landscape-note">
           <Info className="w-5 h-5 mt-0.5 shrink-0" style={{ color: "#F59E0B" }} />
           <p className="text-sm text-secondary-c leading-relaxed">
-            <span className="font-semibold text-primary-c">A note on the fast-moving landscape:</span> the six tools featured here reflect today's best-in-class stack. AI tooling evolves extremely fast, so expect some of these to change, merge, or be replaced over time. Treat the structure and principles as the durable part, and revalidate the specific tools before you commit to them.
+            <span className="font-semibold text-primary-c">A note on the fast-moving landscape:</span> the tools featured here reflect today's best-in-class stack. AI tooling evolves extremely fast, so expect some of these to change, merge, or be replaced over time. Treat the structure and principles as the durable part, and revalidate the specific tools before you commit to them.
           </p>
         </div>
       </section>
@@ -126,7 +126,7 @@ export default function Home() {
       </section>
 
       <section className="px-5 sm:px-8 max-w-6xl mx-auto py-10">
-        <h2 className="font-mono text-lg font-bold text-primary-c mb-4">All six tools</h2>
+        <h2 className="font-mono text-lg font-bold text-primary-c mb-4">All seven tools</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {tools.map((t, i) => (
             <button

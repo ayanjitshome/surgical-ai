@@ -7,6 +7,7 @@ export const TOOL_DIRECTIVES = {
   graphify: "Resolve \"where is X defined / used\" through the structural graph (symbols, call edges, imports), never full-text grep or read many files to find them.",
   "codebase-memory": "Consult persistent memory for existing conventions and prior decisions before asking. Record any new architectural decision you make so future sessions inherit it.",
   archify: "Obey the injected architectural invariants and layering rules. Every proposed change must pass `archify check`, do not introduce cross-layer imports.",
+  ponytail: "Write the minimum code that solves the task: reuse what already exists, prefer stdlib and native platform features, and avoid new dependencies, wrappers and abstractions. One line beats a class. Never cut validation, security, error handling or accessibility.",
   agentsview: "This session's token usage is measured. Prefer the smallest sufficient context, avoid restating the obvious, and flag any step that would blow the budget.",
 };
 

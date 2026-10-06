@@ -2,7 +2,7 @@
 
 ![Surgical AI](/assets/surgical-ai.png)
 
-An internal knowledge-product SPA that gives opinionated guidance on setting up and orchestrating six developer tools - **Graft, Serena, Graphify, Codebase Memory, Archify, Agentsview** - to reduce AI-agent token waste in VSCode.
+An internal knowledge-product SPA that gives opinionated guidance on setting up and orchestrating seven developer tools - **Ponytail, Graft, Serena, Graphify, Codebase Memory, Archify, Agentsview** - to reduce AI-agent token waste in VSCode.
 
 - **Knowledge Base** - per-tool deep-dive pages (what, why, token mechanics, adoption order, platform notes, cached GitHub README)
 - **Guided Setup Wizard** - platform-aware, step-by-step, with copy-paste commands, validation checkpoints and troubleshooting
@@ -196,7 +196,7 @@ yarn start
 - Frontend: **http://localhost:3000**
 - Backend API: **http://localhost:8001/api**
 
-On first boot the backend **auto-seeds** all six tools into MongoDB - no manual seed step needed.
+On first boot the backend **auto-seeds** all seven tools into MongoDB - no manual seed step needed.
 
 ---
 
@@ -206,7 +206,7 @@ On first boot the backend **auto-seeds** all six tools into MongoDB - no manual 
 | Method | Path                      | Purpose                                    |
 | -------- | --------------------------- | -------------------------------------------- |
 | GET    | `/api/meta`               | Platforms, workflow stages, adoption order |
-| GET    | `/api/tools`              | All six tools (adoption order)             |
+| GET    | `/api/tools`              | All seven tools (adoption order)           |
 | GET    | `/api/tools/{id}`         | Full tool detail                           |
 | GET    | `/api/ecosystem`          | Nodes + edges for the dependency map       |
 | POST   | `/api/decision`           | Rule-based stack recommendation            |

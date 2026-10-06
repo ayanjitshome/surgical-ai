@@ -1,4 +1,4 @@
-"""Curated, opinionated seed content for the six Surgical AI tools.
+"""Curated, opinionated seed content for the Surgical AI tools.
 
 This is the source of truth for tool metadata, deep-dive content, platform
 notes, guided setup steps, validation checkpoints and troubleshooting. GitHub
@@ -21,12 +21,14 @@ WORKFLOW_STAGES = [
      "description": "Budgets, throttles and enforces what enters the prompt window."},
     {"id": "structural-graph", "name": "Structural Graph", "order": 3,
      "description": "Maps code structure and persistent repo memory."},
-    {"id": "agent-interface", "name": "Agent Interface", "order": 4,
+    {"id": "output-governor", "name": "Output Governor", "order": 4,
+     "description": "Governs what the agent actually writes, enforcing minimalism so less code is generated."},
+    {"id": "agent-interface", "name": "Agent Interface", "order": 5,
      "description": "Surfaces everything inside the VSCode agent experience."},
 ]
 
-# Adoption order derived from dependency layers (Filesystem -> Agent Interface)
-ADOPTION_ORDER = ["graft", "serena", "graphify", "codebase-memory", "archify", "agentsview"]
+# Adoption order derived from dependency layers (Ponytail first: zero-infra behavioral win)
+ADOPTION_ORDER = ["ponytail", "graft", "serena", "graphify", "codebase-memory", "archify", "agentsview"]
 
 ECOSYSTEM_EDGES = [
     {"id": "e-graft-serena", "source": "graft", "target": "serena",
@@ -35,6 +37,10 @@ ECOSYSTEM_EDGES = [
      "label": "scoped files to parse"},
     {"id": "e-serena-archify", "source": "serena", "target": "archify",
      "label": "budgeted window"},
+    {"id": "e-serena-ponytail", "source": "serena", "target": "ponytail",
+     "label": "budgeted window"},
+    {"id": "e-ponytail-agentsview", "source": "ponytail", "target": "agentsview",
+     "label": "leaner diffs"},
     {"id": "e-graphify-codebase-memory", "source": "graphify", "target": "codebase-memory",
      "label": "symbol graph"},
     {"id": "e-graphify-archify", "source": "graphify", "target": "archify",
@@ -448,7 +454,7 @@ graph: http://localhost:7803""",
         "name": "Agentsview",
         "layer": "agent-interface",
         "layer_name": "Agent Interface",
-        "layer_order": 4,
+        "layer_order": 5,
         "tagline": "VSCode sidebar & real-time token analytics",
         "token_waste_reduction": "15-20%",
         "color": "#3B82F6",
@@ -520,6 +526,84 @@ You can't optimize what you can't see. Agentsview turns token cost from an opaqu
             },
         ],
     },
+    {
+        "id": "ponytail",
+        "name": "Ponytail",
+        "layer": "output-governor",
+        "layer_name": "Output Governor",
+        "layer_order": 4,
+        "tagline": "Makes the agent write the least code that works",
+        "token_waste_reduction": "20-22%",
+        "color": "#14B8A6",
+        "github_repo": "https://github.com/dietrichgebert/ponytail",
+        "github_owner": "dietrichgebert",
+        "github_name": "ponytail",
+        "stats": {"token_saved": "20-22%", "latency": "-27%", "setup_time": "~2 min"},
+        "overview": """**Ponytail** is the output governor. It is a single skill/prompt you install into your agent that makes it think like the laziest senior dev in the room: *the best code is the code you never wrote.*
+
+Every other tool here shrinks the *input* (which files, how much context). Ponytail shrinks the *output*: it stops the agent from over-building. You ask for a date picker and a bare agent installs a library, writes a wrapper component and a stylesheet. With Ponytail it reaches for the native `<input type="date">` and moves on.
+
+### Why it matters
+- Less generated code means fewer output tokens, fewer bugs, and far less review and rework.
+- It is one prompt with zero infrastructure, so it is the cheapest possible win in the whole stack.
+- Benchmarked on a real FastAPI + React repo: about 54% less code, 22% fewer tokens, 20% cheaper, 27% faster, with safety fully preserved.""",
+        "mechanics": """### How Ponytail reduces token waste
+
+Before writing code the agent stops at the first rung that holds:
+
+1. Does this need to exist? If not, skip it (YAGNI).
+2. Already in this codebase? Reuse it, don't rewrite.
+3. Does the stdlib do it? Use it.
+4. Native platform feature? Use it.
+5. Installed dependency? Use it.
+6. One line? One line.
+7. Only then: the minimum that works.
+
+The ladder runs *after* the agent understands the problem, not instead of it. It is lazy about the solution, never about reading the code.
+
+> Lazy, not negligent: trust-boundary validation, data-loss handling, security and accessibility are never cut. The code ends up small because it is necessary, not golfed.""",
+        "adoption_note": "Adopt Ponytail **first**. It is a single prompt with zero infrastructure, so it pays off on day one and compounds with everything you layer on afterwards. It governs *what gets built*, which is orthogonal to the context tools, so there is nothing to wait for.",
+        "platform_notes": {
+            "mac": "Pure prompt/skill, no native dependencies. Install the Claude Code plugin, or copy AGENTS.md into the repo for any other agent.",
+            "windows": "Identical to every other OS. It is a text skill, so there are no Windows-specific build or path concerns.",
+            "wsl": "Place AGENTS.md / the skill inside the repo on the Linux filesystem so it is picked up wherever the agent runs.",
+            "container": "Bake AGENTS.md (or the skill files) into the image so every container session starts with Ponytail active. No runtime download needed.",
+            "remote-ssh": "Commit AGENTS.md / the skill to the repo so it travels to the remote host automatically; the agent reads it there.",
+            "corporate": "Fully offline. No marketplace or network required: just copy AGENTS.md into the project. Only install Ponytail from DietrichGebert/ponytail or @dietrichgebert/ponytail.",
+        },
+        "setup_steps": [
+            {
+                "title": "Install the skill",
+                "description": "For Claude Code, add the marketplace and install the plugin. For any other agent you copy a single rules file instead (see the platform tip).",
+                "commands": ["/plugin marketplace add DietrichGebert/ponytail", "/plugin install ponytail@ponytail"],
+                "snippet": "",
+                "validation": {"command": "", "expected": "Ponytail's startup notice shows the current mode (e.g. 'full') at the start of the session."},
+                "troubleshooting": [
+                    {"problem": "Agent doesn't change behaviour", "solution": "The ruleset isn't loaded. For instruction-only agents (Copilot, Cursor rules, Windsurf, Cline, Antigravity) copy AGENTS.md into the project root and start a new session."},
+                ],
+            },
+            {
+                "title": "Pick an intensity",
+                "description": "Set how aggressively Ponytail trims. Start at the default and dial up only if the codebase keeps over-building.",
+                "commands": ["/ponytail full"],
+                "snippet": "# modes: lite | full | ultra | off\n# /ponytail ultra   -> for when the codebase has wronged you personally",
+                "validation": {"command": "", "expected": "The mode-change message confirms the new level."},
+                "troubleshooting": [
+                    {"problem": "Too aggressive, skips things you wanted", "solution": "Drop to `/ponytail lite`, or turn it off for a turn with `/ponytail off`. Insist on a bigger solution and it will build it, correctly."},
+                ],
+            },
+            {
+                "title": "Review and harvest the savings",
+                "description": "Use the review command on a diff to get a delete-list, and check the measured impact.",
+                "commands": ["/ponytail-review", "/ponytail-gain"],
+                "snippet": "// /ponytail-review  -> flags over-engineering in the current diff\n// /ponytail-debt    -> collects deferred `ponytail:` shortcuts into a ledger",
+                "validation": {"command": "", "expected": "Review returns a concrete list of lines/abstractions that can be removed."},
+                "troubleshooting": [
+                    {"problem": "Commands not available", "solution": "Commands need a skill-capable host (Claude Code, Codex, OpenCode, Gemini, etc.). Instruction-only adapters get the always-on ruleset without the slash commands."},
+                ],
+            },
+        ],
+    },
 ]
 
 
@@ -534,8 +618,11 @@ def decision_recommendation(answers: dict):
     agent = answers.get("agent", "claude")
     cost = answers.get("cost_sensitivity", "medium")
 
-    recommended = ["graft"]  # everyone starts with Graft
-    reasons = {"graft": "Filesystem filtering is the highest-leverage first win on any repo - it cuts tokens before every other layer."}
+    recommended = ["ponytail", "graft"]  # everyone starts with Ponytail (zero infra) + Graft
+    reasons = {
+        "ponytail": "A single prompt with zero infrastructure that makes the agent write less code - the cheapest possible win, so adopt it first.",
+        "graft": "Filesystem filtering is the highest-leverage first win on any repo - it cuts tokens before every other layer.",
+    }
 
     # Serena: anyone cost-sensitive or on medium+ repos
     if cost in ("high", "medium") or repo_size in ("medium", "large", "huge"):
@@ -570,7 +657,7 @@ def decision_recommendation(answers: dict):
     recommended = [t for t in ADOPTION_ORDER if t in recommended]
 
     # Estimate savings (qualitative, sum of midpoints capped)
-    savings_map = {"graft": 40, "serena": 27, "graphify": 45, "codebase-memory": 35, "archify": 22, "agentsview": 17}
+    savings_map = {"ponytail": 21, "graft": 40, "serena": 27, "graphify": 45, "codebase-memory": 35, "archify": 22, "agentsview": 17}
     # Diminishing returns: each additional tool contributes less
     total = 0.0
     factor = 1.0
@@ -602,9 +689,17 @@ TRADEOFFS = [
         "guidance": "They govern different things. Serena budgets *quantity* (how many tokens per turn). Archify governs *correctness* (what rules the output must obey). They are complementary, not competing - but if you can only run one, pick Serena for pure cost control, Archify for teams fighting convention drift and rework.",
         "winner_when": {"Serena": "Raw token-cost control on any repo", "Archify": "Teams where rejected/rewritten diffs are the main waste"},
     },
+    {
+        "title": "Ponytail vs the context tools (shrinking output vs input)",
+        "option_a": "Ponytail",
+        "option_b": "Context tools (Graft/Serena/Graphify)",
+        "guidance": "They act on opposite ends of the pipeline and do not overlap. Graft/Serena/Graphify shrink the *input* - which files and how much context the agent ingests. Ponytail shrinks the *output* - how much code the agent writes back. You do not choose between them: Ponytail is a free, zero-infra prompt that stacks on top of whatever context tools you run, and its biggest wins are on tasks with an over-build trap (reaching for a native input instead of a library).",
+        "winner_when": {"Ponytail": "Every project - it is one prompt, zero infra, and cuts generated code", "Context tools (Graft/Serena/Graphify)": "When the cost is in oversized context rather than over-built output"},
+    },
 ]
 
 COST_PLAYBOOK = [
+    {"tool": "ponytail", "when": "Always, from day one (zero infra)", "savings": "20-22%", "note": "Shrinks the code the agent writes - fewer output tokens, bugs and rework."},
     {"tool": "graft", "when": "Always, from day one", "savings": "35-45%", "note": "Pre-ingestion filtering compounds through every downstream tool."},
     {"tool": "serena", "when": "Cost-sensitive work or medium+ repos", "savings": "25-30%", "note": "Caps per-turn spend; prevents context-stuffing blowouts."},
     {"tool": "graphify", "when": "Frequent cross-file questions on larger repos", "savings": "40-50%", "note": "Symbol retrieval replaces whole-file dumps."},
@@ -659,6 +754,13 @@ PLATFORM_STEP_OVERRIDES = {
         "container": {"commands": ["# devcontainer.json\n\"customizations\": { \"vscode\": { \"extensions\": [\"kenn-io.agentsview\"] } }"], "note": "Use the devcontainer extensions list to auto-install Agentsview when the container attaches."},
         "remote-ssh": {"note": "Install in the Remote-SSH context; telemetry ports are read over the existing SSH tunnel."},
         "corporate": {"commands": ["code --install-extension ./agentsview.vsix"], "note": "If the Marketplace is blocked, sideload the signed .vsix your security team approves."},
+    },
+    "ponytail": {
+        "windows": {"note": "Identical on Windows - it's a text skill with no build or path concerns. Copy AGENTS.md into the repo for instruction-only agents."},
+        "wsl": {"note": "Keep AGENTS.md / the skill inside the repo on the Linux filesystem so the WSL-hosted agent picks it up."},
+        "container": {"commands": ["# Dockerfile\nCOPY AGENTS.md /app/AGENTS.md"], "note": "Bake AGENTS.md into the image so every container session starts with Ponytail active - no marketplace needed."},
+        "remote-ssh": {"note": "Commit AGENTS.md / the skill to the repo so it travels to the remote host and the agent reads it there."},
+        "corporate": {"commands": ["# no network needed - copy the ruleset into the repo:\ncp AGENTS.md ./AGENTS.md"], "note": "Fully offline: skip the marketplace and just copy AGENTS.md. Only install Ponytail from DietrichGebert/ponytail."},
     },
 }
 
