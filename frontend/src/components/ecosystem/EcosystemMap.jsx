@@ -80,8 +80,13 @@ export const EcosystemMap = ({ data, onSelect, selectedId }) => {
     [data.edges, data.nodes, palette]
   );
 
-  const [nodes, , onNodesChange] = useNodesState(initialNodes);
-  const [edges, , onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  // Re-apply nodes/edges whenever they are recomputed (e.g. theme toggle),
+  // since useNodesState/useEdgesState only read their argument as the initial value.
+  useEffect(() => { setNodes(initialNodes); }, [initialNodes, setNodes]);
+  useEffect(() => { setEdges(initialEdges); }, [initialEdges, setEdges]);
 
   const handleNodeClick = useCallback((_, node) => onSelect(node.id), [onSelect]);
 
