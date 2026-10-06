@@ -15,20 +15,15 @@ Run the **entire app (frontend + backend + MongoDB) in a single container** - no
 
 ```bash
 # from the repo root
-docker build -t surgical-ai-hub .
-docker run --rm -p 8080:80 --name surgical-ai-hub surgical-ai-hub
+docker build -t surgical-ai . && docker rm -f surgical-ai-hub 2>/dev/null || true && docker run -d --name surgical-ai-hub -p 9999:9999 surgical-ai
 ```
 
-Then open **http://localhost:8080**.
+Then open **http://localhost:9999**.
 
 That's it. Inside the container, nginx serves the production React build and proxies `/api` to the FastAPI backend, while `mongod` runs alongside them (managed by supervisor). The database is seeded automatically on first boot.
 
 **Notes**
-- **Data is ephemeral** by default (resets when the container is removed). The app re-seeds its content on every start, so this is fine for normal use. To persist MongoDB data across container removals, mount a volume:
-  ```bash
-  docker run --rm -p 8080:80 -v surgical-ai-data:/data/db surgical-ai-hub
-  ```
-- **Change the port**: map a different host port, e.g. `-p 3000:80` then open http://localhost:3000.
+- **Data is ephemeral** by default (resets when the container is removed). The app re-seeds its content on every start, so this is fine for normal use. To persist MongoDB data across container removals, mount a volume
 - **Multi-arch**: builds and runs on both Apple Silicon (arm64) and Intel/AMD (amd64).
 - **Run in the background**: add `-d` (and drop `--rm`), then stop with `docker stop surgical-ai-hub`.
 - The maintenance endpoints use an `ADMIN_TOKEN` baked as `change-me-in-production` (see `docker/supervisord.conf`). Override it for real deployments with `-e ADMIN_TOKEN=...` plus a matching entry, or edit the supervisor config.

@@ -10,7 +10,7 @@ WORKDIR /build
 ENV REACT_APP_BACKEND_URL=""
 
 COPY frontend/package.json frontend/yarn.lock ./
-RUN yarn install --frozen-lockfile
+RUN yarn config set strict-ssl false && yarn install --frozen-lockfile
 COPY frontend/ ./
 RUN yarn build
 
@@ -19,6 +19,14 @@ RUN yarn build
 ############################################
 FROM ubuntu:22.04 AS runtime
 ENV DEBIAN_FRONTEND=noninteractive
+
+# 2. Inject NetSkope cert for apt-get, curl, and pip
+COPY netskope-root.pem /usr/local/share/ca-certificates/netskope.crt
+# We must install ca-certificates and update the trust store BEFORE the main apt-get commands
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
+ && update-ca-certificates
+
+
 
 # MongoDB (multi-arch), Python, nginx, supervisor
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -47,5 +55,5 @@ COPY docker/supervisord.conf /etc/supervisor/conf.d/surgical-ai.conf
 # MongoDB data dir (ephemeral unless a volume is mounted here)
 RUN mkdir -p /data/db
 
-EXPOSE 80
+EXPOSE 9999
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/surgical-ai.conf"]
