@@ -38,11 +38,12 @@ export const buildPrompt = ({ task, languages, platform, agentLabel, agentEnv, a
     ? validation.trim().split("\n").filter((l) => l.trim()).map((l, i) => `${i + 1}. ${l.trim().replace(/^\d+[.)]\s*/, "").replace(/^[-*]\s*/, "")}`).join("\n")
     : defaultValidation;
 
-  return `# ROLE & OBJECTIVE
+  return `# AI AGENT CONTEXT
 You are ${agentLabel}, an AI coding agent working in ${agentEnv}. Complete exactly one task, operating strictly within the constraints of the context tools listed below.
 - Agent operating note: ${agentNote}
 
-**Objective:** ${task?.trim() || "<describe the single concrete task here>"}
+# OBJECTIVE
+${task?.trim() || "<describe the single concrete task here>"}
 
 # AVAILABLE CONTEXT, rely on your tooling, do not rebuild it
 ${contextLines}
