@@ -1,3 +1,4 @@
+/* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 "use client";
 // Inspired by react-hot-toast library
 import * as React from "react"

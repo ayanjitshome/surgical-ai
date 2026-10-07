@@ -1,3 +1,4 @@
+/* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTools, useMeta } from "@/hooks/useData";

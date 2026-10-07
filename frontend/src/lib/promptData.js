@@ -1,3 +1,4 @@
+/* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 // Shared prompt data + generator used by the Prompt Playbook and Prompt Builder pages.
 
 // Per-tool directive the agent should be told to honour when the tool is active.

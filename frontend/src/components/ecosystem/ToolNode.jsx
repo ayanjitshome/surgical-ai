@@ -1,3 +1,4 @@
+/* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { ArrowRight } from "lucide-react";

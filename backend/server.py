@@ -1,3 +1,4 @@
+# © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome.
 from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -23,6 +24,18 @@ db = client[db_name]
 
 app = FastAPI(title="Surgical AI Hub API")
 api_router = APIRouter(prefix="/api")
+
+# Authorship / copyright attribution (see LICENSE). Referenced across endpoints and headers.
+AUTHOR = "Concept by Ayanjit Shome"
+COPYRIGHT = "© 2026 Ayanjit Shome. All rights reserved."
+
+
+@app.middleware("http")
+async def _attribution_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Author"] = AUTHOR
+    response.headers["X-Copyright"] = COPYRIGHT
+    return response
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -75,6 +88,7 @@ async def seed_database(force: bool = False):
 
 @app.on_event("startup")
 async def on_startup():
+    logger.info("%s | %s", AUTHOR, COPYRIGHT)
     await seed_database(force=False)
 
 
@@ -103,7 +117,7 @@ def _clean(doc: dict[str, Any]) -> dict[str, Any]:
 # ---------- Routes ----------
 @api_router.get("/")
 async def root():
-    return {"message": "Surgical AI Hub API", "status": "ok"}
+    return {"message": "Surgical AI Hub API", "status": "ok", "author": AUTHOR, "copyright": COPYRIGHT}
 
 
 @api_router.get("/meta")
@@ -112,6 +126,8 @@ async def get_meta():
         "platforms": seed_data.PLATFORMS,
         "workflow_stages": seed_data.WORKFLOW_STAGES,
         "adoption_order": seed_data.ADOPTION_ORDER,
+        "author": AUTHOR,
+        "copyright": COPYRIGHT,
     }
 
 

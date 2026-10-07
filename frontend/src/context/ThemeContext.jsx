@@ -1,3 +1,4 @@
+/* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { createContext, useContext, useEffect, useState } from "react";
 
 const ThemeContext = createContext(null);

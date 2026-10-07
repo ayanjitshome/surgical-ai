@@ -1,3 +1,4 @@
+/* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEcosystem, useTools } from "@/hooks/useData";

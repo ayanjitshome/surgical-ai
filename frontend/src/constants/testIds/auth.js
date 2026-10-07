@@ -1,3 +1,4 @@
+/* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 // Test IDs for the auth feature (login, register, password reset, logout).
 // Add new keys here as you wire up additional auth UI; see ./index.js for
 // the recipe to add a new feature file.

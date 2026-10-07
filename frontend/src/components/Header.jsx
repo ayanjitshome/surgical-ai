@@ -1,3 +1,4 @@
+/* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useTheme } from "@/context/ThemeContext";
 import { Moon, Sun, Search, Menu, Compass } from "lucide-react";

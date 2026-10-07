@@ -1,3 +1,4 @@
+/* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { Laptop, MonitorDot, TerminalSquare, Box, Server, ShieldCheck, Folder, Scale, GitBranch, Gauge, Scissors } from "lucide-react";
 
 export const platformIcon = (id) => {

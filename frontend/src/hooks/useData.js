@@ -1,3 +1,4 @@
+/* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { useQuery } from "@tanstack/react-query";
 import { getTools, getEcosystem, getMeta, getGuidance } from "@/lib/api";
 

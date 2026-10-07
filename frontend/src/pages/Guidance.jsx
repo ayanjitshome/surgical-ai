@@ -1,3 +1,4 @@
+/* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { useNavigate } from "react-router-dom";
 import { useTools, useGuidance } from "@/hooks/useData";
 import { Layers, ArrowRight, Scale, DollarSign, TrendingDown, Trophy } from "lucide-react";

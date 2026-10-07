@@ -38,7 +38,6 @@ Internal knowledge-product SPA guiding solo devs & small teams to set up and orc
 
 ## Next Tasks
 - Optional: add a daily cron to refresh GitHub content.
-- Optional: expand platform overrides to config/serve steps.
 
 ## 2026-06 - Security & Accessibility hardening
 Security (audit: conditional pass; XSS sanitized, SSRF not user-controlled, NoSQL safe):
@@ -66,3 +65,12 @@ Frontend (ESLint 0 errors on src, ui/ excluded as vendored):
 - a11y: ecosystem ToolNode now keyboard-operable (role=button, tabIndex, Enter/Space); ToolDetail tab keyboard handler moved from tablist to tabs (interactive-supports-focus).
 - Fixed react/no-unescaped-entities (apostrophes/quotes) and react/jsx-no-comment-textnodes (wrapped "// ..." labels in braces).
 Not changed: E501 long-line warnings remain only on seed_data.py content/data string literals (intentional data; not reflowed to avoid altering content). Verified: linters clean, frontend compiles, /api/tools 200, decision engine + 7-node ecosystem intact, Prompt Builder smoke screenshot clean.
+
+## 2026-06 - Copyright protection & attribution (Concept by Ayanjit Shome)
+Owner wants hard-to-remove authorship attribution + legal artifacts.
+- LICENSE: proprietary copyright license at /app/LICENSE (© 2026 Ayanjit Shome, attribution-retention clause).
+- Source headers: "© 2026 Ayanjit Shome ... Concept by Ayanjit Shome" prepended to all frontend src JS/JSX (excl components/ui vendored) and backend .py.
+- Frontend runtime guard (/app/frontend/src/lib/integrity.js, imported in index.js + App.js): bottom-right badge, name stored as char codes (not plaintext in bundle), MutationObserver + 1.5s interval self-heal on removal/text tamper, console attribution, escalates to full-screen notice + blur #root after 6 forced removals. Verified: badge renders bottom-right and self-heals after deletion.
+- HTML markers (index.html): meta author + copyright, html[data-author], #root[data-author], HTML comment.
+- Backend: AUTHOR/COPYRIGHT constants, X-Author/X-Copyright response headers (middleware), author+copyright fields in /api/ and /api/meta, startup log banner. Verified via curl.
+Caveat: deters casual removal; a determined dev editing source can still strip the guard - LICENSE + headers are the legal backstop.

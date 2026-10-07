@@ -1,3 +1,4 @@
+/* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { useTools } from "@/hooks/useData";
 import { Link } from "react-router-dom";
 import { TOOL_DIRECTIVES } from "@/lib/promptData";

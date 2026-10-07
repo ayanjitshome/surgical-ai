@@ -1,3 +1,4 @@
+/* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "@/components/Sidebar";

@@ -1,3 +1,4 @@
+/* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useTools, useMeta } from "@/hooks/useData";
 import { stageIcon } from "@/lib/icons";

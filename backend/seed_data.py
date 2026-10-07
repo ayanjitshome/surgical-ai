@@ -1,3 +1,4 @@
+# © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome.
 """Curated, opinionated seed content for the Surgical AI tools.
 
 This is the source of truth for tool metadata, deep-dive content, platform

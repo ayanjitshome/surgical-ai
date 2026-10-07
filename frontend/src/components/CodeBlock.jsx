@@ -1,3 +1,4 @@
+/* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { useState } from "react";
 import { Check, Copy, Terminal } from "lucide-react";
 import { toast } from "sonner";

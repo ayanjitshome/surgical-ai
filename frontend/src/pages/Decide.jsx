@@ -1,3 +1,4 @@
+/* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { postDecision } from "@/lib/api";
