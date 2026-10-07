@@ -12,13 +12,13 @@ export const TOOL_DIRECTIVES = {
 };
 
 export const AGENTS = [
-  { v: "claude", l: "Claude" },
-  { v: "copilot", l: "Copilot" },
-  { v: "codex", l: "Codex" },
-  { v: "antigravity", l: "Antigravity" },
+  { v: "claude", l: "Claude", env: "VSCode via Claude Code", note: "Show a brief plan before editing, then make precise, minimal multi-file changes." },
+  { v: "copilot", l: "GitHub Copilot", env: "VSCode with GitHub Copilot Chat", note: "Keep changes small and inline-review friendly; avoid broad rewrites." },
+  { v: "codex", l: "Codex", env: "the Codex CLI sandbox", note: "Apply edits as patches and run the project's tests and linters before finishing." },
+  { v: "antigravity", l: "Antigravity", env: "the Antigravity agentic IDE", note: "Work autonomously across files, but surface your plan and verify each step as you go." },
 ];
 
-export const buildPrompt = ({ task, languages, platform, agentLabel, activeIds, tools, constraints, output, validation }) => {
+export const buildPrompt = ({ task, languages, platform, agentLabel, agentEnv, agentNote, activeIds, tools, constraints, output, validation }) => {
   const active = tools.filter((t) => activeIds.includes(t.id));
   const contextLines = active.length
     ? active.map((t) => `- **${t.name}** (${t.layer_name}): ${TOOL_DIRECTIVES[t.id]}`).join("\n")
@@ -39,7 +39,8 @@ export const buildPrompt = ({ task, languages, platform, agentLabel, activeIds, 
     : defaultValidation;
 
   return `# ROLE & OBJECTIVE
-You are an AI coding agent running in VSCode (${agentLabel}). Complete exactly one task, operating strictly within the constraints of the context tools listed below.
+You are ${agentLabel}, an AI coding agent working in ${agentEnv}. Complete exactly one task, operating strictly within the constraints of the context tools listed below.
+- Agent operating note: ${agentNote}
 
 **Objective:** ${task?.trim() || "<describe the single concrete task here>"}
 

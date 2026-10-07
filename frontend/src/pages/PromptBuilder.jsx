@@ -25,10 +25,10 @@ export default function PromptBuilder() {
     if (tools.length) setActiveIds(tools.map((t) => t.id));
   }, [tools]);
 
-  const agentLabel = AGENTS.find((a) => a.v === agent)?.l || "Claude";
+  const agentObj = AGENTS.find((a) => a.v === agent) || AGENTS[0];
   const prompt = useMemo(
-    () => buildPrompt({ task, languages, platform, agentLabel, activeIds, tools, constraints, output, validation }),
-    [task, languages, platform, agentLabel, activeIds, tools, constraints, output, validation]
+    () => buildPrompt({ task, languages, platform, agentLabel: agentObj.l, agentEnv: agentObj.env, agentNote: agentObj.note, activeIds, tools, constraints, output, validation }),
+    [task, languages, platform, agentObj, activeIds, tools, constraints, output, validation]
   );
 
   const toggleTool = (id) =>
