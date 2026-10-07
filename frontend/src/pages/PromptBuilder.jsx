@@ -54,7 +54,7 @@ export default function PromptBuilder() {
           <div>
             <label htmlFor="builder-task" className="font-mono text-xs uppercase tracking-wider text-muted-c">Role, task &amp; objective</label>
             <textarea id="builder-task" data-testid="builder-task-input" value={task} onChange={(e) => setTask(e.target.value)} rows={3}
-              placeholder="e.g. Add rate-limiting to the public /api/search endpoint" className={cn(inputCls, "mt-1.5 resize-y")} />
+              placeholder="As a <role>, <define the task> to <define the objective>" className={cn(inputCls, "mt-1.5 resize-y")} />
           </div>
 
           <div>
