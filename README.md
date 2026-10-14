@@ -4,7 +4,7 @@
   <img src="assets/surgical-ai-hub-logo.png" alt="Surgical AI Hub" width="300" />
 </p>
 
-An internal knowledge-product SPA that gives opinionated guidance on setting up and orchestrating seven developer tools - **Ponytail, Graft, Serena, Graphify, Codebase Memory, Archify, Agentsview** - to reduce AI-agent token waste in VSCode.
+An internal knowledge-product SPA that gives opinionated guidance on setting up and orchestrating seven developer tools - **Ponytail, Trail, Serena, Graphify, Codebase Memory, Archify, Agentsview** - to reduce AI-agent token waste in VSCode.
 
 - **Knowledge Base** - per-tool deep-dive pages (what, why, token mechanics, adoption order, platform notes, cached GitHub README)
 - **Guided Setup Wizard** - platform-aware, step-by-step, with copy-paste commands, validation checkpoints and troubleshooting
