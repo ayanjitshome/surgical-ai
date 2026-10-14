@@ -61,45 +61,45 @@ def _steps_generic(tool_name, pkg, cmd):
 TOOLS = [
     {
         "id": "graft",
-        "name": "Graft",
+        "name": "Trail",
         "layer": "filesystem",
         "layer_name": "Filesystem",
         "layer_order": 1,
         "tagline": "Surgical context slicing & file-tree filtering",
         "token_waste_reduction": "35-45%",
         "color": "#10B981",
-        "github_repo": "https://github.com/trailhq/Graft",
+        "github_repo": "https://github.com/trailhq/Trail-Code",
         "github_owner": "trailhq",
-        "github_name": "Graft",
+        "github_name": "Trail-Code",
         "stats": {"token_saved": "35-45%", "latency": "-28%", "setup_time": "~6 min"},
-        "overview": """**Graft** is the foundation layer. Before your AI agent reads a single line of code, Graft decides *which* files it is even allowed to see.
+        "overview": """**Trail** is the foundation layer. Was earlier known as **Graft**. Before your AI agent reads a single line of code, Trail decides *which* files it is even allowed to see.
 
-Most agents waste tokens because they ingest the entire workspace - `node_modules`, build artifacts, lockfiles, generated code, vendored dependencies. Graft sits at the filesystem boundary and grafts a **surgical slice** of your repository onto the agent's view, driven by declarative include/exclude rules and relevance heuristics.
+Most agents waste tokens because they ingest the entire workspace - `node_modules`, build artifacts, lockfiles, generated code, vendored dependencies. Trail sits at the filesystem boundary and grafts a **surgical slice** of your repository onto the agent's view, driven by declarative include/exclude rules and relevance heuristics.
 
 ### Why it matters
 - Agents routinely burn 40%+ of their context window on files that have zero bearing on the task.
-- Graft produces a deterministic, cacheable file tree so the same task always starts from the same slice.
+- Trail produces a deterministic, cacheable file tree so the same task always starts from the same slice.
 - It is the cleanest single win for token cost: filtering happens *before* embedding, parsing or prompting.""",
-        "mechanics": """### How Graft reduces token waste
+        "mechanics": """### How Trail reduces token waste
 
 1. **Pre-ingestion filtering** - rules are applied at the filesystem layer, so excluded files never get read, hashed or embedded. The savings compound downstream.
-2. **Relevance scoring** - Graft ranks files by recency, import-graph proximity to the open file, and task keywords, then keeps only the top slice that fits a configurable budget.
+2. **Relevance scoring** - Trail ranks files by recency, import-graph proximity to the open file, and task keywords, then keeps only the top slice that fits a configurable budget.
 3. **Deterministic slices** - the same prompt yields the same graft, which makes responses cacheable and reduces redundant re-reads.
 
-> Rule of thumb: on a typical polyglot repo, Graft removes ~40% of tokens *before* any other tool runs. Everything layered on top inherits that reduction.""",
-        "adoption_note": "Install Graft **first**. It is the filesystem foundation every other tool reads from - a stable graft makes Graphify's parse scope smaller and Serena's budgeting more accurate.",
+> Rule of thumb: on a typical polyglot repo, Trail removes ~40% of tokens *before* any other tool runs. Everything layered on top inherits that reduction.""",
+        "adoption_note": "Install Trail **first**. It is the filesystem foundation every other tool reads from - a stable graft makes Graphify's parse scope smaller and Serena's budgeting more accurate.",
         "platform_notes": {
             "mac": "Works natively. Install via Homebrew. Grant Full Disk Access to VSCode if grafting files outside the workspace root.",
             "windows": "Use the native Windows build. Path separators are handled automatically, but prefer forward slashes in `.graftrc` glob patterns.",
             "wsl": "Install inside the WSL distro, not Windows. Keep your repo on the Linux filesystem (`~/project`, not `/mnt/c/...`) or file-watch performance collapses.",
-            "container": "Add the Graft binary to your Dockerfile and mount `.graftrc` as part of the image. Disable the file-watcher daemon; run graft in one-shot mode on container start.",
-            "remote-ssh": "Install Graft on the remote host. The VSCode Remote-SSH extension runs the server remotely, so the graft must execute there too - a local install does nothing.",
+            "container": "Add the Trail binary to your Dockerfile and mount `.graftrc` as part of the image. Disable the file-watcher daemon; run graft in one-shot mode on container start.",
+            "remote-ssh": "Install Trail on the remote host. The VSCode Remote-SSH extension runs the server remotely, so the graft must execute there too - a local install does nothing.",
             "corporate": "Fully offline-capable. No network calls required for core grafting. If your security team blocks unsigned binaries, build from source with the provided checksum.",
         },
         "setup_steps": [
             {
-                "title": "Install the Graft CLI",
-                "description": "Install Graft globally so it is available to the VSCode agent runtime.",
+                "title": "Install the Trail CLI",
+                "description": "Install Trail globally so it is available to the VSCode agent runtime.",
                 "commands": ["npm install -g @trailhq/graft"],
                 "snippet": "",
                 "validation": {"command": "graft --version", "expected": "Prints a semver like 1.x.x without errors."},
@@ -122,7 +122,7 @@ Most agents waste tokens because they ingest the entire workspace - `node_module
                 ],
             },
             {
-                "title": "Wire Graft into the agent",
+                "title": "Wire Trail into the agent",
                 "description": "Point your VSCode agent at the graft slice instead of the raw workspace.",
                 "commands": ["graft serve --port 7801"],
                 "snippet": """// .vscode/settings.json
@@ -149,7 +149,7 @@ Most agents waste tokens because they ingest the entire workspace - `node_module
         "github_owner": "oraios",
         "github_name": "serena",
         "stats": {"token_saved": "25-30%", "latency": "-15%", "setup_time": "~8 min"},
-        "overview": """**Serena** is the context governor - a policy engine that sits between your filtered files and the model, deciding *how much* of what Graft selected actually enters each prompt.
+        "overview": """**Serena** is the context governor - a policy engine that sits between your filtered files and the model, deciding *how much* of what Trail selected actually enters each prompt.
 
 Serena treats the context window as a budget to be allocated, not a bucket to be filled. It throttles request rate, trims low-value context on the fly, and enforces per-turn token ceilings so a single runaway prompt can't blow your budget.
 
@@ -163,8 +163,8 @@ Serena treats the context window as a budget to be allocated, not a bucket to be
 2. **Rate throttling** - coalesces rapid-fire agent calls, preventing redundant round-trips that each re-send the system prompt.
 3. **Semantic retrieval over symbols** - rather than dumping files, Serena uses language-server symbols to send only the functions/classes referenced by the task.
 
-> Serena shines *after* Graft: Graft decides the candidate set, Serena decides the per-turn allocation.""",
-        "adoption_note": "Add Serena **second**, once Graft gives a stable file slice. Serena governs the budget within that slice; installing it before Graft means it governs a noisy, oversized candidate set.",
+> Serena shines *after* Trail: Trail decides the candidate set, Serena decides the per-turn allocation.""",
+        "adoption_note": "Add Serena **second**, once Trail gives a stable file slice. Serena governs the budget within that slice; installing it before Trail means it governs a noisy, oversized candidate set.",
         "platform_notes": {
             "mac": "Runs as an MCP server via `uvx`. Requires Python 3.11+. Install `uv` with Homebrew.",
             "windows": "Use PowerShell. Install `uv` via the official installer; `uvx` handles the virtualenv. Ensure the MCP port isn't blocked by Windows Defender Firewall.",
@@ -246,8 +246,8 @@ When an agent understands *structure*, it stops pasting whole files to answer "w
 2. **Call/import edges** - "who calls this?" is a graph walk, not a repo-wide grep dumped into context.
 3. **Incremental re-indexing** - only changed files re-parse, so the graph stays cheap to maintain.
 
-> Graphify needs a stable file slice to parse. Point it at the Graft output and it only indexes files that matter.""",
-        "adoption_note": "Layer in Graphify **third**, once your Graft slice is stable. Its graph quality depends on a clean parse scope; a noisy workspace produces a bloated graph that costs more than it saves.",
+> Graphify needs a stable file slice to parse. Point it at the Trail output and it only indexes files that matter.""",
+        "adoption_note": "Layer in Graphify **third**, once your Trail slice is stable. Its graph quality depends on a clean parse scope; a noisy workspace produces a bloated graph that costs more than it saves.",
         "platform_notes": {
             "mac": "Native parsers via tree-sitter. `xcode-select --install` if the native build step fails.",
             "windows": "Requires the MSVC build tools for the tree-sitter native bindings. Use the x64 Native Tools prompt for the first index.",
@@ -269,12 +269,12 @@ When an agent understands *structure*, it stops pasting whole files to answer "w
             },
             {
                 "title": "Build the initial graph",
-                "description": "Index the Graft-scoped files to construct the symbol graph.",
+                "description": "Index the Trail-scoped files to construct the symbol graph.",
                 "commands": ["graphify index --scope .graft/slice.json"],
                 "snippet": "",
                 "validation": {"command": "graphify stats", "expected": "Reports node and edge counts proportional to your codebase size."},
                 "troubleshooting": [
-                    {"problem": "Index is enormous / slow", "solution": "You are indexing beyond the Graft slice. Pass `--scope` pointing at the graft output so vendored code is excluded."},
+                    {"problem": "Index is enormous / slow", "solution": "You are indexing beyond the Trail slice. Pass `--scope` pointing at the graft output so vendored code is excluded."},
                 ],
             },
             {
@@ -346,7 +346,7 @@ Without memory, every session re-discovers the same facts, paying tokens to re-r
                 "snippet": "",
                 "validation": {"command": "codebase-memory query 'how is auth handled'", "expected": "Returns a small set of relevant chunks, not whole files."},
                 "troubleshooting": [
-                    {"problem": "Irrelevant chunks returned", "solution": "Re-index with a smaller chunk size and ensure `.gitignore`-style excludes match your Graft slice."},
+                    {"problem": "Irrelevant chunks returned", "solution": "Re-index with a smaller chunk size and ensure `.gitignore`-style excludes match your Trail slice."},
                 ],
             },
             {
@@ -461,22 +461,22 @@ graph: http://localhost:7803""",
         "github_owner": "kenn-io",
         "github_name": "agentsview",
         "stats": {"token_saved": "15-20%", "latency": "n/a", "setup_time": "~5 min"},
-        "overview": """**Agentsview** is the cockpit - a VSCode sidebar that visualizes, in real time, exactly what every tool below it is doing: which files Graft included, how Serena budgeted the window, what Graphify retrieved, and live token spend per turn.
+        "overview": """**Agentsview** is the cockpit - a VSCode sidebar that visualizes, in real time, exactly what every tool below it is doing: which files Trail included, how Serena budgeted the window, what Graphify retrieved, and live token spend per turn.
 
 You can't optimize what you can't see. Agentsview turns token cost from an opaque monthly bill into a per-turn dashboard, surfacing the exact moments you overspend.
 
 ### Why it matters
 - Real-time token analytics expose the 20% of turns causing 80% of cost.
-- One glance shows whether Graft/Serena/Graphify are actually engaged.
+- One glance shows whether Trail/Serena/Graphify are actually engaged.
 - Closes the loop: observe, tune a config, watch the savings.""",
         "mechanics": """### How Agentsview reduces token waste
 
 1. **Per-turn token meter** - see spend as it happens and catch runaway prompts immediately.
-2. **Pipeline inspector** - confirms each lower tool is engaged; a silent misconfig (e.g. Graft bypassed) becomes obvious.
+2. **Pipeline inspector** - confirms each lower tool is engaged; a silent misconfig (e.g. Trail bypassed) becomes obvious.
 3. **Savings attribution** - shows how many tokens each tool saved, so you know what's pulling its weight.
 
 > Agentsview sits at the top of the pipeline and reads telemetry from every tool beneath it - install it last so it has something to observe.""",
-        "adoption_note": "Install Agentsview **last**. It observes the whole stack, so it's only useful once Graft, Serena, Graphify, Codebase Memory and Archify are emitting telemetry.",
+        "adoption_note": "Install Agentsview **last**. It observes the whole stack, so it's only useful once Trail, Serena, Graphify, Codebase Memory and Archify are emitting telemetry.",
         "platform_notes": {
             "mac": "Install from the VSCode Marketplace. No extra deps.",
             "windows": "Marketplace install. If the sidebar is blank, allow the extension host through the firewall for local telemetry ports.",
@@ -616,7 +616,7 @@ def decision_recommendation(answers: dict):
     team_size = answers.get("team_size", "solo")
     cost = answers.get("cost_sensitivity", "medium")
 
-    recommended = ["ponytail", "graft"]  # everyone starts with Ponytail (zero infra) + Graft
+    recommended = ["ponytail", "graft"]  # everyone starts with Ponytail (zero infra) + Trail
     reasons = {
         "ponytail": "A single prompt with zero infrastructure that makes the agent write less code - the cheapest possible win, so adopt it first.",
         "graft": "Filesystem filtering is the highest-leverage first win on any repo - it cuts tokens before every other layer.",
@@ -690,9 +690,9 @@ TRADEOFFS = [
     {
         "title": "Ponytail vs the context tools (shrinking output vs input)",
         "option_a": "Ponytail",
-        "option_b": "Context tools (Graft/Serena/Graphify)",
-        "guidance": "They act on opposite ends of the pipeline and do not overlap. Graft/Serena/Graphify shrink the *input* - which files and how much context the agent ingests. Ponytail shrinks the *output* - how much code the agent writes back. You do not choose between them: Ponytail is a free, zero-infra prompt that stacks on top of whatever context tools you run, and its biggest wins are on tasks with an over-build trap (reaching for a native input instead of a library).",
-        "winner_when": {"Ponytail": "Every project - it is one prompt, zero infra, and cuts generated code", "Context tools (Graft/Serena/Graphify)": "When the cost is in oversized context rather than over-built output"},
+        "option_b": "Context tools (Trail/Serena/Graphify)",
+        "guidance": "They act on opposite ends of the pipeline and do not overlap. Trail/Serena/Graphify shrink the *input* - which files and how much context the agent ingests. Ponytail shrinks the *output* - how much code the agent writes back. You do not choose between them: Ponytail is a free, zero-infra prompt that stacks on top of whatever context tools you run, and its biggest wins are on tasks with an over-build trap (reaching for a native input instead of a library).",
+        "winner_when": {"Ponytail": "Every project - it is one prompt, zero infra, and cuts generated code", "Context tools (Trail/Serena/Graphify)": "When the cost is in oversized context rather than over-built output"},
     },
 ]
 
