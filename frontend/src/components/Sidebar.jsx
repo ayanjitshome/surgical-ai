@@ -87,7 +87,7 @@ export const Sidebar = ({ onClose }) => {
           })}
         </div>
 
-        <SectionLabel>By Platform</SectionLabel>
+        {/*<SectionLabel>By Platform</SectionLabel>
         <div className="grid grid-cols-2 gap-1 px-1">
           {platforms.map((p) => {
             const Icon = platformIcon(p.id);
@@ -98,7 +98,7 @@ export const Sidebar = ({ onClose }) => {
               </NavLink>
             );
           })}
-        </div>
+        </div>*/}
       </div>
     </nav>
   );

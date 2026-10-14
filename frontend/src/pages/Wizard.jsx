@@ -34,9 +34,11 @@ export default function Wizard() {
         </Link>
         <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: tool.color }}>{"// guided setup"}</div>
         <h1 className="font-mono text-3xl font-bold text-primary-c">Set up {tool.name}</h1>
-        <p className="text-secondary-c mt-2">First, where are you running VSCode? Commands and troubleshooting adapt to your platform.</p>
+        <p className="text-secondary-c mt-2">First, where are you running your agent or VSCode? Commands and troubleshooting adapt to your platform.</p>
         <div className="grid sm:grid-cols-3 gap-3 mt-7">
-          {platforms.map((p) => {
+          {platforms
+            .filter((p) => !['iOS', 'android'].includes(p.id))
+            .map((p) => {
             const Icon = platformIcon(p.id);
             return (
               <button key={p.id} data-testid={`wizard-platform-${p.id}`} onClick={() => setPlatform(p.id)}
