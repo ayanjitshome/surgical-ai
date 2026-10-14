@@ -7,12 +7,10 @@ README markdown is fetched and cached on top of this at runtime.
 """
 
 PLATFORMS = [
+    {"id": "iOS", "name": "iOS", "icon": "iOS"},
+    {"id": "android", "name": "Android", "icon": "box"},
     {"id": "mac", "name": "macOS", "icon": "apple"},
-    {"id": "windows", "name": "Windows", "icon": "windows"},
-    {"id": "wsl", "name": "WSL", "icon": "terminal"},
-    {"id": "container", "name": "Container", "icon": "box"},
-    {"id": "remote-ssh", "name": "Remote SSH", "icon": "server"},
-    {"id": "corporate", "name": "Corporate", "icon": "shield"},
+    {"id": "windows", "name": "Windows", "icon": "windows"}
 ]
 
 WORKFLOW_STAGES = [

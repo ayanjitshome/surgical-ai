@@ -15,7 +15,7 @@ export default function PromptBuilder() {
 
   const [task, setTask] = useState("");
   const [languages, setLanguages] = useState("");
-  const [platform, setPlatform] = useState("macOS");
+  const [platform, setPlatform] = useState("iOS");
   const [agent, setAgent] = useState("claude");
   const [activeIds, setActiveIds] = useState([]);
   const [constraints, setConstraints] = useState("");
