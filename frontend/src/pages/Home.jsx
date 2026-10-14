@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useEcosystem, useTools } from "@/hooks/useData";
 import { EcosystemMap } from "@/components/ecosystem/EcosystemMap";
 import { stageIcon } from "@/lib/icons";
-import { X, ArrowRight, BookOpen, Settings2, Compass, Layers, Zap, TrendingDown, Wand2, Info } from "lucide-react";
+import { X, ArrowRight, BookOpen, Settings2, Compass, Layers, Zap, TrendingDown, Wand2, Info, Sparkles } from "lucide-react";
 
 const StageLegend = ({ stages }) => (
   <div className="flex flex-wrap gap-2">
@@ -56,10 +56,10 @@ const NodeDrawer = ({ tool, onClose }) => {
             </div>
           ))}
         </div>
-        <p className="text-sm text-secondary-c leading-relaxed">{tool.overview.split("\n")[0].replace(/\*\*/g, "")}</p>
+        <p className="text-sm text-secondary-c leading-relaxed">{tool.overview.split("\n")[0].replaceAll(/\**/g, "")}</p>
         <div className="surface-card border border-c rounded-lg p-3">
           <div className="font-mono text-[10px] uppercase tracking-wider text-muted-c mb-1">Adoption Note</div>
-          <p className="text-xs text-secondary-c leading-relaxed">{tool.adoption_note.replace(/\*\*/g, "")}</p>
+          <p className="text-xs text-secondary-c leading-relaxed">{tool.adoption_note.replaceAll(/\**/g, "")}</p>
         </div>
       </div>
       <div className="p-4 border-t border-c grid grid-cols-2 gap-2">
@@ -92,17 +92,20 @@ export default function Home() {
           Orchestrate seven tools to <span style={{ color: "#10B981" }}>starve token waste</span> out of your AI agents.
         </h1>
         <p className="text-base text-secondary-c mt-4 max-w-2xl leading-relaxed">
-          Opinionated setup & orchestration guidance for Ponytail, Graft, Serena, Graphify, Codebase Memory, Archify and Agentsview - tuned for VSCode agents across Mac, Windows, WSL, containers, remote SSH and locked-down corporate machines.
+          Opinionated setup & orchestration guidance for Ponytail, Trail, Serena, Graphify, Codebase Memory, Archify and Agentsview - tuned for VSCode agents across Mac, Windows, WSL, containers, remote SSH and locked-down corporate machines.
         </p>
         <div className="flex flex-wrap items-center gap-3 mt-6">
           <button onClick={() => navigate("/decide")} data-testid="hero-get-started-button" className="flex items-center gap-2 px-5 py-3 rounded-md font-semibold text-black transition-transform hover:scale-[1.03]" style={{ background: "#10B981" }}>
             <Compass className="w-4.5 h-4.5" /> Which tools do I need?
           </button>
-          <button onClick={() => navigate("/guidance")} data-testid="hero-adoption-button" className="flex items-center gap-2 px-5 py-3 rounded-md font-medium border border-bright-c text-primary-c hover:surface-card">
+          <button onClick={() => navigate("/guidance")} data-testid="hero-adoption-button" className="flex items-center gap-2 px-5 py-3 rounded-md font-medium border border-bright-c text-primary-c hover:scale-[1.03]">
             <Layers className="w-4.5 h-4.5" /> Recommended adoption order
           </button>
-          <button onClick={() => navigate("/prompt")} data-testid="hero-prompt-button" className="flex items-center gap-2 px-5 py-3 rounded-md font-medium border border-bright-c text-primary-c hover:surface-card">
+          <button onClick={() => navigate("/prompt")} data-testid="hero-prompt-button" className="flex items-center gap-2 px-5 py-3 rounded-md font-medium border border-bright-c text-primary-c hover:scale-[1.03]">
             <Wand2 className="w-4.5 h-4.5" style={{ color: "#F59E0B" }} /> Prompt Playbook
+          </button>
+          <button onClick={() => navigate("/prompt/builder")} data-testid="hero-prompt-button" className="flex items-center gap-2 px-5 py-3 rounded-md font-medium border border-bright-c text-primary-c hover:scale-[1.03]">
+            <Sparkles className="w-4.5 h-4.5" style={{ color: "#F59E0B" }} /> Prompt Builder
           </button>
         </div>
 
