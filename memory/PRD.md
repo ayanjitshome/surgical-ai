@@ -1,17 +1,21 @@
-# AI Agent Toolkit Hub — PRD
+# AI Agent Toolkit Hub - PRD
 
 ## Original Problem Statement
+
 Internal knowledge-product SPA guiding solo devs & small teams to set up and orchestrate six developer tools (Graft, Serena, Graphify, Codebase Memory, Archify, Agentsview) to reduce AI-agent token waste in VSCode. Four core features: Knowledge Base, Guided Setup Wizard, Decision Support Guide, Interactive Ecosystem Dependency Map (React Flow). GitHub README content cached via FastAPI (manual refresh). No auth, no saved state in v1.
 
 ## Architecture
+
 - Frontend: React 19 (CRA/craco), React Router, Tailwind, @xyflow/react (React Flow), react-markdown + rehype-raw/sanitize, framer-motion, sonner. Dark-default terminal/docs hybrid theme with light toggle (ThemeContext, localStorage).
 - Backend: FastAPI, Motor/MongoDB, httpx for unauthenticated GitHub README fetch. All routes under /api.
 - Data: Curated opinionated content in backend/seed_data.py seeded to MongoDB on startup; GitHub README cached on top (manual refresh).
 
 ## User Personas
+
 - Solo developer / small team using AI coding agents (Copilot, Claude, Codex, Antigravity) in VSCode across Mac/Windows/WSL/Container/Remote SSH/Corporate.
 
 ## Core Requirements (static)
+
 - Per-tool deep-dive knowledge pages with tabs, platform notes, adoption order.
 - Guided setup wizard with platform gate, copy-paste commands, validation checkpoints, troubleshooting.
 - Rule-based decision questionnaire → recommended stack + reasoning + estimated savings.
@@ -20,6 +24,7 @@ Internal knowledge-product SPA guiding solo devs & small teams to set up and orc
 - GitHub content cached, manually refreshed. No auth.
 
 ## Implemented (2026-06)
+
 - Backend endpoints: /api/meta, /api/tools, /api/tools/{id}, /api/ecosystem, /api/decision (Literal-validated), /api/guidance/tradeoffs, /api/admin/refresh/{id}, /api/admin/refresh, /api/admin/reseed.
 - Full curated content for all 6 tools (overview, mechanics, adoption note, 6 platform notes, 3 setup steps each with validation + troubleshooting, platform-specific install overrides).
 - Ecosystem map (React Flow) with 6 nodes, 8 dependency edges, 4 layers, animated edges, node drawer, minimap, theme-aware explicit colors.
@@ -31,16 +36,20 @@ Internal knowledge-product SPA guiding solo devs & small teams to set up and orc
 - Verified via testing agent (iteration_1): no critical issues; 4 minor issues all fixed (enum validation, README HTML rendering, platform-specific wizard content, extra data-testids).
 
 ## Backlog / Remaining
+
 - P1: Scheduled automatic GitHub refresh (currently manual only, per spec).
 - P2: Full per-step (not just install step) platform-specific commands for every tool.
 - P2: Deeper tradeoff matrix views; cost savings calculator with numeric inputs.
 - P2: Richer README rendering (relative image/link resolution to GitHub raw).
 
 ## Next Tasks
+
 - Optional: add a daily cron to refresh GitHub content.
 
 ## 2026-06 - Security & Accessibility hardening
+
 Security (audit: conditional pass; XSS sanitized, SSRF not user-controlled, NoSQL safe):
+
 - SEC-001: removed default admin token from docker/supervisord.conf; server.py now rejects known placeholder tokens at startup (admin endpoints disabled until a strong ADMIN_TOKEN is injected).
 - SEC-002: Docker CORS no longer wildcard (same-origin container).
 - SEC-003: nginx.conf now sets X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy.
@@ -56,8 +65,10 @@ Accessibility (WCAG 2.2 AA, all applied):
 Verified: backend restart + curl (tools 200, admin refresh/reseed 401 without token), frontend compiles, home smoke screenshot. User to self-verify in browser.
 
 ## 2026-06 - Code quality (SonarQube-equivalent static analysis)
+
 Tooling used (no Sonar server in env): ESLint v9 (react/react-hooks/jsx-a11y), Ruff, Flake8.
 Backend (ruff real-smell set F,B,C90,SIM,UP,RUF,E7xx now fully clean):
+
 - Removed unused local var `agent` in seed_data.decision_recommendation (F841 reliability smell).
 - Modernized deprecated typing in server.py: List/Dict/Optional -> list/dict/X | None.
 Frontend (ESLint 0 errors on src, ui/ excluded as vendored):
@@ -67,7 +78,9 @@ Frontend (ESLint 0 errors on src, ui/ excluded as vendored):
 Not changed: E501 long-line warnings remain only on seed_data.py content/data string literals (intentional data; not reflowed to avoid altering content). Verified: linters clean, frontend compiles, /api/tools 200, decision engine + 7-node ecosystem intact, Prompt Builder smoke screenshot clean.
 
 ## 2026-06 - Copyright protection & attribution (Concept by Ayanjit Shome)
+
 Owner wants hard-to-remove authorship attribution + legal artifacts.
+
 - LICENSE: proprietary copyright license at /app/LICENSE (© 2026 Ayanjit Shome, attribution-retention clause).
 - Source headers: "© 2026 Ayanjit Shome ... Concept by Ayanjit Shome" prepended to all frontend src JS/JSX (excl components/ui vendored) and backend .py.
 - Frontend runtime guard (/app/frontend/src/lib/integrity.js, imported in index.js + App.js): bottom-right badge, name stored as char codes (not plaintext in bundle), MutationObserver + 1.5s interval self-heal on removal/text tamper, console attribution, escalates to full-screen notice + blur #root after 6 forced removals. Verified: badge renders bottom-right and self-heals after deletion.
