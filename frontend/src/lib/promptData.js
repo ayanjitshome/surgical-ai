@@ -43,6 +43,7 @@ export const buildPrompt = ({ task, languages, platform, agentLabel, agentEnv, a
 You are ${agentLabel}, an AI coding agent working in ${agentEnv}. Complete exactly one task, operating strictly within the constraints of the context tools listed below.
 - Agent operating note: ${agentNote}
 - Documentation: Always follow ASD-STE100 for all technical documentation you create when asked explicitly.
+- Anything NEW you learn in this session, add it to your memory
 
 # OBJECTIVE
 ${task?.trim() || "<describe the single concrete task here>"}
