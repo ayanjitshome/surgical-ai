@@ -96,3 +96,7 @@ credentials.json
 frontend/node_modules/.cache/default-development/0.pack
 .serena
 .emergent/**
+graft/
+graphify-out/
+/graft/**
+/graphify-out/**
