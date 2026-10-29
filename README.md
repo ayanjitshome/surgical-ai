@@ -60,7 +60,19 @@ Native **macOS (.dmg)** and **Windows (.msi)** installers with in-app auto-updat
 | Pricing  | LiteLLM community price list, proxied + cached by `/api/pricing` |
 | GitHub   | GitHub REST API (unauthenticated) via `httpx`, cached in SQLite |
 
-```
+## Tech Stack
+
+| Layer | Choice |
+| :--- | :--- |
+| Frontend | React 19 (CRA + craco), React Router, Tailwind, Apple HIG design tokens |
+| Viz | React Flow (`@xyflow/react`) |
+| Backend | FastAPI (Python) |
+| Database | **SQLite** (via `aiosqlite`) - single file, zero setup |
+| Tokeniser | `gpt-tokenizer` (o200k_base BPE), lazy-loaded in Prompt Builder |
+| Pricing | LiteLLM community price list, proxied + cached by `/api/pricing` |
+| GitHub | GitHub REST API (unauthenticated) via `httpx`, cached in SQLite |
+
+```text
 .
 ├── backend/            # FastAPI app
 │   ├── server.py       # API entrypoint (app = FastAPI())
