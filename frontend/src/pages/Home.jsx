@@ -153,7 +153,7 @@ export default function Home() {
                 <ArrowRight className="w-4 h-4 text-muted-c opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
               </div>
               <p className="text-sm text-secondary-c mt-1 leading-snug">{t.tagline}</p>
-              <div className="mt-3 pt-2.5 border-t border-c text-xs" style={{ color: t.color }}>-{t.token_waste_reduction} token waste</div>
+              <div className="mt-3 pt-2.5 border-t border-c text-xs" style={{ color: t.color }}>{t.token_waste_reduction} token savings</div>
             </button>
           ))}
         </div>

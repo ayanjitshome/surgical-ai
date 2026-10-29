@@ -29,7 +29,7 @@ export default function StageView() {
               <span className="w-2.5 h-2.5 rounded-full" style={{ background: t.color, boxShadow: `0 0 8px ${t.color}` }} />
             </div>
             <p className="text-sm text-secondary-c mt-1 leading-snug">{t.tagline}</p>
-            <div className="flex items-center gap-1 mt-3 text-xs" style={{ color: t.color }}>-{t.token_waste_reduction} token waste <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
+            <div className="flex items-center gap-1 mt-3 text-xs" style={{ color: t.color }}>{t.token_waste_reduction} token savings <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
           </button>
         ))}
       </div>

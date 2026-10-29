@@ -1,8 +1,9 @@
 /* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Coins, Zap, TrendingDown, AlertTriangle, CheckCircle2, XCircle,
   Database, MessageSquare, Terminal, Flame, Lock, Infinity as InfinityIcon,
+  Save, RotateCcw, Table2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -130,6 +131,39 @@ const TAB_CONTENT = {
  */
 const OUTPUT_WEIGHT = 5;
 const CACHED_WEIGHT = 0.1;
+const STORAGE_KEY = "surgicalai.tokenEconomy.scenario";
+const DEFAULTS = { inputTokens: 20000, cachedPct: 80, outputTokens: 2000, promptsPerHour: 8 };
+
+const PRESETS = [
+  {
+    id: "claude",
+    label: "Typical Claude session",
+    hint: "Projects + long chat, lots of cached prefix",
+    accent: "#D97757",
+    values: { inputTokens: 60000, cachedPct: 85, outputTokens: 1800, promptsPerHour: 10 },
+  },
+  {
+    id: "copilot",
+    label: "Copilot heavy day",
+    hint: "Repo index + short back-and-forth edits",
+    accent: "#1F6FEB",
+    values: { inputTokens: 15000, cachedPct: 70, outputTokens: 800, promptsPerHour: 24 },
+  },
+  {
+    id: "codex",
+    label: "Codex CLI run",
+    hint: "Sandbox + AGENTS.md, diff-first replies",
+    accent: "#10A37F",
+    values: { inputTokens: 40000, cachedPct: 75, outputTokens: 1500, promptsPerHour: 6 },
+  },
+  {
+    id: "antigravity",
+    label: "Antigravity plan",
+    hint: "Agentic workflow, stable preamble, autonomous steps",
+    accent: "#4285F4",
+    values: { inputTokens: 80000, cachedPct: 90, outputTokens: 3000, promptsPerHour: 4 },
+  },
+];
 
 function fmt(n) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
@@ -137,11 +171,58 @@ function fmt(n) {
   return Math.round(n).toString();
 }
 
+function loadScenario() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    // Validate shape - fall back to defaults on anything funky.
+    if (
+      typeof parsed.inputTokens === "number" &&
+      typeof parsed.cachedPct === "number" &&
+      typeof parsed.outputTokens === "number" &&
+      typeof parsed.promptsPerHour === "number"
+    ) return parsed;
+    return null;
+  } catch { return null; }
+}
+
 const Calculator = () => {
-  const [inputTokens, setInputTokens] = useState(20000);
-  const [cachedPct, setCachedPct] = useState(80);
-  const [outputTokens, setOutputTokens] = useState(2000);
-  const [promptsPerHour, setPromptsPerHour] = useState(8);
+  const initial = typeof window !== "undefined" ? loadScenario() : null;
+  const [inputTokens, setInputTokens] = useState(initial?.inputTokens ?? DEFAULTS.inputTokens);
+  const [cachedPct, setCachedPct] = useState(initial?.cachedPct ?? DEFAULTS.cachedPct);
+  const [outputTokens, setOutputTokens] = useState(initial?.outputTokens ?? DEFAULTS.outputTokens);
+  const [promptsPerHour, setPromptsPerHour] = useState(initial?.promptsPerHour ?? DEFAULTS.promptsPerHour);
+  const [savedAt, setSavedAt] = useState(initial ? "loaded" : null);
+  const [activePreset, setActivePreset] = useState(null);
+
+  // Debounced auto-save so returning users see their own numbers.
+  useEffect(() => {
+    const scenario = { inputTokens, cachedPct, outputTokens, promptsPerHour };
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(scenario));
+        setSavedAt("saved");
+      } catch { /* storage disabled - silent */ }
+    }, 500);
+    return () => clearTimeout(t);
+  }, [inputTokens, cachedPct, outputTokens, promptsPerHour]);
+
+  const applyPreset = (preset) => {
+    setInputTokens(preset.values.inputTokens);
+    setCachedPct(preset.values.cachedPct);
+    setOutputTokens(preset.values.outputTokens);
+    setPromptsPerHour(preset.values.promptsPerHour);
+    setActivePreset(preset.id);
+  };
+
+  const resetDefaults = () => {
+    setInputTokens(DEFAULTS.inputTokens);
+    setCachedPct(DEFAULTS.cachedPct);
+    setOutputTokens(DEFAULTS.outputTokens);
+    setPromptsPerHour(DEFAULTS.promptsPerHour);
+    setActivePreset(null);
+  };
 
   const stats = useMemo(() => {
     const cached = inputTokens * (cachedPct / 100);
@@ -156,13 +237,60 @@ const Calculator = () => {
 
   return (
     <section className="hig-elevated p-6 sm:p-8 fade-up" data-testid="token-economy-calculator" aria-labelledby="calc-title">
-      <div className="flex items-start gap-4 mb-6">
+      <div className="flex flex-wrap items-start gap-4 mb-5">
         <div className="w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0" style={{ background: "var(--brand-soft)" }}>
           <Zap className="w-5 h-5" style={{ color: "var(--brand)" }} aria-hidden="true" />
         </div>
-        <div>
+        <div className="flex-1 min-w-[220px]">
           <h2 id="calc-title" className="hig-title-3 text-primary-c">What a prompt actually costs</h2>
           <p className="hig-footnote mt-1">Model-agnostic estimate. Input tokens from cache cost ~10% of fresh ones. Output tokens are the real drain.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {savedAt && (
+            <span className="hig-footnote inline-flex items-center gap-1.5" data-testid="calc-saved-indicator">
+              <Save className="w-3.5 h-3.5" aria-hidden="true" />
+              {savedAt === "loaded" ? "Your scenario" : "Auto-saved"}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={resetDefaults}
+            data-testid="calc-reset-button"
+            className="hig-btn hig-btn-secondary"
+            aria-label="Reset calculator to defaults"
+          >
+            <RotateCcw className="w-4 h-4" aria-hidden="true" /> Reset
+          </button>
+        </div>
+      </div>
+
+      {/* Preset buttons */}
+      <div className="mb-6">
+        <div className="hig-footnote mb-2">Load a realistic preset</div>
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Calculator presets">
+          {PRESETS.map((p) => {
+            const isActive = activePreset === p.id;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => applyPreset(p)}
+                data-testid={`calc-preset-${p.id}`}
+                aria-pressed={isActive}
+                className={cn(
+                  "group relative text-left px-3.5 py-2.5 rounded-[12px] border transition-all",
+                  isActive ? "border-transparent" : "border-c hover:bg-[var(--bg-card-hover)]"
+                )}
+                style={isActive ? { background: p.accent + "22", borderColor: p.accent } : undefined}
+              >
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: p.accent, boxShadow: isActive ? `0 0 10px ${p.accent}` : "none" }} />
+                  <span className="hig-headline text-primary-c">{p.label}</span>
+                </span>
+                <span className="block hig-footnote mt-0.5">{p.hint}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -409,6 +537,111 @@ const AgentCallouts = ({ active }) => {
   );
 };
 
+/* -------- Agent comparison table ----------- */
+
+const COMPARISON_ROWS = [
+  { label: "Cache mechanism", values: {
+    claude: "Stable prefix hash (Projects + instructions + files + prior turns)",
+    copilot: "Repo + open-file index with Chat preamble",
+    codex: "System prompt + sandbox snapshot + AGENTS.md",
+    antigravity: "Workflow graph + MCP tool descriptions",
+  } },
+  { label: "Cache TTL", values: {
+    claude: "5 min default, 1 hr with extended TTL",
+    copilot: "Session-scoped (as long as workspace is open)",
+    codex: "Session-scoped (until compact / reset)",
+    antigravity: "Plan-scoped (resets on plan edit)",
+  } },
+  { label: "Cached input discount", values: {
+    claude: "~90% off list price",
+    copilot: "Flat seat pricing (no per-token)",
+    codex: "~90% off list price",
+    antigravity: "~90% off list price",
+  } },
+  { label: "Output token weight", values: {
+    claude: "4-7x the input rate",
+    copilot: "Seat-capped; no direct metering",
+    codex: "4-5x the input rate",
+    antigravity: "4-6x the input rate",
+  } },
+  { label: "Biggest cache killer", values: {
+    claude: "Editing project instructions or swapping files",
+    copilot: "Renaming / moving files mid-session",
+    codex: "Toggling MCP tools or editing AGENTS.md",
+    antigravity: "Editing the plan while it runs",
+  } },
+  { label: "How to compact", values: {
+    claude: "/compact in Claude Code",
+    copilot: "Close & re-open the chat panel (no built-in compact)",
+    codex: "codex summary / compact pass",
+    antigravity: "Agent-driven summary step in the plan",
+  } },
+  { label: "Best fit", values: {
+    claude: "Long, exploratory sessions on a stable repo",
+    copilot: "Short surgical edits across many files",
+    codex: "Scripted / autonomous CLI work with tests",
+    antigravity: "Multi-step agentic workflows",
+  } },
+];
+
+const COMPARISON_COLS = [
+  { id: "claude", label: "Claude / Code", accent: "#D97757" },
+  { id: "copilot", label: "GitHub Copilot", accent: "#1F6FEB" },
+  { id: "codex", label: "OpenAI Codex", accent: "#10A37F" },
+  { id: "antigravity", label: "Antigravity", accent: "#4285F4" },
+];
+
+const AgentComparison = () => (
+  <section className="mt-10 fade-up" aria-labelledby="comparison-title" data-testid="agent-comparison">
+    <div className="flex items-center gap-2 mb-4">
+      <Table2 className="w-5 h-5" style={{ color: "var(--brand)" }} aria-hidden="true" />
+      <h2 id="comparison-title" className="hig-title-3 text-primary-c">Agents side-by-side</h2>
+    </div>
+    <p className="hig-footnote mb-4 max-w-2xl">
+      Qualitative snapshot of how the main agentic tools handle caching and output economics. Numeric multipliers are rough rules of thumb - always check the current pricing page before committing to a plan.
+    </p>
+    <div className="hig-card overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-left">
+          <thead>
+            <tr className="border-b border-c">
+              <th scope="col" className="px-5 py-3.5 hig-footnote font-semibold text-primary-c sticky left-0 bg-[var(--bg-card)] z-10 min-w-[180px]">
+                Dimension
+              </th>
+              {COMPARISON_COLS.map((c) => (
+                <th scope="col" key={c.id} className="px-5 py-3.5 hig-footnote font-semibold text-primary-c min-w-[200px]">
+                  <span className="inline-flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full" style={{ background: c.accent, boxShadow: `0 0 8px ${c.accent}80` }} />
+                    {c.label}
+                  </span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {COMPARISON_ROWS.map((row, i) => (
+              <tr
+                key={row.label}
+                className={cn("border-b border-c last:border-b-0 align-top", i % 2 === 1 && "bg-[var(--bg-card-hover)]")}
+                data-testid={`comparison-row-${row.label.replace(/\W+/g, "-").toLowerCase()}`}
+              >
+                <th scope="row" className="px-5 py-3.5 hig-callout font-medium text-primary-c sticky left-0 bg-inherit">
+                  {row.label}
+                </th>
+                {COMPARISON_COLS.map((c) => (
+                  <td key={c.id} className="px-5 py-3.5 hig-callout text-secondary-c">
+                    {row.values[c.id]}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+);
+
 /* -------- Page root ----------- */
 
 const TokenEconomy = () => {
@@ -439,6 +672,8 @@ const TokenEconomy = () => {
       </div>
 
       <AgentCallouts active={active} />
+
+      <AgentComparison />
 
       {/* Final trap */}
       <section className="mt-10 hig-card p-6 fade-up" aria-labelledby="trap-title">

@@ -32,9 +32,9 @@ export const ToolNode = memo(({ data, selected }) => {
         <div className="font-mono font-bold text-base" style={{ color: p.textPrimary }}>{name}</div>
         <div className="text-xs leading-snug mt-1 line-clamp-2" style={{ color: p.textSecondary }}>{tagline}</div>
         <div className="flex items-center justify-between mt-3 pt-2.5 border-t" style={{ borderColor: p.border }}>
-          <span className="font-mono text-xs font-semibold" style={{ color }}>-{token_waste_reduction}</span>
+          <span className="font-mono text-xs font-semibold" style={{ color }}>{token_waste_reduction}</span>
           <span className="flex items-center gap-1 text-[10px] font-mono" style={{ color: p.textMuted }}>
-            tokens <ArrowRight className="w-3 h-3" />
+            savings <ArrowRight className="w-3 h-3" />
           </span>
         </div>
       </div>
