@@ -1,0 +1,20 @@
+extends: existence
+message: "'%s' is on the banned list. Rewrite in plain English."
+level: error
+ignorecase: true
+tokens:
+  - delve
+  - seamless
+  - robust
+  - elevate
+  - foster
+  - testament
+  - tapestry
+  - unlock
+  - unleash
+  - embark
+  - paradigm
+  - dynamic
+  - comprehensive
+  - crucial
+  - vital

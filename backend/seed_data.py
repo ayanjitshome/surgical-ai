@@ -87,13 +87,13 @@ Most agents waste tokens because they ingest the entire workspace - `node_module
 3. **Deterministic slices** - the same prompt yields the same graft, which makes responses cacheable and reduces redundant re-reads.
 
 > Rule of thumb: on a typical polyglot repo, Trail removes ~40% of tokens *before* any other tool runs. Everything layered on top inherits that reduction.""",
-        "adoption_note": "Install Trail **first**. It is the filesystem foundation every other tool reads from - a stable graft makes Graphify's parse scope smaller and Serena's budgeting more accurate.",
+        "adoption_note": "Install Trail **first**. It is the filesystem foundation every other tool reads from. A stable graft makes Graphify's parse scope smaller and Serena's budgeting more accurate.",
         "platform_notes": {
             "mac": "Works natively. Install via Homebrew. Grant Full Disk Access to VSCode if grafting files outside the workspace root.",
             "windows": "Use the native Windows build. Path separators are handled automatically, but prefer forward slashes in `.graftrc` glob patterns.",
             "wsl": "Install inside the WSL distro, not Windows. Keep your repo on the Linux filesystem (`~/project`, not `/mnt/c/...`) or file-watch performance collapses.",
             "container": "Add the Trail binary to your Dockerfile and mount `.graftrc` as part of the image. Disable the file-watcher daemon; run graft in one-shot mode on container start.",
-            "remote-ssh": "Install Trail on the remote host. The VSCode Remote-SSH extension runs the server remotely, so the graft must execute there too - a local install does nothing.",
+            "remote-ssh": "Install Trail on the remote host. The VSCode Remote-SSH extension runs the server remotely, so the graft must execute there too. A local install does nothing.",
             "corporate": "Fully offline-capable. No network calls required for core grafting. If your security team blocks unsigned binaries, build from source with the provided checksum.",
         },
         "setup_steps": [
@@ -142,14 +142,14 @@ Most agents waste tokens because they ingest the entire workspace - `node_module
         "layer": "context-governor",
         "layer_name": "Context Governor",
         "layer_order": 2,
-        "tagline": "Dynamic prompt-window budgeting & rate throttling",
+        "tagline": "Adaptive prompt-window budgeting and rate throttling",
         "token_waste_reduction": "25-30%",
         "color": "#06B6D4",
         "github_repo": "https://github.com/oraios/serena",
         "github_owner": "oraios",
         "github_name": "serena",
         "stats": {"token_saved": "25-30%", "latency": "-15%", "setup_time": "~8 min"},
-        "overview": """**Serena** is the context governor - a policy engine that sits between your filtered files and the model, deciding *how much* of what Trail selected actually enters each prompt.
+        "overview": """**Serena** is the context governor. A policy engine that sits between your filtered files and the model, deciding *how much* of what Trail selected actually enters each prompt.
 
 Serena treats the context window as a budget to be allocated, not a bucket to be filled. It throttles request rate, trims low-value context on the fly, and enforces per-turn token ceilings so a single runaway prompt can't blow your budget.
 
@@ -199,7 +199,7 @@ Serena treats the context window as a budget to be allocated, not a bucket to be
 }""",
                 "validation": {"command": "", "expected": "Serena appears in the agent's MCP server list as 'connected'."},
                 "troubleshooting": [
-                    {"problem": "Server shows 'disconnected'", "solution": "Check the agent's MCP logs. A non-zero exit usually means the uvx cache is stale - run `uv cache clean`."},
+                    {"problem": "Server shows 'disconnected'", "solution": "Check the agent's MCP logs. A non-zero exit usually means the uvx cache is stale. Run `uv cache clean`."},
                 ],
             },
             {
@@ -232,7 +232,7 @@ throttle:
         "github_owner": "Graphify-Labs",
         "github_name": "graphify",
         "stats": {"token_saved": "40-50%", "latency": "-22%", "setup_time": "~10 min"},
-        "overview": """**Graphify** builds a structural graph of your codebase from the AST - every symbol, import, call edge and type reference becomes a node the agent can traverse instead of re-reading files.
+        "overview": """**Graphify** builds a structural graph of your codebase from the AST. Every symbol, import, call edge and type reference becomes a node the agent can traverse instead of re-reading files.
 
 When an agent understands *structure*, it stops pasting whole files to answer "where is this used?" A graph query returns the three relevant functions instead of thirty files.
 
@@ -254,7 +254,7 @@ When an agent understands *structure*, it stops pasting whole files to answer "w
             "wsl": "Install build-essential inside WSL. Keep the repo on the Linux filesystem for fast incremental indexing.",
             "container": "Run the full index once at build time and bake the graph into the image. Incremental re-index at runtime on changed files only.",
             "remote-ssh": "Index on the remote host where the code lives. The graph DB should be stored remotely, not synced to the client.",
-            "corporate": "Fully local - tree-sitter grammars can be vendored into the repo so no download is needed behind a firewall.",
+            "corporate": "Fully local. Tree-sitter grammars can be vendored into the repo so no download is needed behind a firewall.",
         },
         "setup_steps": [
             {
@@ -304,7 +304,7 @@ GET /symbols/usages?name=parseConfig
         "github_owner": "DeusData",
         "github_name": "codebase-memory-mcp",
         "stats": {"token_saved": "30-40%", "latency": "-18%", "setup_time": "~9 min"},
-        "overview": """**Codebase Memory** is a persistent MCP server that gives your agent long-term memory of the repo - a semantic vector index plus a key-value store of decisions, conventions and prior answers.
+        "overview": """**Codebase Memory** is a persistent MCP server that gives your agent long-term memory of the repo. A semantic vector index plus a key-value store of decisions, conventions and prior answers.
 
 Without memory, every session re-discovers the same facts, paying tokens to re-read the same files to re-learn "we use Zod for validation." Codebase Memory remembers, and retrieves only the relevant snippet on demand.
 
@@ -319,12 +319,12 @@ Without memory, every session re-discovers the same facts, paying tokens to re-r
 3. **Decision log** - architectural choices are stored once and injected only when relevant.
 
 > Pairs naturally with Graphify: structure from the graph, semantics and history from memory. For polyglot repos, memory handles languages the graph grammar may not cover.""",
-        "adoption_note": "Add Codebase Memory **after Graphify**. The two overlap - use Graphify for precise structural queries and Codebase Memory for semantic recall and history, especially in polyglot repos.",
+        "adoption_note": "Add Codebase Memory **after Graphify**. The two overlap. Use Graphify for precise structural queries and Codebase Memory for semantic recall and history, especially in polyglot repos.",
         "platform_notes": {
             "mac": "Runs as an MCP server. Embeddings compute locally by default; first index can take a few minutes on large repos.",
             "windows": "Store the vector DB on a local SSD path, not a network drive, or query latency spikes.",
             "wsl": "Keep the vector store inside WSL. Cross-filesystem (`/mnt/c`) access makes embedding writes very slow.",
-            "container": "Mount the vector DB as a named volume so memory persists across container restarts - otherwise you re-index every boot.",
+            "container": "Mount the vector DB as a named volume so memory persists across container restarts. Otherwise you re-index every boot.",
             "remote-ssh": "Run the memory server remotely with the vector DB on the remote host for locality to the code.",
             "corporate": "Use a local embedding model to avoid sending code to an external embedding API. Configure the offline model in the MCP config.",
         },
@@ -381,7 +381,7 @@ Without memory, every session re-discovers the same facts, paying tokens to re-r
         "github_owner": "tt-a1i",
         "github_name": "archify",
         "stats": {"token_saved": "20-25%", "latency": "-10%", "setup_time": "~7 min"},
-        "overview": """**Archify** injects your architectural rules and design invariants into the agent's context *and* checks generated code against them - so the agent stops proposing changes that violate your conventions.
+        "overview": """**Archify** injects your architectural rules and design invariants into the agent's context *and* checks generated code against them. So the agent stops proposing changes that violate your conventions.
 
 Rework is the silent token killer: the agent writes code, you reject it for breaking a layering rule, it rewrites. Archify front-loads the rules so the first answer is already compliant.
 
@@ -461,7 +461,7 @@ graph: http://localhost:7803""",
         "github_owner": "kenn-io",
         "github_name": "agentsview",
         "stats": {"token_saved": "15-20%", "latency": "n/a", "setup_time": "~5 min"},
-        "overview": """**Agentsview** is the cockpit - a VSCode sidebar that visualizes, in real time, exactly what every tool below it is doing: which files Trail included, how Serena budgeted the window, what Graphify retrieved, and live token spend per turn.
+        "overview": """**Agentsview** is the cockpit. A VSCode sidebar that visualizes, in real time, exactly what every tool below it is doing: which files Trail included, how Serena budgeted the window, what Graphify retrieved, and live token spend per turn.
 
 You can't optimize what you can't see. Agentsview turns token cost from an opaque monthly bill into a per-turn dashboard, surfacing the exact moments you overspend.
 
@@ -475,7 +475,7 @@ You can't optimize what you can't see. Agentsview turns token cost from an opaqu
 2. **Pipeline inspector** - confirms each lower tool is engaged; a silent misconfig (e.g. Trail bypassed) becomes obvious.
 3. **Savings attribution** - shows how many tokens each tool saved, so you know what's pulling its weight.
 
-> Agentsview sits at the top of the pipeline and reads telemetry from every tool beneath it - install it last so it has something to observe.""",
+> Agentsview sits at the top of the pipeline and reads telemetry from every tool beneath it. Install it last so it has something to observe.""",
         "adoption_note": "Install Agentsview **last**. It observes the whole stack, so it's only useful once Trail, Serena, Graphify, Codebase Memory and Archify are emitting telemetry.",
         "platform_notes": {
             "mac": "Install from the VSCode Marketplace. No extra deps.",
@@ -618,14 +618,14 @@ def decision_recommendation(answers: dict):
 
     recommended = ["ponytail", "graft"]  # everyone starts with Ponytail (zero infra) + Trail
     reasons = {
-        "ponytail": "A single prompt with zero infrastructure that makes the agent write less code - the cheapest possible win, so adopt it first.",
-        "graft": "Filesystem filtering is the highest-leverage first win on any repo - it cuts tokens before every other layer.",
+        "ponytail": "A single prompt with zero infrastructure that makes the agent write less code. The cheapest possible win, so adopt it first.",
+        "graft": "Filesystem filtering is the highest-leverage first win on any repo. It cuts tokens before every other layer.",
     }
 
     # Serena: anyone cost-sensitive or on medium+ repos
     if cost in ("high", "medium") or repo_size in ("medium", "large", "huge"):
         recommended.append("serena")
-        reasons["serena"] = "Per-turn window budgeting prevents context stuffing - essential when cost matters or repos are non-trivial."
+        reasons["serena"] = "Per-turn window budgeting prevents context stuffing. Essential when cost matters or repos are non-trivial."
 
     # Graphify: medium+ repos benefit most from structural retrieval
     if repo_size in ("medium", "large", "huge"):
@@ -644,7 +644,7 @@ def decision_recommendation(answers: dict):
     # Archify: teams or large repos where conventions drift
     if team_size in ("small-team", "large-team") or repo_size in ("large", "huge"):
         recommended.append("archify")
-        reasons["archify"] = "Enforcing architectural invariants cuts costly rework turns - most valuable with multiple contributors or large surface area."
+        reasons["archify"] = "Enforcing architectural invariants cuts costly rework turns. Most valuable with multiple contributors or large surface area."
 
     # Agentsview: anyone highly cost-sensitive, or always as the cockpit
     if cost == "high" or len(recommended) >= 3:
@@ -684,20 +684,20 @@ TRADEOFFS = [
         "title": "Serena vs Archify as your context governor",
         "option_a": "Serena",
         "option_b": "Archify",
-        "guidance": "They govern different things. Serena budgets *quantity* (how many tokens per turn). Archify governs *correctness* (what rules the output must obey). They are complementary, not competing - but if you can only run one, pick Serena for pure cost control, Archify for teams fighting convention drift and rework.",
+        "guidance": "They govern different things. Serena budgets *quantity* (how many tokens per turn). Archify governs *correctness* (what rules the output must obey). They are complementary, not competing. But if you can only run one, pick Serena for pure cost control, Archify for teams fighting convention drift and rework.",
         "winner_when": {"Serena": "Raw token-cost control on any repo", "Archify": "Teams where rejected/rewritten diffs are the main waste"},
     },
     {
         "title": "Ponytail vs the context tools (shrinking output vs input)",
         "option_a": "Ponytail",
         "option_b": "Context tools (Trail/Serena/Graphify)",
-        "guidance": "They act on opposite ends of the pipeline and do not overlap. Trail/Serena/Graphify shrink the *input* - which files and how much context the agent ingests. Ponytail shrinks the *output* - how much code the agent writes back. You do not choose between them: Ponytail is a free, zero-infra prompt that stacks on top of whatever context tools you run, and its biggest wins are on tasks with an over-build trap (reaching for a native input instead of a library).",
-        "winner_when": {"Ponytail": "Every project - it is one prompt, zero infra, and cuts generated code", "Context tools (Trail/Serena/Graphify)": "When the cost is in oversized context rather than over-built output"},
+        "guidance": "They act on opposite ends of the pipeline and do not overlap. Trail/Serena/Graphify shrink the *input* (which files and how much context the agent ingests). Ponytail shrinks the *output* (how much code the agent writes back). You do not choose between them: Ponytail is a free, zero-infra prompt that stacks on top of whatever context tools you run, and its biggest wins are on tasks with an over-build trap (reaching for a native input instead of a library).",
+        "winner_when": {"Ponytail": "Every project. It is one prompt, zero infra, and cuts generated code", "Context tools (Trail/Serena/Graphify)": "When the cost is in oversized context rather than over-built output"},
     },
 ]
 
 COST_PLAYBOOK = [
-    {"tool": "ponytail", "when": "Always, from day one (zero infra)", "savings": "20-22%", "note": "Shrinks the code the agent writes - fewer output tokens, bugs and rework."},
+    {"tool": "ponytail", "when": "Always, from day one (zero infra)", "savings": "20-22%", "note": "Shrinks the code the agent writes. Fewer output tokens, bugs and rework."},
     {"tool": "graft", "when": "Always, from day one", "savings": "35-45%", "note": "Pre-ingestion filtering compounds through every downstream tool."},
     {"tool": "serena", "when": "Cost-sensitive work or medium+ repos", "savings": "25-30%", "note": "Caps per-turn spend; prevents context-stuffing blowouts."},
     {"tool": "graphify", "when": "Frequent cross-file questions on larger repos", "savings": "40-50%", "note": "Symbol retrieval replaces whole-file dumps."},
@@ -714,8 +714,8 @@ PLATFORM_STEP_OVERRIDES = {
     "graft": {
         "windows": {"note": "Run in an elevated PowerShell if you hit EPERM. Use forward slashes in .graftrc glob patterns."},
         "wsl": {"note": "Install inside the WSL distro (not Windows). Keep the repo under ~/ on the Linux filesystem, not /mnt/c."},
-        "container": {"commands": ["RUN npm install -g @trailhq/graft"], "note": "Add to your Dockerfile and run graft in one-shot mode (graft plan) on start - disable the watcher daemon."},
-        "remote-ssh": {"note": "Install on the remote host - the VSCode server runs there. A local install has no effect."},
+        "container": {"commands": ["RUN npm install -g @trailhq/graft"], "note": "Add to your Dockerfile and run graft in one-shot mode (graft plan) on start. Disable the watcher daemon."},
+        "remote-ssh": {"note": "Install on the remote host. The VSCode server runs there. A local install has no effect."},
         "corporate": {"commands": ["npm install -g @trailhq/graft --registry=$NPM_PROXY"], "note": "If npm is proxied, set --registry to your internal mirror. Core grafting itself needs no network."},
     },
     "serena": {
@@ -742,9 +742,9 @@ PLATFORM_STEP_OVERRIDES = {
     "archify": {
         "windows": {"note": "Use forward slashes in module path patterns in archify.yml for portability."},
         "wsl": {"note": "Runs identically to Linux; keep archify.yml committed so it syncs across environments."},
-        "container": {"commands": ["RUN npm install -g @archify/cli"], "note": "Bake archify.yml into the image - rules are static config with no runtime download."},
+        "container": {"commands": ["RUN npm install -g @archify/cli"], "note": "Bake archify.yml into the image. Rules are static config with no runtime download."},
         "remote-ssh": {"note": "Run on the remote host next to Graphify and share the same graph endpoint."},
-        "corporate": {"note": "Entirely local and offline - ideal for locked-down environments since no external calls are made."},
+        "corporate": {"note": "Entirely local and offline. Ideal for locked-down environments since no external calls are made."},
     },
     "agentsview": {
         "windows": {"note": "If the sidebar is blank, allow the extension host through the firewall for local telemetry ports."},
@@ -754,11 +754,11 @@ PLATFORM_STEP_OVERRIDES = {
         "corporate": {"commands": ["code --install-extension ./agentsview.vsix"], "note": "If the Marketplace is blocked, sideload the signed .vsix your security team approves."},
     },
     "ponytail": {
-        "windows": {"note": "Identical on Windows - it's a text skill with no build or path concerns. Copy AGENTS.md into the repo for instruction-only agents."},
+        "windows": {"note": "Identical on Windows. It's a text skill with no build or path concerns. Copy AGENTS.md into the repo for instruction-only agents."},
         "wsl": {"note": "Keep AGENTS.md / the skill inside the repo on the Linux filesystem so the WSL-hosted agent picks it up."},
-        "container": {"commands": ["# Dockerfile\nCOPY AGENTS.md /app/AGENTS.md"], "note": "Bake AGENTS.md into the image so every container session starts with Ponytail active - no marketplace needed."},
+        "container": {"commands": ["# Dockerfile\nCOPY AGENTS.md /app/AGENTS.md"], "note": "Bake AGENTS.md into the image so every container session starts with Ponytail active. No marketplace needed."},
         "remote-ssh": {"note": "Commit AGENTS.md / the skill to the repo so it travels to the remote host and the agent reads it there."},
-        "corporate": {"commands": ["# no network needed - copy the ruleset into the repo:\ncp AGENTS.md ./AGENTS.md"], "note": "Fully offline: skip the marketplace and just copy AGENTS.md. Only install Ponytail from DietrichGebert/ponytail."},
+        "corporate": {"commands": ["# no network needed. Copy the ruleset into the repo:\ncp AGENTS.md ./AGENTS.md"], "note": "Fully offline: skip the marketplace and just copy AGENTS.md. Only install Ponytail from DietrichGebert/ponytail."},
     },
 }
 

@@ -1,0 +1,23 @@
+# Legitimate project vocabulary that Vale should treat as known words.
+# One term per line, no comments inline.
+aiosqlite
+tiktoken
+tokeniser
+tokenizer
+LiteLLM
+Antigravity
+Agentsview
+Archify
+Graphify
+Serena
+Ponytail
+nginx
+SQLite
+uvicorn
+VSCode
+WKWebView
+WebView2
+Tauri
+Minisign
+pyinstaller
+MongoDB

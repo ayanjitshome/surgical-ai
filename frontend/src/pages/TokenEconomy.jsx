@@ -3,47 +3,51 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Coins, Zap, TrendingDown, AlertTriangle, CheckCircle2, XCircle,
   Database, MessageSquare, Terminal, Flame, Lock, Infinity as InfinityIcon,
-  Save, RotateCcw, Table2, Calendar, DollarSign,
+  Save, RotateCcw, Table2, Calendar, DollarSign, RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  CACHED_WEIGHT, OUTPUT_WEIGHT, STORAGE_KEY, DEFAULTS,
+  FALLBACK_MODELS, CUSTOM_MODEL, loadScenario, fmtUsd, computeCosts,
+} from "@/lib/scenario";
 
 /* -------- Content model (adapted to any agentic AI tool) -------- */
 
 const AGENT_NOTES = {
   "Claude / Claude Code": {
     accent: "#D97757",
-    caching: "Claude Projects: freeze the Knowledge files + Custom Instructions - these form the stable prefix that gets the 90% cache discount.",
-    conversation: "Keep related work in one chat so the prefix stays warm. Start a fresh chat only when switching tasks.",
-    cli: "Claude Code: use /compact (not /clear) around 70% of the context window. Keep your MCP tool list stable.",
-    output: "Ask for diffs or just the changed lines - never 'rewrite the whole file with comments'.",
+    caching: "In Claude Projects, freeze the Knowledge files and Custom Instructions. They form the stable prefix that gets the 90% cache discount.",
+    conversation: "Keep related work in one chat so the prefix stays warm. Start a fresh chat only when you switch tasks.",
+    cli: "In Claude Code, use /compact (not /clear) around 70% of the context window. Keep your MCP tool list stable.",
+    output: "Ask for diffs or just the changed lines. Never 'rewrite the whole file with comments'.",
   },
   "GitHub Copilot": {
     accent: "#1F6FEB",
-    caching: "Copilot Chat caches on repo + open-file context. Avoid renaming files mid-session; it invalidates the index.",
-    conversation: "Group questions in the same chat panel. New file = new context, so revisit explanations only when needed.",
-    cli: "Pin your workspace with .github/copilot-instructions.md - stable instructions = stable prefix.",
+    caching: "Copilot Chat caches on repo and open-file context. Avoid renaming files mid-session. It invalidates the index.",
+    conversation: "Group questions in the same chat panel. A new file means a new context, so revisit explanations only when needed.",
+    cli: "Pin your workspace with .github/copilot-instructions.md. Stable instructions mean a stable prefix.",
     output: "Prefer 'suggest a single edit' over 'rewrite'. Use inline chat for narrow surgical changes.",
   },
   "OpenAI Codex / Codex CLI": {
     accent: "#10A37F",
-    caching: "Codex CLI caches on system prompt + sandbox file snapshot. Keep AGENTS.md and your tool list static.",
+    caching: "Codex CLI caches on the system prompt and sandbox file snapshot. Keep AGENTS.md and your tool list static.",
     conversation: "Chain tasks in one session when they share files. Spawn a new session for unrelated work.",
-    cli: "Use codex compact / summary passes instead of clearing history. Keep sandbox tools deterministic (sort_keys=True on JSON).",
-    output: "Ask for patches (diffs), not full rewrites. Request tests inline rather than a separate pass.",
+    cli: "Use codex compact or summary passes instead of clearing history. Keep sandbox tools deterministic (sort_keys=True on JSON).",
+    output: "Ask for patches (diffs), not full rewrites. Request tests inline rather than in a separate pass.",
   },
   "Google Antigravity": {
     accent: "#4285F4",
-    caching: "Antigravity caches on the Workflow + MCP tool graph. Lock your workflow nodes before heavy use.",
-    conversation: "Each plan runs with the same preamble - once a plan is set, iterate inside it rather than replanning.",
-    cli: "In the agentic IDE, surface the plan but don't edit the plan mid-task - a plan edit resets the cache window.",
-    output: "Instruct the agent to emit only the diff and the test, not the full file.",
+    caching: "Antigravity caches on the Workflow and MCP tool graph. Lock your workflow nodes before heavy use.",
+    conversation: "Every plan runs with the same preamble. Once a plan is set, iterate inside it rather than replanning.",
+    cli: "In the agentic IDE, surface the plan, but do not edit the plan mid-task. A plan edit resets the cache window.",
+    output: "Tell the agent to emit only the diff and the test, not the full file.",
   },
   "Any agent (universal)": {
     accent: "var(--brand)",
-    caching: "Treat the first ~2k tokens of your context as sacred: tool definitions, project rules, schemas. Never edit them during a work session.",
+    caching: "Treat the first 2k tokens of your context as sacred. Tool definitions, project rules, schemas. Never edit them during a work session.",
     conversation: "Append-only wins. A linear conversation with a stable top is the cheapest shape a prompt can take.",
-    cli: "Summarise, don't clear. Keep tool outputs deterministic (sorted keys, stable formats, no timestamps in payloads).",
-    output: "Output tokens drain budgets 4-7x faster than cached input. Ask for diffs, not rewrites.",
+    cli: "Summarise, do not clear. Keep tool outputs deterministic (sorted keys, stable formats, no timestamps in payloads).",
+    output: "Output tokens drain budgets 4 to 7x faster than cached input. Ask for diffs, not rewrites.",
   },
 };
 
@@ -57,12 +61,12 @@ const TABS = [
 const TAB_CONTENT = {
   caching: {
     headline: "Lock the stable prefix.",
-    sub: "Caching gives you a ~90% discount on input tokens - but only when the top of your prompt is byte-for-byte identical to a previous request within the TTL window.",
+    sub: "Caching gives you a 90% discount on input tokens, but only when the top of your prompt is byte-for-byte identical to a previous request inside the TTL window.",
     quickWins: [
-      "Upload heavy docs (API refs, schemas, brand rules) into a project / knowledge base once.",
+      "Upload heavy docs (API refs, schemas, brand rules) into a project or knowledge base once.",
       "Freeze your custom instructions. Do not edit them mid-session.",
-      "Keep dynamic data (today's date, env vars) out of the preamble.",
-      "Changing a single character in the prefix invalidates the cache - treat it as code.",
+      "Keep changing values (today's date, env vars) out of the preamble.",
+      "Changing a single character in the prefix invalidates the cache. Treat it as code.",
     ],
     doDont: [
       { ok: true, text: "Put universal rules in instructions and leave them alone." },
@@ -73,43 +77,43 @@ const TAB_CONTENT = {
   },
   conversation: {
     headline: "Append-only beats restart.",
-    sub: "Caches read linearly from the top. Keep related questions in one chat - the preamble and your prior turns are already warm. Start a new chat only when you fully switch tasks.",
+    sub: "Caches read linearly from the top. Keep related questions in one chat. The preamble and your prior turns are already warm. Start a new chat only when you fully switch tasks.",
     quickWins: [
       "Batch all questions about a feature in one chat.",
-      "Start a new chat when switching to a different domain (code → marketing).",
-      "A new chat in the same project still hits the project-knowledge cache - just without the stale history.",
-      "Avoid 'rephrase my last question' loops; each rewrite breaks the warm trail.",
+      "Start a new chat when switching to a different domain (code to marketing).",
+      "A new chat in the same project still hits the project-knowledge cache, just without the stale history.",
+      "Avoid 'rephrase my last question' loops. Each rewrite breaks the warm trail.",
     ],
     doDont: [
       { ok: true, text: "Stay in one chat for a single feature or bug." },
       { ok: true, text: "Open a fresh chat when context no longer applies." },
-      { ok: false, text: "Keep stretching one chat across unrelated tasks - old turns bloat input." },
-      { ok: false, text: "Clear and restart mid-task; you lose the whole cached prefix." },
+      { ok: false, text: "Keep stretching one chat across unrelated tasks. Old turns bloat input." },
+      { ok: false, text: "Clear and restart mid-task. You lose the whole cached prefix." },
     ],
   },
   cli: {
     headline: "Keep the tool surface boring.",
     sub: "In CLIs and agentic IDEs, every tool definition and MCP server description lives in the system prompt. Turning tools on or off rewrites the preamble.",
     quickWins: [
-      "Pin a stable set of MCP / plugin tools before a session; don't toggle mid-flow.",
-      "Prefer /compact or summary passes over /clear - they preserve the stable preamble.",
+      "Pin a stable set of MCP or plugin tools before a session. Do not toggle mid-flow.",
+      "Prefer /compact or summary passes over /clear. They preserve the stable preamble.",
       "Make custom tool outputs deterministic: sort_keys=True on JSON, no timestamps in payloads.",
       "Keep instruction files (AGENTS.md, .copilot-instructions, project rules) static during a run.",
     ],
     doDont: [
       { ok: true, text: "Lock your MCP tool list for the duration of a task." },
       { ok: true, text: "Summarise instead of clearing when context nears the limit." },
-      { ok: false, text: "Toggle tools / MCP servers mid-task to 'free up space'." },
+      { ok: false, text: "Toggle tools or MCP servers mid-task to 'free up space'." },
       { ok: false, text: "Emit non-deterministic JSON from your custom tools." },
     ],
   },
   output: {
     headline: "The output tax is unavoidable.",
-    sub: "Caching only discounts input tokens. Output tokens cost full price - and typically drain usage limits 4-7x faster than input. The cheapest fix is to ask for less.",
+    sub: "Caching only discounts input tokens. Output tokens cost full price, and typically drain usage limits 4 to 7x faster than input. The cheapest fix is to ask for less.",
     quickWins: [
-      "Ask for diffs, not full files. 'Show me the 10 lines to change' not 'rewrite with comments'.",
-      "Tell the agent to be concise - verbosity burns the budget twice (now and in future context).",
-      "Avoid 'explain, then do it' prompts - do the work, explain only if asked.",
+      "Ask for diffs, not full files. 'Show me the 10 lines to change', not 'rewrite with comments'.",
+      "Tell the agent to be concise. Verbosity burns the budget twice (now, and in future context).",
+      "Avoid 'explain, then do it' prompts. Do the work, explain only if asked.",
       "For reviews, request 'top 3 issues' rather than exhaustive essays.",
     ],
     doDont: [
@@ -126,62 +130,32 @@ const TAB_CONTENT = {
  * index (relative to input tokens at list price = 1.0x).
  *  - cached input    = 0.10x of normal input
  *  - uncached input  = 1.00x
- *  - output tokens   = 5.00x (midpoint of the "4-7x drain" rule)
- * Numbers are approximations - usage caps vary by plan/model.
+ *  - output tokens   = 5.00x (midpoint of the 4 to 7x drain rule)
+ * Numbers are approximations. Usage caps vary by plan and model.
+ * Shared constants (CACHED_WEIGHT, OUTPUT_WEIGHT, STORAGE_KEY, DEFAULTS,
+ * FALLBACK_MODELS, CUSTOM_MODEL, loadScenario, fmtUsd) live in
+ * `lib/scenario.js` so Home's BudgetVerdict and this page agree.
  */
-const OUTPUT_WEIGHT = 5;
-const CACHED_WEIGHT = 0.1;
-const STORAGE_KEY = "surgicalai.tokenEconomy.scenario";
-
-/* Known model rate presets. Baseline rates reflect publicly-listed vendor
- * prices as of early 2026 and are used as a fallback. On page load the UI
- * calls `/api/pricing` which pulls fresh rates from LiteLLM's community
- * price list and overlays them. Picking "custom" exposes the raw sliders. */
-const FALLBACK_MODELS = [
-  { id: "claude-sonnet",   label: "Claude Sonnet",   vendor: "Anthropic", input: 3,    output: 15,  tokWeight: 5, source: "fallback" },
-  { id: "claude-opus",     label: "Claude Opus",     vendor: "Anthropic", input: 15,   output: 75,  tokWeight: 5, source: "fallback" },
-  { id: "claude-haiku",    label: "Claude Haiku",    vendor: "Anthropic", input: 0.80, output: 4,   tokWeight: 5, source: "fallback" },
-  { id: "gpt-5",           label: "GPT-5",           vendor: "OpenAI",    input: 5,    output: 15,  tokWeight: 3, source: "fallback" },
-  { id: "gpt-5-mini",      label: "GPT-5 mini",      vendor: "OpenAI",    input: 0.25, output: 2,   tokWeight: 8, source: "fallback" },
-  { id: "gpt-4o",          label: "GPT-4o",          vendor: "OpenAI",    input: 2.50, output: 10,  tokWeight: 4, source: "fallback" },
-  { id: "gemini-2-5-pro",  label: "Gemini 2.5 Pro",  vendor: "Google",    input: 1.25, output: 10,  tokWeight: 8, source: "fallback" },
-];
-const CUSTOM_MODEL = { id: "custom", label: "Custom rate", vendor: "You", input: 3, output: 15, tokWeight: 5, source: "fallback" };
-
-const DEFAULTS = {
-  inputTokens: 20000,
-  cachedPct: 80,
-  outputTokens: 2000,
-  promptsPerHour: 8,
-  // Monthly-mode defaults
-  mode: "prompt",         // "prompt" | "monthly"
-  budgetUsd: 25,          // Claude Team-ish cap
-  hoursPerDay: 4,         // active working hours
-  daysPerMonth: 20,       // working days in a month
-  modelId: "claude-sonnet",
-  customInputRate: 3,     // $ per 1M input tokens (used only when modelId === "custom")
-  customOutputRate: 15,
-};
 
 const PRESETS = [
   {
     id: "claude",
     label: "Typical Claude session",
-    hint: "Projects + long chat, lots of cached prefix",
+    hint: "Projects, long chat, lots of cached prefix",
     accent: "#D97757",
     values: { inputTokens: 60000, cachedPct: 85, outputTokens: 1800, promptsPerHour: 10 },
   },
   {
     id: "copilot",
     label: "Copilot heavy day",
-    hint: "Repo index + short back-and-forth edits",
+    hint: "Repo index, short back-and-forth edits",
     accent: "#1F6FEB",
     values: { inputTokens: 15000, cachedPct: 70, outputTokens: 800, promptsPerHour: 24 },
   },
   {
     id: "codex",
     label: "Codex CLI run",
-    hint: "Sandbox + AGENTS.md, diff-first replies",
+    hint: "Sandbox, AGENTS.md, diff-first replies",
     accent: "#10A37F",
     values: { inputTokens: 40000, cachedPct: 75, outputTokens: 1500, promptsPerHour: 6 },
   },
@@ -198,28 +172,6 @@ function fmt(n) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1) + "k";
   return Math.round(n).toString();
-}
-
-function loadScenario() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    // Validate shape - fall back to defaults on anything funky.
-    if (
-      typeof parsed.inputTokens === "number" &&
-      typeof parsed.cachedPct === "number" &&
-      typeof parsed.outputTokens === "number" &&
-      typeof parsed.promptsPerHour === "number"
-    ) return parsed;
-    return null;
-  } catch { return null; }
-}
-
-function fmtUsd(n) {
-  if (n >= 1000) return "$" + Math.round(n).toLocaleString();
-  if (n >= 10) return "$" + n.toFixed(0);
-  return "$" + n.toFixed(2);
 }
 
 const Calculator = () => {
@@ -348,7 +300,7 @@ const Calculator = () => {
           <p className="hig-footnote mt-1">
             {mode === "monthly"
               ? "Project a monthly spend from your typical session, in USD. Caching discounts input tokens; output tokens count 5x."
-              : "Model-agnostic estimate. Input tokens from cache cost ~10% of fresh ones. Output tokens are the real drain."}
+              : "Model-agnostic estimate. Input tokens from cache cost about 10% of fresh ones. Output tokens are the real drain."}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -486,7 +438,7 @@ const Calculator = () => {
               >
                 {MODELS.map((m) => (
                   <option key={m.id} value={m.id}>
-                    {m.label}{m.id === "custom" ? "" : ` — $${m.input}/${m.output} per 1M`}
+                    {m.label}{m.id === "custom" ? "" : ` ($${m.input}/${m.output} per 1M)`}
                   </option>
                 ))}
               </select>
@@ -631,10 +583,27 @@ const Calculator = () => {
         <InfinityIcon className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
         <span>
           {mode === "monthly"
-            ? <>Monthly $ math uses <strong className="text-primary-c">{selectedModel.label}</strong>'s rates ({`$${effectiveInputRate}/$${effectiveOutputRate} per 1M, input/output`}). Prices approximate as of early 2026 - check the vendor page before committing.</>
-            : <>Rule of thumb: a well-cached session with concise outputs can run <strong className="text-primary-c">5-10x longer</strong> on the same usage cap than an un-cached verbose one.</>}
+            ? <>Monthly $ math uses <strong className="text-primary-c">{selectedModel.label}</strong>'s rates ({`$${effectiveInputRate}/$${effectiveOutputRate} per 1M, input and output`}). Prices approximate as of early 2026. Check the vendor page before committing.</>
+            : <>A well-cached session with concise outputs can run <strong className="text-primary-c">5 to 10x longer</strong> on the same usage cap than an un-cached verbose one.</>}
         </span>
       </p>
+
+      {mode === "monthly" && (
+        <PresetComparison
+          budgetUsd={budgetUsd}
+          hoursPerDay={hoursPerDay}
+          daysPerMonth={daysPerMonth}
+          modelId={modelId}
+          selectedModel={selectedModel}
+          customInputRate={customInputRate}
+          customOutputRate={customOutputRate}
+        />
+      )}
+
+      <AdminPricingRefresh
+        livePricing={livePricing}
+        onRefreshed={(next) => setLivePricing(next)}
+      />
     </section>
   );
 };
@@ -672,6 +641,200 @@ const Stat = ({ label, value, tone = "neutral", icon, testId }) => {
       <div className="mt-1 text-2xl font-semibold tracking-[-0.02em] flex items-center gap-2" style={{ color: toneStyle.color }}>
         {icon}{value}
       </div>
+    </div>
+  );
+};
+
+/* -------- Preset Comparison ------
+ * Load two presets side by side against the user's current monthly budget
+ * and model. Each side swaps in the preset's input / cached / output /
+ * prompts-per-hour values and reuses the shared computeCosts(). */
+
+const PresetComparison = ({ budgetUsd, hoursPerDay, daysPerMonth, modelId, selectedModel, customInputRate, customOutputRate }) => {
+  const [leftId, setLeftId] = useState("claude");
+  const [rightId, setRightId] = useState("antigravity");
+
+  const left = PRESETS.find((p) => p.id === leftId);
+  const right = PRESETS.find((p) => p.id === rightId);
+
+  const sideStats = (preset) => {
+    const scenario = {
+      ...preset.values,
+      budgetUsd, hoursPerDay, daysPerMonth, modelId, customInputRate, customOutputRate,
+    };
+    return computeCosts(scenario, selectedModel);
+  };
+
+  const leftStats = sideStats(left);
+  const rightStats = sideStats(right);
+  const cheaperId = leftStats.usdPerMonth <= rightStats.usdPerMonth ? "left" : "right";
+  const diff = Math.abs(leftStats.usdPerMonth - rightStats.usdPerMonth);
+
+  return (
+    <section className="mt-6 pt-5 border-t border-c" data-testid="preset-comparison" aria-labelledby="preset-comparison-title">
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+        <h3 id="preset-comparison-title" className="hig-headline text-primary-c">Compare two presets on your budget</h3>
+        <span className="hig-footnote">
+          Winner is <strong className="text-primary-c">{fmtUsd(diff)}/mo</strong> cheaper on {fmtUsd(budgetUsd)}.
+        </span>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-3">
+        <PresetSide
+          side="left"
+          preset={left}
+          onChange={setLeftId}
+          stats={leftStats}
+          budgetUsd={budgetUsd}
+          isWinner={cheaperId === "left"}
+        />
+        <PresetSide
+          side="right"
+          preset={right}
+          onChange={setRightId}
+          stats={rightStats}
+          budgetUsd={budgetUsd}
+          isWinner={cheaperId === "right"}
+        />
+      </div>
+    </section>
+  );
+};
+
+const PresetSide = ({ side, preset, onChange, stats, budgetUsd, isWinner }) => {
+  const over = stats.usdPerMonth > budgetUsd;
+  const tone = over ? "var(--warning)" : (isWinner ? "var(--success)" : "var(--text-primary)");
+  const borderColor = isWinner ? (over ? "var(--warning)" : "var(--success)") : "var(--line)";
+  return (
+    <div
+      className="hig-card p-4 relative"
+      style={{ borderColor, boxShadow: isWinner ? `0 0 0 1px ${borderColor}` : undefined }}
+      data-testid={`preset-side-${side}`}
+    >
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <label htmlFor={`preset-${side}-select`} className="hig-footnote">Scenario {side === "left" ? "A" : "B"}</label>
+        {isWinner && (
+          <span className="hig-chip" style={{ background: over ? "rgba(255,159,10,0.14)" : "rgba(48,209,88,0.14)", color: over ? "var(--warning)" : "var(--success)", borderColor: "transparent" }} data-testid={`preset-side-${side}-winner`}>
+            {over ? "Less bad" : "Cheaper"}
+          </span>
+        )}
+      </div>
+
+      <select
+        id={`preset-${side}-select`}
+        data-testid={`preset-${side}-select`}
+        value={preset.id}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors mb-3"
+      >
+        {PRESETS.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+      </select>
+
+      <div className="hig-footnote mb-3 flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: preset.accent }} />
+        {preset.values.inputTokens.toLocaleString()} in, {preset.values.cachedPct}% cached, {preset.values.outputTokens.toLocaleString()} out, {preset.values.promptsPerHour}/h
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        <MiniStat label="Monthly" value={fmtUsd(stats.usdPerMonth)} color={tone} testId={`preset-${side}-monthly`} />
+        <MiniStat label="Of budget" value={`${Math.min(999, Math.round(stats.monthlyBudgetUsed * 100))}%`} color={tone} testId={`preset-${side}-pct`} />
+        <MiniStat
+          label={over ? "Days to cap" : "Runway"}
+          value={over
+            ? (stats.runwayDays >= 1 ? `${Math.floor(stats.runwayDays)}d` : "<1d")
+            : (stats.monthlyBudgetUsed > 0 ? `${(1 / stats.monthlyBudgetUsed).toFixed(1)}mo` : "∞")}
+          color={tone}
+          testId={`preset-${side}-runway`}
+        />
+      </div>
+    </div>
+  );
+};
+
+const MiniStat = ({ label, value, color, testId }) => (
+  <div className="rounded-[10px] px-2.5 py-2 border border-c" style={{ background: "var(--bg-card-hover)" }} data-testid={testId}>
+    <div className="hig-footnote">{label}</div>
+    <div className="text-[15px] font-semibold tracking-[-0.01em]" style={{ color }}>{value}</div>
+  </div>
+);
+
+/* -------- Admin pricing refresh ------
+ * Small footer link that busts the backend's 24h LiteLLM cache. Admin token
+ * is prompted on first use and kept in sessionStorage. */
+
+const AdminPricingRefresh = ({ livePricing, onRefreshed }) => {
+  const [status, setStatus] = useState(null); // "ok" | "fail" | "running"
+  const [message, setMessage] = useState("");
+
+  const run = async () => {
+    let token = sessionStorage.getItem("surgicalai.adminToken") || "";
+    if (!token) {
+      token = window.prompt("Admin token (asked once per browser session, kept in sessionStorage):") || "";
+      if (!token) return;
+      sessionStorage.setItem("surgicalai.adminToken", token);
+    }
+    setStatus("running");
+    setMessage("Pulling LiteLLM...");
+    try {
+      const base = process.env.REACT_APP_BACKEND_URL || "";
+      const r = await fetch(`${base}/api/admin/pricing/refresh`, {
+        method: "POST",
+        headers: { "X-Admin-Token": token },
+      });
+      if (r.status === 401) {
+        sessionStorage.removeItem("surgicalai.adminToken");
+        setStatus("fail");
+        setMessage("Rejected. Token cleared, click again to re-enter.");
+        return;
+      }
+      if (!r.ok) {
+        setStatus("fail");
+        setMessage(`Failed with HTTP ${r.status}`);
+        return;
+      }
+      const data = await r.json();
+      const live = (data.models || []).filter((m) => m.source === "live").length;
+      onRefreshed({
+        models: data.models,
+        fetched_at: data.fetched_at,
+        source: live === data.models.length ? "live" : "mixed",
+        stale: false,
+        source_url: data.source_url,
+      });
+      setStatus("ok");
+      setMessage(`Refreshed. ${live}/${data.models.length} models resolved live.`);
+    } catch (e) {
+      setStatus("fail");
+      setMessage(String(e.message || e));
+    }
+  };
+
+  const stamp = livePricing?.fetched_at ? new Date(livePricing.fetched_at).toLocaleString() : "never";
+
+  return (
+    <div className="mt-5 pt-4 border-t border-c flex flex-wrap items-center gap-3 text-[13px]" data-testid="admin-pricing-refresh">
+      <span className="hig-footnote">
+        Pricing cache (24h). Last pulled: <span className="text-secondary-c">{stamp}</span>
+      </span>
+      <button
+        type="button"
+        onClick={run}
+        disabled={status === "running"}
+        data-testid="admin-pricing-refresh-button"
+        className="hig-chip hover:text-primary-c transition-colors disabled:opacity-60"
+      >
+        <RefreshCw className={cn("w-3.5 h-3.5", status === "running" && "animate-spin")} aria-hidden="true" />
+        Refresh now
+      </button>
+      {message && (
+        <span
+          className="hig-footnote"
+          style={{ color: status === "ok" ? "var(--success)" : status === "fail" ? "var(--warning)" : "var(--text-muted)" }}
+          data-testid="admin-pricing-refresh-status"
+        >
+          {message}
+        </span>
+      )}
     </div>
   );
 };
@@ -826,45 +989,45 @@ const AgentCallouts = ({ active }) => {
 
 const COMPARISON_ROWS = [
   { label: "Cache mechanism", values: {
-    claude: "Stable prefix hash (Projects + instructions + files + prior turns)",
-    copilot: "Repo + open-file index with Chat preamble",
-    codex: "System prompt + sandbox snapshot + AGENTS.md",
-    antigravity: "Workflow graph + MCP tool descriptions",
+    claude: "Stable prefix hash (Projects, instructions, files, prior turns)",
+    copilot: "Repo and open-file index with the Chat preamble",
+    codex: "System prompt, sandbox snapshot, AGENTS.md",
+    antigravity: "Workflow graph and MCP tool descriptions",
   } },
   { label: "Cache TTL", values: {
     claude: "5 min default, 1 hr with extended TTL",
-    copilot: "Session-scoped (as long as workspace is open)",
-    codex: "Session-scoped (until compact / reset)",
+    copilot: "Session-scoped (as long as the workspace is open)",
+    codex: "Session-scoped (until compact or reset)",
     antigravity: "Plan-scoped (resets on plan edit)",
   } },
   { label: "Cached input discount", values: {
-    claude: "~90% off list price",
+    claude: "About 90% off list price",
     copilot: "Flat seat pricing (no per-token)",
-    codex: "~90% off list price",
-    antigravity: "~90% off list price",
+    codex: "About 90% off list price",
+    antigravity: "About 90% off list price",
   } },
   { label: "Output token weight", values: {
-    claude: "4-7x the input rate",
-    copilot: "Seat-capped; no direct metering",
-    codex: "4-5x the input rate",
-    antigravity: "4-6x the input rate",
+    claude: "4 to 7x the input rate",
+    copilot: "Seat-capped. No direct metering.",
+    codex: "4 to 5x the input rate",
+    antigravity: "4 to 6x the input rate",
   } },
   { label: "Biggest cache killer", values: {
     claude: "Editing project instructions or swapping files",
-    copilot: "Renaming / moving files mid-session",
+    copilot: "Renaming or moving files mid-session",
     codex: "Toggling MCP tools or editing AGENTS.md",
     antigravity: "Editing the plan while it runs",
   } },
   { label: "How to compact", values: {
     claude: "/compact in Claude Code",
-    copilot: "Close & re-open the chat panel (no built-in compact)",
-    codex: "codex summary / compact pass",
+    copilot: "Close and re-open the chat panel (no built-in compact)",
+    codex: "codex summary or compact pass",
     antigravity: "Agent-driven summary step in the plan",
   } },
   { label: "Best fit", values: {
     claude: "Long, exploratory sessions on a stable repo",
     copilot: "Short surgical edits across many files",
-    codex: "Scripted / autonomous CLI work with tests",
+    codex: "Scripted or autonomous CLI work with tests",
     antigravity: "Multi-step agentic workflows",
   } },
 ];
@@ -883,7 +1046,7 @@ const AgentComparison = () => (
       <h2 id="comparison-title" className="hig-title-3 text-primary-c">Agents side-by-side</h2>
     </div>
     <p className="hig-footnote mb-4 max-w-2xl">
-      Qualitative snapshot of how the main agentic tools handle caching and output economics. Numeric multipliers are rough rules of thumb - always check the current pricing page before committing to a plan.
+      Qualitative snapshot of how the main agentic tools handle caching and output economics. Numeric multipliers are rough. Always check the current pricing page before committing to a plan.
     </p>
     <div className="hig-card overflow-hidden">
       <div className="overflow-x-auto">
@@ -944,8 +1107,8 @@ const TokenEconomy = () => {
           Make every token work <span style={{ color: "var(--brand)" }}>twice as hard</span>.
         </h1>
         <p className="hig-body text-secondary-c mt-4 max-w-2xl">
-          The principles below apply to any agentic AI tool - Claude, Copilot, Codex, Antigravity, or your own MCP stack.
-          Caching discounts input tokens by ~90%, but only if you treat the top of your context as sacred.
+          The principles below apply to any agentic AI tool (Claude, Copilot, Codex, Antigravity, or your own MCP stack).
+          Caching discounts input tokens by about 90%, but only if you treat the top of your context as sacred.
         </p>
       </div>
 
@@ -967,10 +1130,10 @@ const TokenEconomy = () => {
             <AlertTriangle className="w-5 h-5" style={{ color: "var(--warning)" }} aria-hidden="true" />
           </div>
           <div>
-            <h2 id="trap-title" className="hig-title-3 text-primary-c">The one trap caching can't fix</h2>
+            <h2 id="trap-title" className="hig-title-3 text-primary-c">The one trap caching cannot fix</h2>
             <p className="hig-body text-secondary-c mt-2 max-w-3xl">
               Caching only discounts <strong className="text-primary-c">input</strong> tokens.
-              Output tokens cost full price and drain usage caps roughly <strong className="text-primary-c">4-7x faster</strong> than input.
+              Output tokens cost full price and drain usage caps roughly <strong className="text-primary-c">4 to 7x faster</strong> than input.
               A perfectly cached prompt that asks the agent to "rewrite the entire 500-line file with comments" will still blow through your limit.
               Ask for <em>diffs</em>, demand brevity, and let the tools do the heavy context work.
             </p>

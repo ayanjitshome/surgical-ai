@@ -1,5 +1,5 @@
 # © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome.
-"""Surgical AI Hub API — FastAPI backed by SQLite (aiosqlite).
+"""Surgical AI Hub API, FastAPI backed by SQLite (aiosqlite).
 
 A single tools table stores the curated catalog plus cached GitHub README content.
 We serialise non-scalar fields to JSON strings for easy portability.
@@ -110,7 +110,7 @@ class DecisionAnswers(BaseModel):
 
 # ---------- SQLite helpers ----------
 # Scalar columns are a mild performance win; the rest of each tool payload lives
-# in `data` as a JSON blob — simpler than mapping every field twice.
+# in `data` as a JSON blob, simpler than mapping every field twice.
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS tools (
     id TEXT PRIMARY KEY,
@@ -335,6 +335,14 @@ async def get_pricing():
     _PRICING_CACHE["data"] = result
     _PRICING_CACHE["fetched_at"] = now
     return result
+
+
+@api_router.post("/admin/pricing/refresh")
+async def refresh_pricing(_: bool = Depends(require_admin)):
+    """Bust the 24h pricing cache and pull LiteLLM again right now."""
+    _PRICING_CACHE["data"] = None
+    _PRICING_CACHE["fetched_at"] = None
+    return await get_pricing()
 
 
 @api_router.post("/admin/refresh/{tool_id}")
