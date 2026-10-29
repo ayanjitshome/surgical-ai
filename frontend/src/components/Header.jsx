@@ -77,7 +77,7 @@ export const Header = ({ onOpenSearch, onOpenSidebar }) => {
           data-testid="header-get-started-button"
           aria-label="Get started"
           title="Get started"
-          className="hig-btn hig-btn-primary h-9 w-9 p-0 flex items-center justify-center"
+          className="h-9 w-9 flex items-center justify-center rounded-[10px] border border-c bg-[var(--bg-card)] text-secondary-c hover:text-primary-c hover:bg-[var(--bg-card-hover)] transition-colors"
         >
           <PlaneTakeoff className="w-4 h-4" aria-hidden="true" />
         </button>
