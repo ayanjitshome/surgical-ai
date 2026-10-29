@@ -5,7 +5,7 @@ import { TOOL_DIRECTIVES } from "@/lib/promptData";
 import { Wand2, ListTree, Target, BookMarked, ShieldCheck, FileOutput, CheckCircle2, Layers, Terminal, Sparkles, ArrowRight } from "lucide-react";
 
 const ANATOMY = [
-  { id: "role", icon: Target, title: "1 . Role & Objective", color: "#10B981",
+  { id: "role", icon: Target, title: "1 . Role & Objective", color: "var(--brand)",
     body: "Open by naming the agent's role and the single, concrete objective. One task per prompt, ambiguity here is the most expensive kind of token waste because it causes wrong work and rework." },
   { id: "context", icon: Layers, title: "2 . Available Context (tool-provided)", color: "#06B6D4",
     body: "Explicitly tell the agent what its tooling already provides and to rely on it rather than rebuilding it. This is the heart of a tool-aware prompt: each active tool gets one directive so the agent uses the graph, the memory and the budget instead of brute-forcing the repo." },
@@ -26,11 +26,11 @@ export default function PromptPlaybook() {
     <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 space-y-14 fade-up" data-testid="prompt-playbook-page">
       {/* Intro */}
       <section>
-        <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3 flex items-center gap-2" style={{ color: "#10B981" }}>
+        <div className="text-xs uppercase tracking-[0.25em] font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--brand)" }}>
           <Wand2 className="w-4 h-4" aria-hidden="true" /> {"// prompt playbook"}
         </div>
-        <h1 className="font-mono text-3xl sm:text-4xl font-bold text-primary-c max-w-3xl">
-          Write prompts that <span style={{ color: "#10B981" }}>let the tools do the work</span>.
+        <h1 className="text-3xl sm:text-4xl font-bold text-primary-c max-w-3xl">
+          Write prompts that <span style={{ color: "var(--brand)" }}>let the tools do the work</span>.
         </h1>
         <p className="text-secondary-c mt-3 max-w-2xl leading-relaxed">
           Your tools only save tokens if the agent is told to use them. A context-aware prompt names what each tool already provides and forbids the agent from brute-forcing the repo. Below is the anatomy, then jump into the builder to generate your own.
@@ -42,7 +42,7 @@ export default function PromptPlaybook() {
 
       {/* Anatomy guide */}
       <section data-testid="prompt-anatomy-section">
-        <h2 className="font-mono text-2xl font-bold text-primary-c flex items-center gap-2 mb-5"><BookMarked className="w-6 h-6" style={{ color: "#06B6D4" }} /> Anatomy of a context-aware prompt</h2>
+        <h2 className="text-2xl font-bold text-primary-c flex items-center gap-2 mb-5"><BookMarked className="w-6 h-6" style={{ color: "#06B6D4" }} /> Anatomy of a context-aware prompt</h2>
         <div className="grid sm:grid-cols-2 gap-3">
           {ANATOMY.map((a, i) => (
             <div key={a.id} className="surface-card border border-c rounded-xl p-4 fade-up" style={{ animationDelay: `${i * 50}ms`, borderLeft: `3px solid ${a.color}` }} data-testid={`anatomy-${a.id}`}>
@@ -57,7 +57,7 @@ export default function PromptPlaybook() {
 
       {/* Per-tool directives */}
       <section data-testid="tool-directives-section">
-        <h2 className="font-mono text-2xl font-bold text-primary-c flex items-center gap-2 mb-2"><Terminal className="w-6 h-6" style={{ color: "#8B5CF6" }} /> What to tell the agent, per tool</h2>
+        <h2 className="text-2xl font-bold text-primary-c flex items-center gap-2 mb-2"><Terminal className="w-6 h-6" style={{ color: "#8B5CF6" }} /> What to tell the agent, per tool</h2>
         <p className="text-secondary-c text-sm mb-5">Drop the matching line into the <span className="font-mono">AVAILABLE CONTEXT</span> block for every tool you have running.</p>
         <div className="space-y-2.5">
           {tools.map((t) => (
@@ -76,7 +76,7 @@ export default function PromptPlaybook() {
       <section>
         <div className="surface-card border border-c rounded-xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4" style={{ borderColor: "rgba(245,158,11,0.4)" }}>
           <div>
-            <h3 className="font-mono text-lg font-bold text-primary-c flex items-center gap-2"><Sparkles className="w-5 h-5" style={{ color: "#F59E0B" }} /> Ready to write one?</h3>
+            <h3 className="text-lg font-bold text-primary-c flex items-center gap-2"><Sparkles className="w-5 h-5" style={{ color: "#F59E0B" }} /> Ready to write one?</h3>
             <p className="text-sm text-secondary-c mt-1">Use the interactive builder to assemble a copy-ready prompt from your task, active tools and platform.</p>
           </div>
           <Link to="/prompt/builder" data-testid="playbook-builder-cta" className="shrink-0 inline-flex items-center gap-2 px-5 py-3 rounded-md font-semibold text-black" style={{ background: "#F59E0B" }}>

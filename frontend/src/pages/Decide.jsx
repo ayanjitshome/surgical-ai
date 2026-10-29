@@ -87,14 +87,14 @@ export default function Decide() {
   if (result) {
     return (
       <div className="max-w-3xl mx-auto px-5 sm:px-8 py-10 fade-up" data-testid="decision-result">
-        <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: "#10B981" }}>{"// your recommended stack"}</div>
+        <div className="text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: "var(--brand)" }}>{"// your recommended stack"}</div>
         <div className="rounded-2xl border border-bright-c surface-secondary p-6 relative overflow-hidden">
           <div className="flex items-center gap-4 flex-wrap">
             <div className="w-16 h-16 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(16,185,129,0.15)" }}>
-              <TrendingDown className="w-8 h-8" style={{ color: "#10B981" }} />
+              <TrendingDown className="w-8 h-8" style={{ color: "var(--brand)" }} />
             </div>
             <div>
-              <div className="font-mono text-4xl font-bold text-primary-c">~{result.estimated_savings_pct}%</div>
+              <div className="text-4xl font-bold text-primary-c">~{result.estimated_savings_pct}%</div>
               <div className="text-secondary-c text-sm">estimated token-waste reduction with this stack</div>
             </div>
           </div>
@@ -103,7 +103,7 @@ export default function Decide() {
               const t = result.tools.find((x) => x.id === id);
               return (
                 <div key={id} className="flex items-center gap-2">
-                  <span className="font-mono text-xs px-2.5 py-1 rounded-full border flex items-center gap-1.5" style={{ color: t.color, borderColor: `${t.color}66` }}>
+                  <span className="text-xs px-2.5 py-1 rounded-full border flex items-center gap-1.5" style={{ color: t.color, borderColor: `${t.color}66` }}>
                     <span className="text-muted-c">{i + 1}.</span> {t.name}
                   </span>
                   {i < result.adoption_order.length - 1 && <ArrowRight className="w-3.5 h-3.5 text-muted-c" />}
@@ -121,7 +121,7 @@ export default function Decide() {
                 <div className="flex-1">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <span className="font-mono font-bold text-lg text-primary-c">{t.name}</span>
-                    <span className="font-mono text-xs px-2 py-0.5 rounded-full border" style={{ color: t.color, borderColor: `${t.color}55` }}>{t.layer_name}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full border" style={{ color: t.color, borderColor: `${t.color}55` }}>{t.layer_name}</span>
                   </div>
                   <p className="text-sm text-secondary-c mt-1 leading-relaxed">{result.reasons[t.id]}</p>
                   <div className="flex items-center gap-2 mt-3">
@@ -136,7 +136,7 @@ export default function Decide() {
 
         <div className="flex items-center gap-3 mt-7">
           <button onClick={reset} data-testid="decision-restart-button" className="flex items-center gap-1.5 px-5 py-2.5 rounded-md border border-bright-c text-primary-c hover:surface-card"><RotateCcw className="w-4 h-4" /> Start over</button>
-          <button onClick={() => navigate("/guidance")} data-testid="decision-tradeoffs-button" className="flex items-center gap-1.5 px-5 py-2.5 rounded-md font-semibold text-black" style={{ background: "#10B981" }}>See tradeoffs & cost playbook <ArrowRight className="w-4 h-4" /></button>
+          <button onClick={() => navigate("/guidance")} data-testid="decision-tradeoffs-button" className="flex items-center gap-1.5 px-5 py-2.5 rounded-md font-semibold text-black" style={{ background: "var(--brand)", color: "#fff" }}>See tradeoffs & cost playbook <ArrowRight className="w-4 h-4" /></button>
         </div>
       </div>
     );
@@ -145,17 +145,17 @@ export default function Decide() {
   return (
     <div className="max-w-2xl mx-auto px-5 sm:px-8 py-10 fade-up" data-testid="decision-questionnaire">
       <div className="flex items-center justify-between mb-6">
-        <span className="font-mono text-xs uppercase tracking-[0.25em] font-semibold flex items-center gap-2" style={{ color: "#06B6D4" }}>
+        <span className="text-xs uppercase tracking-[0.25em] font-semibold flex items-center gap-2" style={{ color: "#06B6D4" }}>
           <Compass className="w-4 h-4" /> which tools do i need?
         </span>
-        <span className="font-mono text-xs text-muted-c">{step + 1} / {QUESTIONS.length}</span>
+        <span className="text-xs text-muted-c">{step + 1} / {QUESTIONS.length}</span>
       </div>
 
       <div className="h-1 rounded-full surface-card mb-8 overflow-hidden" role="progressbar" aria-valuemin={1} aria-valuemax={QUESTIONS.length} aria-valuenow={step + 1} aria-valuetext={`Question ${step + 1} of ${QUESTIONS.length}`}>
         <div className="h-full rounded-full transition-all duration-300" style={{ width: `${((step + 1) / QUESTIONS.length) * 100}%`, background: "#06B6D4" }} aria-hidden="true" />
       </div>
 
-      <h1 className="font-mono text-2xl sm:text-3xl font-bold text-primary-c mb-1.5">{q.label}</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-primary-c mb-1.5">{q.label}</h1>
       <p className="text-sm text-muted-c mb-6">{q.type === "multi" ? "Select all that apply." : "Pick one."}</p>
 
       <div className={cn("grid gap-3", q.type === "multi" ? "grid-cols-2 sm:grid-cols-3" : "sm:grid-cols-2")} role="group" aria-label={q.label}>
@@ -182,7 +182,7 @@ export default function Decide() {
             Next <ArrowRight className="w-4 h-4" />
           </button>
         ) : (
-          <button onClick={submit} disabled={!canProceed || loading} data-testid="decision-submit-button" className="flex items-center gap-1.5 px-5 py-2.5 rounded-md font-semibold text-black disabled:opacity-40" style={{ background: "#10B981" }}>
+          <button onClick={submit} disabled={!canProceed || loading} data-testid="decision-submit-button" className="flex items-center gap-1.5 px-5 py-2.5 rounded-md font-semibold text-black disabled:opacity-40" style={{ background: "var(--brand)", color: "#fff" }}>
             <Sparkles className="w-4 h-4" /> {loading ? "Calculating…" : "Get my stack"}
           </button>
         )}

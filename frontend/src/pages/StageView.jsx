@@ -16,8 +16,8 @@ export default function StageView() {
   return (
     <div className="max-w-4xl mx-auto px-5 sm:px-8 py-10 fade-up" data-testid={`stage-view-${id}`}>
       <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-c hover:text-primary-c mb-5"><ArrowLeft className="w-4 h-4" /> Ecosystem Hub</Link>
-      <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: "#8B5CF6" }}>{"// workflow stage "}{stage?.order}</div>
-      <h1 className="font-mono text-3xl font-bold text-primary-c flex items-center gap-3"><Icon className="w-8 h-8" style={{ color: "#8B5CF6" }} /> {stage?.name || id}</h1>
+      <div className="text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: "#8B5CF6" }}>{"// workflow stage "}{stage?.order}</div>
+      <h1 className="text-3xl font-bold text-primary-c flex items-center gap-3"><Icon className="w-8 h-8" style={{ color: "#8B5CF6" }} /> {stage?.name || id}</h1>
       <p className="text-secondary-c mt-2 max-w-2xl">{stage?.description}</p>
 
       <div className="grid sm:grid-cols-2 gap-3 mt-7">
@@ -29,7 +29,7 @@ export default function StageView() {
               <span className="w-2.5 h-2.5 rounded-full" style={{ background: t.color, boxShadow: `0 0 8px ${t.color}` }} />
             </div>
             <p className="text-sm text-secondary-c mt-1 leading-snug">{t.tagline}</p>
-            <div className="flex items-center gap-1 mt-3 font-mono text-xs" style={{ color: t.color }}>-{t.token_waste_reduction} token waste <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
+            <div className="flex items-center gap-1 mt-3 text-xs" style={{ color: t.color }}>{t.token_waste_reduction} token savings <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" /></div>
           </button>
         ))}
       </div>

@@ -20,7 +20,7 @@ export default function Wizard() {
   const [verified, setVerified] = useState({});
   const [openTrouble, setOpenTrouble] = useState(false);
 
-  if (!tool || !meta) return <div className="p-8 font-mono text-muted-c">Loading wizard…</div>;
+  if (!tool || !meta) return <div className="p-8 text-muted-c">Loading wizard…</div>;
 
   const steps = tool.setup_steps || [];
   const platforms = meta.platforms || [];
@@ -32,8 +32,8 @@ export default function Wizard() {
         <Link to={`/tools/${tool.id}`} className="inline-flex items-center gap-1.5 text-sm text-muted-c hover:text-primary-c mb-6">
           <ArrowLeft className="w-4 h-4" /> {tool.name}
         </Link>
-        <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: tool.color }}>{"// guided setup"}</div>
-        <h1 className="font-mono text-3xl font-bold text-primary-c">Set up {tool.name}</h1>
+        <div className="text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: tool.color }}>{"// guided setup"}</div>
+        <h1 className="text-3xl font-bold text-primary-c">Set up {tool.name}</h1>
         <p className="text-secondary-c mt-2">First, where are you running your agent or VSCode? Commands and troubleshooting adapt to your platform.</p>
         <div className="grid sm:grid-cols-3 gap-3 mt-7">
           {platforms
@@ -68,7 +68,7 @@ export default function Wizard() {
         <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: `${tool.color}22` }}>
           <PartyPopper className="w-8 h-8" style={{ color: tool.color }} />
         </div>
-        <h1 className="font-mono text-2xl font-bold text-primary-c">{tool.name} is set up</h1>
+        <h1 className="text-2xl font-bold text-primary-c">{tool.name} is set up</h1>
         <p className="text-secondary-c mt-2">
           {allVerified ? "All validation checkpoints passed." : "You skipped some checkpoints - revisit them if the agent misbehaves."}
         </p>
@@ -96,7 +96,7 @@ export default function Wizard() {
         {steps.map((s, i) => (
           <div key={i} className="flex items-center gap-2 flex-1">
             <button onClick={() => setStep(i)} data-testid={`wizard-step-dot-${i}`} className="flex items-center gap-2">
-              <span className={cn("w-7 h-7 rounded-full flex items-center justify-center font-mono text-xs border-2 shrink-0 transition-colors",
+              <span className={cn("w-7 h-7 rounded-full flex items-center justify-center text-xs border-2 shrink-0 transition-colors",
                 verified[i] ? "text-black" : i === step ? "text-primary-c" : "text-muted-c")}
                 style={{ borderColor: verified[i] || i === step ? tool.color : "var(--line-bright)", background: verified[i] ? tool.color : "transparent" }}>
                 {verified[i] ? <Check className="w-4 h-4" /> : i + 1}
@@ -109,14 +109,14 @@ export default function Wizard() {
 
       {/* Step body */}
       <div key={step} className="fade-up">
-        <div className="font-mono text-xs text-muted-c mb-1">Step {step + 1} of {steps.length}</div>
-        <h2 className="font-mono text-2xl font-bold text-primary-c">{current.title}</h2>
+        <div className="text-xs text-muted-c mb-1">Step {step + 1} of {steps.length}</div>
+        <h2 className="text-2xl font-bold text-primary-c">{current.title}</h2>
         <p className="text-secondary-c mt-2 leading-relaxed">{current.description}</p>
 
         {platformTip && (
           <div className="mt-4 flex items-start gap-2.5 rounded-lg p-3 border" style={{ borderColor: `${tool.color}55`, background: `${tool.color}14` }} data-testid={`platform-tip-${step}`}>
             <PlatIcon className="w-4 h-4 mt-0.5 shrink-0" style={{ color: tool.color }} />
-            <p className="text-sm text-secondary-c leading-relaxed"><span className="font-mono text-xs uppercase tracking-wider" style={{ color: tool.color }}>{platform} · </span>{platformTip}</p>
+            <p className="text-sm text-secondary-c leading-relaxed"><span className="text-xs uppercase tracking-wider" style={{ color: tool.color }}>{platform} · </span>{platformTip}</p>
           </div>
         )}
 
@@ -130,14 +130,14 @@ export default function Wizard() {
 
         {current.snippet && (
           <div className="mt-2">
-            <div className="flex items-center gap-1.5 font-mono text-xs text-muted-c mb-1"><FileCode2 className="w-3.5 h-3.5" /> file snippet</div>
+            <div className="flex items-center gap-1.5 text-xs text-muted-c mb-1"><FileCode2 className="w-3.5 h-3.5" /> file snippet</div>
             <CodeBlock code={current.snippet} label="config" testId={`setup-step-snippet-copy-button-${step}`} />
           </div>
         )}
 
         {/* Validation checkpoint */}
         <div className="mt-5 rounded-lg border p-4" style={{ borderColor: verified[step] ? tool.color : "var(--line-bright)", background: "var(--bg-card)" }} data-testid={`validation-checkpoint-${step}`}>
-          <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider mb-2" style={{ color: tool.color }}>
+          <div className="flex items-center gap-2 text-xs uppercase tracking-wider mb-2" style={{ color: tool.color }}>
             <ShieldQuestion className="w-4 h-4" /> Validation checkpoint
           </div>
           {current.validation?.command && <CodeBlock code={current.validation.command} label="verify" testId={`validation-command-copy-${step}`} />}
@@ -165,8 +165,8 @@ export default function Wizard() {
               <div className="px-4 pb-4 space-y-3 border-t border-c pt-3">
                 {current.troubleshooting.map((tr, ti) => (
                   <div key={ti} data-testid={`troubleshooting-item-${step}-${ti}`}>
-                    <div className="font-mono text-sm text-primary-c flex items-start gap-2"><span style={{ color: "#F43F5E" }}>✗</span> {tr.problem}</div>
-                    <div className="text-sm text-secondary-c ml-5 mt-0.5 flex items-start gap-2"><span style={{ color: "#10B981" }}>→</span> {tr.solution}</div>
+                    <div className="text-sm text-primary-c flex items-start gap-2"><span style={{ color: "#F43F5E" }}>✗</span> {tr.problem}</div>
+                    <div className="text-sm text-secondary-c ml-5 mt-0.5 flex items-start gap-2"><span style={{ color: "var(--brand)" }}>→</span> {tr.solution}</div>
                   </div>
                 ))}
               </div>

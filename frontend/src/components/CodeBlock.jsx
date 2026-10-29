@@ -36,7 +36,7 @@ export const CodeBlock = ({ code, label = "bash", testId }) => {
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full" style={{ background: "#F43F5E" }} />
           <span className="w-3 h-3 rounded-full" style={{ background: "#F59E0B" }} />
-          <span className="w-3 h-3 rounded-full" style={{ background: "#10B981" }} />
+          <span className="w-3 h-3 rounded-full" style={{ background: "var(--brand)", color: "#fff" }} />
           <span className="ml-3 font-mono text-xs flex items-center gap-1.5" style={{ color: p.label }}>
             <Terminal className="w-3.5 h-3.5" aria-hidden="true" /> {label}
           </span>
@@ -46,7 +46,7 @@ export const CodeBlock = ({ code, label = "bash", testId }) => {
           onClick={copy}
           aria-label="Copy code to clipboard"
           className="flex items-center gap-1.5 font-mono text-xs px-2.5 py-1 rounded-md transition-colors"
-          style={{ color: copied ? "#10B981" : p.copy }}
+          style={{ color: copied ? "var(--brand)" : p.copy }}
           onMouseEnter={(e) => (e.currentTarget.style.background = p.copyHover)}
           onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
         >
