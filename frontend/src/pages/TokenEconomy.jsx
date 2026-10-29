@@ -132,6 +132,21 @@ const TAB_CONTENT = {
 const OUTPUT_WEIGHT = 5;
 const CACHED_WEIGHT = 0.1;
 const STORAGE_KEY = "surgicalai.tokenEconomy.scenario";
+
+/* Known model rate presets. Prices are per 1M tokens in USD and reflect
+ * publicly-listed vendor rates as of early 2026 - treat them as planning
+ * approximations, not invoices. Picking "custom" exposes the raw sliders. */
+const MODELS = [
+  { id: "claude-sonnet",   label: "Claude Sonnet",   vendor: "Anthropic", input: 3,    output: 15,  tokWeight: 5 },
+  { id: "claude-opus",     label: "Claude Opus",     vendor: "Anthropic", input: 15,   output: 75,  tokWeight: 5 },
+  { id: "claude-haiku",    label: "Claude Haiku",    vendor: "Anthropic", input: 0.80, output: 4,   tokWeight: 5 },
+  { id: "gpt-5",           label: "GPT-5",           vendor: "OpenAI",    input: 5,    output: 15,  tokWeight: 3 },
+  { id: "gpt-5-mini",      label: "GPT-5 mini",      vendor: "OpenAI",    input: 0.25, output: 2,   tokWeight: 8 },
+  { id: "gpt-4o",          label: "GPT-4o",          vendor: "OpenAI",    input: 2.50, output: 10,  tokWeight: 4 },
+  { id: "gemini-2-5-pro",  label: "Gemini 2.5 Pro",  vendor: "Google",    input: 1.25, output: 10,  tokWeight: 8 },
+  { id: "custom",          label: "Custom rate",     vendor: "You",       input: 3,    output: 15,  tokWeight: 5 },
+];
+
 const DEFAULTS = {
   inputTokens: 20000,
   cachedPct: 80,
@@ -142,7 +157,9 @@ const DEFAULTS = {
   budgetUsd: 25,          // Claude Team-ish cap
   hoursPerDay: 4,         // active working hours
   daysPerMonth: 20,       // working days in a month
-  ratePerMInput: 3,       // $ per 1M input tokens (Claude Sonnet-ish list)
+  modelId: "claude-sonnet",
+  customInputRate: 3,     // $ per 1M input tokens (used only when modelId === "custom")
+  customOutputRate: 15,
 };
 
 const PRESETS = [
@@ -214,15 +231,27 @@ const Calculator = () => {
   const [budgetUsd, setBudgetUsd] = useState(initial?.budgetUsd ?? DEFAULTS.budgetUsd);
   const [hoursPerDay, setHoursPerDay] = useState(initial?.hoursPerDay ?? DEFAULTS.hoursPerDay);
   const [daysPerMonth, setDaysPerMonth] = useState(initial?.daysPerMonth ?? DEFAULTS.daysPerMonth);
-  const [ratePerMInput, setRatePerMInput] = useState(initial?.ratePerMInput ?? DEFAULTS.ratePerMInput);
+  const [modelId, setModelId] = useState(initial?.modelId ?? DEFAULTS.modelId);
+  const [customInputRate, setCustomInputRate] = useState(initial?.customInputRate ?? DEFAULTS.customInputRate);
+  const [customOutputRate, setCustomOutputRate] = useState(initial?.customOutputRate ?? DEFAULTS.customOutputRate);
   const [savedAt, setSavedAt] = useState(initial ? "loaded" : null);
   const [activePreset, setActivePreset] = useState(null);
+
+  const selectedModel = MODELS.find((m) => m.id === modelId) || MODELS[0];
+  const effectiveInputRate = modelId === "custom" ? customInputRate : selectedModel.input;
+  const effectiveOutputRate = modelId === "custom" ? customOutputRate : selectedModel.output;
+  // Per-model token weight for the per-prompt cost-index (reflects how heavy
+  // output is relative to input for that family).
+  const effectiveOutputWeight = modelId === "custom"
+    ? (customInputRate > 0 ? customOutputRate / customInputRate : OUTPUT_WEIGHT)
+    : selectedModel.tokWeight;
 
   // Debounced auto-save so returning users see their own numbers.
   useEffect(() => {
     const scenario = {
       inputTokens, cachedPct, outputTokens, promptsPerHour,
-      mode, budgetUsd, hoursPerDay, daysPerMonth, ratePerMInput,
+      mode, budgetUsd, hoursPerDay, daysPerMonth,
+      modelId, customInputRate, customOutputRate,
     };
     const t = setTimeout(() => {
       try {
@@ -231,7 +260,7 @@ const Calculator = () => {
       } catch { /* storage disabled - silent */ }
     }, 500);
     return () => clearTimeout(t);
-  }, [inputTokens, cachedPct, outputTokens, promptsPerHour, mode, budgetUsd, hoursPerDay, daysPerMonth, ratePerMInput]);
+  }, [inputTokens, cachedPct, outputTokens, promptsPerHour, mode, budgetUsd, hoursPerDay, daysPerMonth, modelId, customInputRate, customOutputRate]);
 
   const applyPreset = (preset) => {
     setInputTokens(preset.values.inputTokens);
@@ -250,21 +279,25 @@ const Calculator = () => {
     setBudgetUsd(DEFAULTS.budgetUsd);
     setHoursPerDay(DEFAULTS.hoursPerDay);
     setDaysPerMonth(DEFAULTS.daysPerMonth);
-    setRatePerMInput(DEFAULTS.ratePerMInput);
+    setModelId(DEFAULTS.modelId);
+    setCustomInputRate(DEFAULTS.customInputRate);
+    setCustomOutputRate(DEFAULTS.customOutputRate);
     setActivePreset(null);
   };
 
   const stats = useMemo(() => {
     const cached = inputTokens * (cachedPct / 100);
     const fresh = inputTokens - cached;
-    // Token-weight cost (unitless): cached counts as 10%, output as 5x.
-    const costWithCache = cached * CACHED_WEIGHT + fresh + outputTokens * OUTPUT_WEIGHT;
-    const costNoCache = inputTokens + outputTokens * OUTPUT_WEIGHT;
+    // Per-prompt token-weight cost (unitless): cached 10%, output weighted per model.
+    const costWithCache = cached * CACHED_WEIGHT + fresh + outputTokens * effectiveOutputWeight;
+    const costNoCache = inputTokens + outputTokens * effectiveOutputWeight;
     const savings = Math.max(0, 1 - costWithCache / costNoCache);
     const hourlyCost = costWithCache * promptsPerHour;
     const fiveHour = hourlyCost * 5;
-    // $ cost: cost-index is already in input-token-equivalents, so multiply by input rate.
-    const usdPerPrompt = (costWithCache / 1_000_000) * ratePerMInput;
+    // $ cost math uses the real input/output rates (not a shared multiplier).
+    const usdPerPrompt =
+      (cached * CACHED_WEIGHT + fresh) * (effectiveInputRate / 1_000_000) +
+      outputTokens * (effectiveOutputRate / 1_000_000);
     const usdPerDay = usdPerPrompt * promptsPerHour * hoursPerDay;
     const usdPerMonth = usdPerDay * daysPerMonth;
     const runwayDays = usdPerDay > 0 ? budgetUsd / usdPerDay : Infinity;
@@ -273,7 +306,7 @@ const Calculator = () => {
       costWithCache, costNoCache, savings, hourlyCost, fiveHour,
       usdPerPrompt, usdPerDay, usdPerMonth, runwayDays, monthlyBudgetUsed,
     };
-  }, [inputTokens, cachedPct, outputTokens, promptsPerHour, budgetUsd, hoursPerDay, daysPerMonth, ratePerMInput]);
+  }, [inputTokens, cachedPct, outputTokens, promptsPerHour, budgetUsd, hoursPerDay, daysPerMonth, effectiveInputRate, effectiveOutputRate, effectiveOutputWeight]);
 
   const overBudget = stats.usdPerMonth > budgetUsd;
 
@@ -401,35 +434,76 @@ const Calculator = () => {
       </div>
 
       {mode === "monthly" && (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6 pt-5 border-t border-c" data-testid="monthly-fields">
-          <Field
-            label="Monthly budget"
-            hint="Your plan's $ cap (e.g. Claude Team $25)"
-            value={budgetUsd} min={5} max={500} step={5} suffix=" $"
-            onChange={setBudgetUsd}
-            testId="calc-budget"
-          />
-          <Field
-            label="$ per 1M input tokens"
-            hint="List rate for input (output uses 5x)"
-            value={ratePerMInput} min={1} max={30} step={1} suffix=" $"
-            onChange={setRatePerMInput}
-            testId="calc-rate"
-          />
-          <Field
-            label="Hours active / day"
-            hint="How long the agent is really working"
-            value={hoursPerDay} min={1} max={12} step={1} suffix=" h"
-            onChange={setHoursPerDay}
-            testId="calc-hours"
-          />
-          <Field
-            label="Active days / month"
-            hint="Working days you'll run these prompts"
-            value={daysPerMonth} min={1} max={31} step={1} suffix=" d"
-            onChange={setDaysPerMonth}
-            testId="calc-days"
-          />
+        <div className="pt-5 border-t border-c mb-6" data-testid="monthly-fields">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-4">
+            <Field
+              label="Monthly budget"
+              hint="Your plan's $ cap (e.g. Claude Team $25)"
+              value={budgetUsd} min={5} max={500} step={5} suffix=" $"
+              onChange={setBudgetUsd}
+              testId="calc-budget"
+            />
+            {/* Model dropdown replaces the raw $/1M rate slider */}
+            <div>
+              <div className="flex items-baseline justify-between mb-2">
+                <label htmlFor="calc-model" className="hig-headline text-primary-c">Model</label>
+                <span className="text-[13px] font-mono text-primary-c" data-testid="calc-model-rate">
+                  ${effectiveInputRate.toFixed(2)} / ${effectiveOutputRate.toFixed(2)}
+                </span>
+              </div>
+              <select
+                id="calc-model"
+                data-testid="calc-model-select"
+                value={modelId}
+                onChange={(e) => setModelId(e.target.value)}
+                className="w-full h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors"
+                aria-describedby="calc-model-hint"
+              >
+                {MODELS.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.label}{m.id === "custom" ? "" : ` — $${m.input}/${m.output} per 1M`}
+                  </option>
+                ))}
+              </select>
+              <div id="calc-model-hint" className="hig-footnote mt-1">
+                Input / output rate per 1M tokens
+                {selectedModel.vendor !== "You" && ` · ${selectedModel.vendor}`}
+              </div>
+            </div>
+            <Field
+              label="Hours active / day"
+              hint="How long the agent is really working"
+              value={hoursPerDay} min={1} max={12} step={1} suffix=" h"
+              onChange={setHoursPerDay}
+              testId="calc-hours"
+            />
+            <Field
+              label="Active days / month"
+              hint="Working days you'll run these prompts"
+              value={daysPerMonth} min={1} max={31} step={1} suffix=" d"
+              onChange={setDaysPerMonth}
+              testId="calc-days"
+            />
+          </div>
+
+          {modelId === "custom" && (
+            <div className="grid sm:grid-cols-2 gap-5" data-testid="custom-rate-fields">
+              <Field
+                label="$ per 1M input tokens"
+                hint="Vendor's list rate for input"
+                value={customInputRate} min={0.1} max={30} step={0.1} suffix=" $"
+                onChange={setCustomInputRate}
+                testId="calc-custom-input-rate"
+              />
+              <Field
+                label="$ per 1M output tokens"
+                hint="Usually 3-8x the input rate"
+                value={customOutputRate} min={0.1} max={120} step={0.5} suffix=" $"
+                onChange={setCustomOutputRate}
+                testId="calc-custom-output-rate"
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -519,7 +593,7 @@ const Calculator = () => {
         <InfinityIcon className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
         <span>
           {mode === "monthly"
-            ? <>Monthly $ math uses your <strong className="text-primary-c">$/1M input tokens</strong> rate; output tokens count 5x. Different models and plans vary - treat this as a planning estimate, not an invoice.</>
+            ? <>Monthly $ math uses <strong className="text-primary-c">{selectedModel.label}</strong>'s rates ({`$${effectiveInputRate}/$${effectiveOutputRate} per 1M, input/output`}). Prices approximate as of early 2026 - check the vendor page before committing.</>
             : <>Rule of thumb: a well-cached session with concise outputs can run <strong className="text-primary-c">5-10x longer</strong> on the same usage cap than an un-cached verbose one.</>}
         </span>
       </p>

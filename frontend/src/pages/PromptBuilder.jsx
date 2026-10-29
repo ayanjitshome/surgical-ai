@@ -1,10 +1,11 @@
 /* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTools, useMeta } from "@/hooks/useData";
 import { CodeBlock } from "@/components/CodeBlock";
 import { platformIcon } from "@/lib/icons";
 import { AGENTS, buildPrompt } from "@/lib/promptData";
+import { countTokens, estimateTokens } from "@/lib/tokenizer";
 import { Sparkles, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -32,9 +33,23 @@ export default function PromptBuilder() {
     [task, languages, platform, agentObj, activeIds, tools, constraints, output, validation]
   );
 
-  // Rough tokeniser: ~4 chars per token for English/code (OpenAI heuristic).
-  // Minimum 1 token for any non-empty prompt so the chip never reads "0 tokens".
-  const tokenCount = prompt.length ? Math.max(1, Math.round(prompt.length / 4)) : 0;
+  // Real BPE count once the encoder lazy-loads; fall back to chars/4 while
+  // it's in flight so the chip never flashes "0" on first paint.
+  const [tokenCount, setTokenCount] = useState(() => estimateTokens(prompt));
+  const [isExactTokens, setIsExactTokens] = useState(false);
+  const reqRef = useRef(0);
+  useEffect(() => {
+    const myReq = ++reqRef.current;
+    setIsExactTokens(false);
+    setTokenCount(estimateTokens(prompt));
+    let cancelled = false;
+    countTokens(prompt).then((n) => {
+      if (cancelled || myReq !== reqRef.current) return;
+      setTokenCount(n);
+      setIsExactTokens(true);
+    });
+    return () => { cancelled = true; };
+  }, [prompt]);
 
   const toggleTool = (id) =>
     setActiveIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
@@ -90,9 +105,11 @@ export default function PromptBuilder() {
                 <span
                   className="hig-chip hig-chip-accent"
                   data-testid="builder-token-count"
-                  title={`${prompt.length.toLocaleString()} characters, ~${tokenCount.toLocaleString()} tokens (chars / 4)`}
+                  title={isExactTokens
+                    ? `BPE token count (o200k_base) — ${prompt.length.toLocaleString()} characters`
+                    : `Loading tokenizer… showing ~chars/4 estimate (${prompt.length.toLocaleString()} chars)`}
                 >
-                  ~{tokenCount.toLocaleString()} tokens
+                  {isExactTokens ? "" : "~"}{tokenCount.toLocaleString()} tokens
                 </span>
               </div>
               <select id="builder-agent" data-testid="builder-agent-select" value={agent} onChange={(e) => setAgent(e.target.value)} className={cn(inputCls, "mt-1.5")}>
@@ -141,7 +158,7 @@ export default function PromptBuilder() {
         <div className="lg:sticky lg:top-4 self-start">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-xs uppercase tracking-wider text-muted-c">Generated prompt</span>
-            <span className="text-[10px] text-muted-c" data-testid="prompt-size-chip">~{tokenCount.toLocaleString()} tokens · {prompt.length.toLocaleString()} chars</span>
+            <span className="text-[10px] text-muted-c" data-testid="prompt-size-chip">{isExactTokens ? "" : "~"}{tokenCount.toLocaleString()} tokens · {prompt.length.toLocaleString()} chars</span>
           </div>
           <div data-testid="generated-prompt">
             <CodeBlock code={prompt} label="prompt.md" testId="copy-generated-prompt-button" />
