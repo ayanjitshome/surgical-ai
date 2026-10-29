@@ -1,7 +1,7 @@
 /* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useTheme } from "@/context/ThemeContext";
-import { Moon, Sun, Search, Menu, Compass } from "lucide-react";
+import { Moon, Sun, Search, Menu, Compass, ChevronRight } from "lucide-react";
 
 export const Header = ({ onOpenSearch, onOpenSidebar }) => {
   const { theme, toggle } = useTheme();
@@ -11,17 +11,25 @@ export const Header = ({ onOpenSearch, onOpenSidebar }) => {
   const crumbs = location.pathname.split("/").filter(Boolean);
 
   return (
-    <header className="h-16 shrink-0 surface-secondary border-b border-c flex items-center justify-between px-4 gap-3 sticky top-0 z-30" data-testid="app-header">
+    <header
+      className="h-16 shrink-0 surface-secondary border-b border-c flex items-center justify-between px-4 sm:px-6 gap-3 sticky top-0 z-30"
+      data-testid="app-header"
+    >
       <div className="flex items-center gap-3 min-w-0">
-        <button onClick={onOpenSidebar} aria-label="Open navigation menu" className="lg:hidden p-2 rounded-md hover:surface-card text-secondary-c" data-testid="open-sidebar-button">
+        <button
+          onClick={onOpenSidebar}
+          aria-label="Open navigation menu"
+          className="lg:hidden p-2 rounded-[10px] hover:bg-[var(--bg-card-hover)] text-secondary-c transition-colors"
+          data-testid="open-sidebar-button"
+        >
           <Menu className="w-5 h-5" aria-hidden="true" />
         </button>
-        <nav aria-label="Breadcrumb" className="hidden sm:flex items-center gap-1.5 font-mono text-xs text-muted-c min-w-0 truncate">
-          <Link to="/" className="hover:text-primary-c">~/hub</Link>
+        <nav aria-label="Breadcrumb" className="hidden sm:flex items-center gap-1 text-[13px] text-muted-c min-w-0 truncate">
+          <Link to="/" className="hover:text-primary-c transition-colors font-medium">Hub</Link>
           {crumbs.map((c, i) => (
-            <span key={i} className="truncate">
-              <span className="mx-1">/</span>
-              <span className={i === crumbs.length - 1 ? "text-primary-c" : ""}>{c}</span>
+            <span key={i} className="flex items-center gap-1 truncate">
+              <ChevronRight className="w-3.5 h-3.5 opacity-50" aria-hidden="true" />
+              <span className={i === crumbs.length - 1 ? "text-primary-c font-medium capitalize" : "capitalize"}>{c}</span>
             </span>
           ))}
         </nav>
@@ -32,24 +40,30 @@ export const Header = ({ onOpenSearch, onOpenSidebar }) => {
           onClick={onOpenSearch}
           data-testid="open-search-button"
           aria-label="Search"
-          className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-c surface-card text-secondary-c hover:text-primary-c transition-colors"
+          className="flex items-center gap-2 h-9 px-3 rounded-[10px] border border-c bg-[var(--bg-card)] text-secondary-c hover:text-primary-c hover:bg-[var(--bg-card-hover)] transition-colors"
         >
           <Search className="w-4 h-4" aria-hidden="true" />
-          <span className="hidden sm:inline text-sm">Search</span>
-          <kbd className="hidden sm:inline font-mono text-[10px] px-1.5 py-0.5 rounded border border-c text-muted-c">⌘K</kbd>
+          <span className="hidden sm:inline text-[13px]">Search</span>
+          <kbd className="hidden sm:inline font-mono text-[10px] px-1.5 py-0.5 rounded-md border border-c text-muted-c">⌘K</kbd>
         </button>
 
-        <button onClick={toggle} data-testid="theme-toggle-button" aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"} className="p-2 rounded-md border border-c surface-card text-secondary-c hover:text-primary-c transition-colors">
-          {theme === "dark" ? <Sun className="w-4 h-4" aria-hidden="true" /> : <Moon className="w-4 h-4" aria-hidden="true" />}
+        <button
+          onClick={toggle}
+          data-testid="theme-toggle-button"
+          aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+          className="h-9 w-9 flex items-center justify-center rounded-[10px] border border-c bg-[var(--bg-card)] text-secondary-c hover:text-primary-c hover:bg-[var(--bg-card-hover)] transition-colors"
+        >
+          {theme === "dark"
+            ? <Sun className="w-4 h-4" aria-hidden="true" />
+            : <Moon className="w-4 h-4" aria-hidden="true" />}
         </button>
 
         <button
           onClick={() => navigate("/decide")}
           data-testid="header-get-started-button"
-          className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-md font-semibold text-sm text-black transition-transform hover:scale-[1.03]"
-          style={{ background: "#10B981" }}
+          className="hig-btn hig-btn-primary hidden sm:flex"
         >
-          <Compass className="w-4 h-4" /> Get Started
+          <Compass className="w-4 h-4" aria-hidden="true" /> Get Started
         </button>
       </div>
     </header>

@@ -10,32 +10,19 @@ WORKDIR /build
 ENV REACT_APP_BACKEND_URL=""
 
 COPY frontend/package.json frontend/yarn.lock ./
-RUN yarn config set strict-ssl false && yarn install --frozen-lockfile
+RUN yarn install --frozen-lockfile
 COPY frontend/ ./
 RUN yarn build
 
 ############################################
-# Stage 2 - runtime: nginx + FastAPI + MongoDB
+# Stage 2 - runtime: nginx + FastAPI + SQLite
 ############################################
 FROM ubuntu:22.04 AS runtime
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 2. Inject NetSkope cert for apt-get, curl, and pip
-COPY netskope-root.pem /usr/local/share/ca-certificates/netskope.crt
-# We must install ca-certificates and update the trust store BEFORE the main apt-get commands
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
- && update-ca-certificates
-
-
-
-# MongoDB (multi-arch), Python, nginx, supervisor
+# Python, nginx, supervisor, sqlite3 CLI (handy for ops/debug)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      ca-certificates curl gnupg python3 python3-pip nginx supervisor \
- && curl -fsSL https://pgp.mongodb.com/server-7.0.asc \
-      | gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor \
- && echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" \
-      > /etc/apt/sources.list.d/mongodb-org-7.0.list \
- && apt-get update && apt-get install -y --no-install-recommends mongodb-org \
+      ca-certificates curl python3 python3-pip nginx supervisor sqlite3 \
  && rm -rf /var/lib/apt/lists/*
 
 # Python deps
@@ -52,8 +39,10 @@ COPY --from=frontend-build /build/build /var/www/html
 COPY docker/nginx.conf /etc/nginx/sites-available/default
 COPY docker/supervisord.conf /etc/supervisor/conf.d/surgical-ai.conf
 
-# MongoDB data dir (ephemeral unless a volume is mounted here)
-RUN mkdir -p /data/db
+# SQLite data dir - mount a volume here for persistence:
+#   docker run -v surgical-ai-data:/data ...
+RUN mkdir -p /data
+VOLUME ["/data"]
 
 EXPOSE 9999
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/surgical-ai.conf"]

@@ -11,9 +11,9 @@ const StageLegend = ({ stages }) => (
     {stages.map((s, i) => {
       const Icon = stageIcon(s.id);
       return (
-        <div key={s.id} className="flex items-center gap-1.5 font-mono text-[11px] text-secondary-c px-2.5 py-1 rounded-full border border-c surface-card">
+        <div key={s.id} className="flex items-center gap-1.5 text-[11px] text-secondary-c px-2.5 py-1 rounded-full border border-c surface-card">
           <span className="text-muted-c">{i + 1}</span>
-          <Icon className="w-3.5 h-3.5" style={{ color: "#10B981" }} />
+          <Icon className="w-3.5 h-3.5" style={{ color: "var(--brand)" }} />
           {s.name}
           {i < stages.length - 1 && <ArrowRight className="w-3 h-3 text-muted-c ml-1" />}
         </div>
@@ -34,12 +34,12 @@ const NodeDrawer = ({ tool, onClose }) => {
     <div className="absolute top-0 right-0 bottom-0 w-full sm:w-[380px] surface-secondary border-l border-bright-c z-20 flex flex-col fade-up" role="dialog" aria-label={`${tool.name} details`} data-testid="ecosystem-node-drawer">
       <div className="p-5 border-b border-c">
         <div className="flex items-start justify-between">
-          <span className="font-mono text-[10px] uppercase tracking-[0.2em] px-2.5 py-1 rounded-full border" style={{ color: tool.color, borderColor: `${tool.color}66` }}>
+          <span className="text-[10px] uppercase tracking-[0.2em] px-2.5 py-1 rounded-full border" style={{ color: tool.color, borderColor: `${tool.color}66` }}>
             {tool.layer_name}
           </span>
           <button onClick={onClose} data-testid="close-node-drawer" aria-label="Close details" className="p-1 text-muted-c hover:text-primary-c"><X className="w-5 h-5" aria-hidden="true" /></button>
         </div>
-        <h3 className="font-mono text-2xl font-bold text-primary-c mt-3">{tool.name}</h3>
+        <h3 className="text-2xl font-bold text-primary-c mt-3">{tool.name}</h3>
         <p className="text-sm text-secondary-c mt-1">{tool.tagline}</p>
       </div>
       <div className="flex-1 overflow-y-auto p-5 space-y-4">
@@ -51,14 +51,14 @@ const NodeDrawer = ({ tool, onClose }) => {
           ].map((s) => (
             <div key={s.label} className="surface-card border border-c rounded-lg p-2.5 text-center">
               <s.icon className="w-4 h-4 mx-auto mb-1" style={{ color: tool.color }} />
-              <div className="font-mono text-sm font-bold text-primary-c">{s.value}</div>
+              <div className="text-sm font-bold text-primary-c">{s.value}</div>
               <div className="text-[10px] text-muted-c">{s.label}</div>
             </div>
           ))}
         </div>
         <p className="text-sm text-secondary-c leading-relaxed">{tool.overview.split("\n")[0].replaceAll(/\**/g, "")}</p>
         <div className="surface-card border border-c rounded-lg p-3">
-          <div className="font-mono text-[10px] uppercase tracking-wider text-muted-c mb-1">Adoption Note</div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-c mb-1">Adoption Note</div>
           <p className="text-xs text-secondary-c leading-relaxed">{tool.adoption_note.replaceAll(/\**/g, "")}</p>
         </div>
       </div>
@@ -85,17 +85,17 @@ export default function Home() {
   return (
     <div className="min-h-full">
       <section className="px-5 sm:px-8 pt-10 pb-6 max-w-6xl mx-auto fade-up">
-        <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-4" style={{ color: "#10B981" }}>
+        <div className="text-xs uppercase tracking-[0.25em] font-semibold mb-4" style={{ color: "var(--brand)" }}>
           {"// internal knowledge product"}
         </div>
-        <h1 className="font-mono text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-primary-c max-w-3xl">
-          Orchestrate seven tools to <span style={{ color: "#10B981" }}>starve token waste</span> out of your AI agents.
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-primary-c max-w-3xl">
+          Orchestrate seven tools to <span style={{ color: "var(--brand)" }}>starve token waste</span> out of your AI agents.
         </h1>
         <p className="text-base text-secondary-c mt-4 max-w-2xl leading-relaxed">
           Opinionated setup & orchestration guidance for Ponytail, Trail, Serena, Graphify, Codebase Memory, Archify and Agentsview - tuned for VSCode agents across Mac, Windows, WSL, containers, remote SSH and locked-down corporate machines.
         </p>
         <div className="flex flex-wrap items-center gap-3 mt-6">
-          <button onClick={() => navigate("/decide")} data-testid="hero-get-started-button" className="flex items-center gap-2 px-5 py-3 rounded-md font-semibold text-black transition-transform hover:scale-[1.03]" style={{ background: "#10B981" }}>
+          <button onClick={() => navigate("/decide")} data-testid="hero-get-started-button" className="flex items-center gap-2 px-5 py-3 rounded-md font-semibold text-black transition-transform hover:scale-[1.03]" style={{ background: "var(--brand)", color: "#fff" }}>
             <Compass className="w-4.5 h-4.5" /> Which tools do I need?
           </button>
           <button onClick={() => navigate("/guidance")} data-testid="hero-adoption-button" className="flex items-center gap-2 px-5 py-3 rounded-md font-medium border border-bright-c text-primary-c hover:scale-[1.03]">
@@ -119,8 +119,8 @@ export default function Home() {
 
       <section className="px-5 sm:px-8 max-w-6xl mx-auto">
         <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
-          <h2 className="font-mono text-lg font-bold text-primary-c flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#10B981" }} /> Ecosystem Dependency Map
+          <h2 className="text-lg font-bold text-primary-c flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: "var(--brand)", color: "#fff" }} /> Ecosystem Dependency Map
           </h2>
           {eco && <StageLegend stages={eco.stages} />}
         </div>
@@ -128,13 +128,13 @@ export default function Home() {
           {eco && <EcosystemMap data={eco} onSelect={setSelectedId} selectedId={selectedId} />}
           {selectedTool && <NodeDrawer tool={selectedTool} onClose={() => setSelectedId(null)} />}
         </div>
-        <p className="text-xs text-muted-c mt-2 font-mono text-center">
+        <p className="text-xs text-muted-c mt-2 text-center">
           Click any node to inspect • pan & zoom • data flows left → right through the pipeline
         </p>
       </section>
 
       <section className="px-5 sm:px-8 max-w-6xl mx-auto py-10">
-        <h2 className="font-mono text-lg font-bold text-primary-c mb-4">All seven tools</h2>
+        <h2 className="text-lg font-bold text-primary-c mb-4">All seven tools</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {tools.map((t, i) => (
             <button
@@ -145,7 +145,7 @@ export default function Home() {
               style={{ animationDelay: `${i * 50}ms` }}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border" style={{ color: t.color, borderColor: `${t.color}55` }}>{t.layer_name}</span>
+                <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border" style={{ color: t.color, borderColor: `${t.color}55` }}>{t.layer_name}</span>
                 <span className="w-2.5 h-2.5 rounded-full" style={{ background: t.color, boxShadow: `0 0 8px ${t.color}` }} />
               </div>
               <div className="font-mono font-bold text-lg text-primary-c flex items-center gap-2">
@@ -153,7 +153,7 @@ export default function Home() {
                 <ArrowRight className="w-4 h-4 text-muted-c opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
               </div>
               <p className="text-sm text-secondary-c mt-1 leading-snug">{t.tagline}</p>
-              <div className="mt-3 pt-2.5 border-t border-c font-mono text-xs" style={{ color: t.color }}>-{t.token_waste_reduction} token waste</div>
+              <div className="mt-3 pt-2.5 border-t border-c text-xs" style={{ color: t.color }}>-{t.token_waste_reduction} token waste</div>
             </button>
           ))}
         </div>

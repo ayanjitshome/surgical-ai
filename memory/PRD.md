@@ -21,9 +21,10 @@ Internal knowledge-product SPA guiding solo devs & small teams to set up and orc
 
 ## Architecture
 
-- Frontend: React 19 (CRA/craco), React Router, Tailwind, @xyflow/react (React Flow), react-markdown + rehype-raw/sanitize, framer-motion, sonner. Dark-default terminal/docs hybrid theme with light toggle (ThemeContext, localStorage).
-- Backend: FastAPI, Motor/MongoDB, httpx for unauthenticated GitHub README fetch. All routes under /api.
-- Data: Curated opinionated content in backend/seed_data.py seeded to MongoDB on startup; GitHub README cached on top (manual refresh).
+- Frontend: React 19 (CRA/craco), React Router, Tailwind, @xyflow/react (React Flow), react-markdown + rehype-raw/sanitize, framer-motion, sonner. **Apple HIG design system** (SF-style typography, system blue, translucent surfaces, hairline separators, soft elevation shadows, 12px radii) with dark/light toggle (ThemeContext, localStorage).
+- Backend: FastAPI, **aiosqlite + SQLite** (file at `/app/backend/data/app.db` by default, overridable via `DATABASE_PATH`), httpx for unauthenticated GitHub README fetch. All routes under /api.
+- Data: Curated opinionated content in backend/seed_data.py seeded to SQLite on startup; GitHub README cached on top (manual refresh).
+- Docker: single-container (nginx + FastAPI + SQLite); no MongoDB. SQLite file persists via volume mount at `/data` (e.g. `-v surgical-ai-data:/data`).
 
 ## User Personas
 
@@ -40,6 +41,14 @@ Internal knowledge-product SPA guiding solo devs & small teams to set up and orc
 
 ## Implemented (2026-06)
 
+### 2026-10-29 (SQLite migration + Apple HIG + Token Economy)
+- **Database migration**: MongoDB → SQLite via `aiosqlite`. Single `tools` table (scalar columns + JSON `data` blob). Env: `DATABASE_PATH` (defaults to `backend/data/app.db`). Dockerfile drops MongoDB apt install; supervisor drops `mongod` program; `VOLUME /data` for persistence.
+- **Apple HIG design pass** across every page: SF Pro / Inter typography stack, system blue (`#0A84FF` dark / `#007AFF` light) as primary, translucent sidebar/header (`backdrop-blur`), hairline separators, 12px radii, soft elevation shadows, HIG stat/chip/button utilities (`hig-card`, `hig-btn`, `hig-chip`, `hig-title-*`). Removed hard dot-grid for soft radial brand wash. Removed heavy `font-mono` from headings/eyebrows (kept in code blocks and status lines).
+- **Token Economy module** (`/tokeneconomy`): interactive calculator (input tokens, cached %, output tokens, prompts/hour → effective cost, savings vs no-cache, 5-hour drain), tabbed sections (Caching · Conversation Habits · CLI & IDE · Output Traps), per-agent accordion for Claude/Copilot/Codex/Antigravity + generic agent. All content adapted to be agent-agnostic.
+- Sidebar: fixed duplicate `data-testid` on Token Economy link; new coin icon.
+- All API endpoints preserved (same shape, same auth). Admin token enforcement, per-tool refresh rate limit, CORS, attribution headers all intact.
+
+### Earlier backend endpoints:
 - Backend endpoints: /api/meta, /api/tools, /api/tools/{id}, /api/ecosystem, /api/decision (Literal-validated), /api/guidance/tradeoffs, /api/admin/refresh/{id}, /api/admin/refresh, /api/admin/reseed.
 - Full curated content for all 6 tools (overview, mechanics, adoption note, 6 platform notes, 3 setup steps each with validation + troubleshooting, platform-specific install overrides).
 - Ecosystem map (React Flow) with 6 nodes, 8 dependency edges, 4 layers, animated edges, node drawer, minimap, theme-aware explicit colors.

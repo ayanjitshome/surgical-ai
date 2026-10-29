@@ -43,23 +43,23 @@ export default function PromptBuilder() {
         <ArrowLeft className="w-4 h-4" /> Prompt Playbook
       </Link>
 
-      <div className="font-mono text-xs uppercase tracking-[0.25em] font-semibold mb-3 flex items-center gap-2" style={{ color: "#F59E0B" }}>
+      <div className="text-xs uppercase tracking-[0.25em] font-semibold mb-3 flex items-center gap-2" style={{ color: "#F59E0B" }}>
         <Sparkles className="w-4 h-4" aria-hidden="true" /> {"// prompt builder"}
       </div>
-      <h1 className="font-mono text-3xl sm:text-4xl font-bold text-primary-c">Build your prompt</h1>
+      <h1 className="text-3xl sm:text-4xl font-bold text-primary-c">Build your prompt</h1>
       <p className="text-secondary-c mt-2 max-w-2xl">Fill these in and the structured, copy-ready prompt updates live. Need a refresher on the structure? See the <Link to="/prompt" className="underline" style={{ color: "#F59E0B" }}>Prompt Playbook</Link>.</p>
 
       <div className="grid lg:grid-cols-2 gap-6 mt-7">
         {/* Inputs */}
         <div className="space-y-4">
           <div>
-            <label htmlFor="builder-task" className="font-mono text-xs uppercase tracking-wider text-muted-c">Role, task &amp; objective</label>
+            <label htmlFor="builder-task" className="text-xs uppercase tracking-wider text-muted-c">Role, task &amp; objective</label>
             <textarea id="builder-task" data-testid="builder-task-input" value={task} onChange={(e) => setTask(e.target.value)} rows={3}
               placeholder="As a <role>, <define the task> to <define the objective>" className={cn(inputCls, "mt-1.5 resize-y")} />
           </div>
 
           <div>
-            <span id="builder-tools-label" className="font-mono text-xs uppercase tracking-wider text-muted-c">Active context tools</span>
+            <span id="builder-tools-label" className="text-xs uppercase tracking-wider text-muted-c">Active context tools</span>
             <div className="grid grid-cols-2 gap-2 mt-1.5" role="group" aria-labelledby="builder-tools-label">
               {tools.map((t) => {
                 const on = activeIds.includes(t.id);
@@ -77,11 +77,11 @@ export default function PromptBuilder() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="builder-languages" className="font-mono text-xs uppercase tracking-wider text-muted-c">Language(s)</label>
+              <label htmlFor="builder-languages" className="text-xs uppercase tracking-wider text-muted-c">Language(s)</label>
               <input id="builder-languages" data-testid="builder-languages-input" value={languages} onChange={(e) => setLanguages(e.target.value)} placeholder="TypeScript, Python" className={cn(inputCls, "mt-1.5")} />
             </div>
             <div>
-              <label htmlFor="builder-agent" className="font-mono text-xs uppercase tracking-wider text-muted-c">AI agent</label>
+              <label htmlFor="builder-agent" className="text-xs uppercase tracking-wider text-muted-c">AI agent</label>
               <select id="builder-agent" data-testid="builder-agent-select" value={agent} onChange={(e) => setAgent(e.target.value)} className={cn(inputCls, "mt-1.5")}>
                 {AGENTS.map((a) => <option key={a.v} value={a.v}>{a.l}</option>)}
               </select>
@@ -89,7 +89,7 @@ export default function PromptBuilder() {
           </div>
 
           <div>
-            <span id="builder-platform-label" className="font-mono text-xs uppercase tracking-wider text-muted-c">Platform</span>
+            <span id="builder-platform-label" className="text-xs uppercase tracking-wider text-muted-c">Platform</span>
             <div className="flex flex-wrap gap-2 mt-1.5" role="group" aria-labelledby="builder-platform-label">
               {platforms.map((p) => {
                 const Icon = platformIcon(p.id);
@@ -97,7 +97,7 @@ export default function PromptBuilder() {
                 return (
                   <button key={p.id} data-testid={`builder-platform-${p.id}`} onClick={() => setPlatform(p.name)} aria-pressed={on}
                     className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors", on ? "text-primary-c" : "text-muted-c border-c hover:text-secondary-c")}
-                    style={on ? { borderColor: "#10B981", background: "rgba(16,185,129,0.12)" } : {}}>
+                    style={on ? { borderColor: "var(--brand)", background: "rgba(16,185,129,0.12)" } : {}}>
                     <Icon className="w-3.5 h-3.5" /> {p.name}
                   </button>
                 );
@@ -106,19 +106,19 @@ export default function PromptBuilder() {
           </div>
 
           <div>
-            <label htmlFor="builder-constraints" className="font-mono text-xs uppercase tracking-wider text-muted-c">Constraints <span className="text-muted-c normal-case">(one per line, optional)</span></label>
+            <label htmlFor="builder-constraints" className="text-xs uppercase tracking-wider text-muted-c">Constraints <span className="text-muted-c normal-case">(one per line, optional)</span></label>
             <textarea id="builder-constraints" data-testid="builder-constraints-input" value={constraints} onChange={(e) => setConstraints(e.target.value)} rows={2}
               placeholder={"Don't touch the auth module\nKeep public API backwards-compatible"} className={cn(inputCls, "mt-1.5 resize-y")} />
           </div>
 
           <div>
-            <label htmlFor="builder-output" className="font-mono text-xs uppercase tracking-wider text-muted-c">Expected output <span className="text-muted-c normal-case">(optional)</span></label>
+            <label htmlFor="builder-output" className="text-xs uppercase tracking-wider text-muted-c">Expected output <span className="text-muted-c normal-case">(optional)</span></label>
             <textarea id="builder-output" data-testid="builder-output-input" value={output} onChange={(e) => setOutput(e.target.value)} rows={3}
               placeholder="Plan first, then a unified diff" className={cn(inputCls, "mt-1.5 resize-y")} />
           </div>
 
           <div>
-            <label htmlFor="builder-validation" className="font-mono text-xs uppercase tracking-wider text-muted-c">Validation <span className="text-muted-c normal-case">(one check per line, optional)</span></label>
+            <label htmlFor="builder-validation" className="text-xs uppercase tracking-wider text-muted-c">Validation <span className="text-muted-c normal-case">(one check per line, optional)</span></label>
             <textarea id="builder-validation" data-testid="builder-validation-input" value={validation} onChange={(e) => setValidation(e.target.value)} rows={3}
               placeholder={"Does the change stay inside the provided context scope?\nIs this the smallest change that meets the objective?"} className={cn(inputCls, "mt-1.5 resize-y")} />
           </div>
@@ -127,8 +127,8 @@ export default function PromptBuilder() {
         {/* Live output */}
         <div className="lg:sticky lg:top-4 self-start">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="font-mono text-xs uppercase tracking-wider text-muted-c">Generated prompt</span>
-            <span className="font-mono text-[10px] text-muted-c">{prompt.length} chars</span>
+            <span className="text-xs uppercase tracking-wider text-muted-c">Generated prompt</span>
+            <span className="text-[10px] text-muted-c">{prompt.length} chars</span>
           </div>
           <div data-testid="generated-prompt">
             <CodeBlock code={prompt} label="prompt.md" testId="copy-generated-prompt-button" />

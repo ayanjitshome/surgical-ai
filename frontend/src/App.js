@@ -14,6 +14,7 @@ import PromptPlaybook from "@/pages/PromptPlaybook";
 import PromptBuilder from "@/pages/PromptBuilder";
 import PlatformView from "@/pages/PlatformView";
 import StageView from "@/pages/StageView";
+import TokenEconomy from "@/pages/TokenEconomy";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
               <Route path="/guidance" element={<Guidance />} />
               <Route path="/prompt" element={<PromptPlaybook />} />
               <Route path="/prompt/builder" element={<PromptBuilder />} />
+              <Route path="/tokeneconomy" element={<TokenEconomy />} />
               <Route path="/tools/:id" element={<ToolDetail />} />
               <Route path="/tools/:id/setup" element={<Wizard />} />
               <Route path="/platform/:id" element={<PlatformView />} />

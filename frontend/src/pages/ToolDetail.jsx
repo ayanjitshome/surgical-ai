@@ -53,7 +53,7 @@ export default function ToolDetail() {
   });
 
   if (isLoading || !tool) {
-    return <div className="p-8 font-mono text-muted-c" data-testid="tool-loading">Loading tool…</div>;
+    return <div className="p-8 text-muted-c" data-testid="tool-loading">Loading tool…</div>;
   }
 
   const platformNotes = tool.platform_notes || {};
@@ -71,8 +71,8 @@ export default function ToolDetail() {
         <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-20" style={{ background: tool.color }} />
         <div className="relative flex items-start justify-between flex-wrap gap-4">
           <div>
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] px-2.5 py-1 rounded-full border" style={{ color: tool.color, borderColor: `${tool.color}66` }}>{tool.layer_name}</span>
-            <h1 className="font-mono text-3xl sm:text-4xl font-bold text-primary-c mt-3">{tool.name}</h1>
+            <span className="text-[10px] uppercase tracking-[0.2em] px-2.5 py-1 rounded-full border" style={{ color: tool.color, borderColor: `${tool.color}66` }}>{tool.layer_name}</span>
+            <h1 className="text-3xl sm:text-4xl font-bold text-primary-c mt-3">{tool.name}</h1>
             <p className="text-base text-secondary-c mt-1.5 max-w-xl">{tool.tagline}</p>
           </div>
           <div className="flex flex-col gap-2">
@@ -92,7 +92,7 @@ export default function ToolDetail() {
           ].map((s) => (
             <div key={s.label} className="surface-card border border-c rounded-lg p-3">
               <s.icon className="w-4 h-4 mb-1.5" style={{ color: tool.color }} />
-              <div className="font-mono text-lg font-bold text-primary-c">{s.value}</div>
+              <div className="text-lg font-bold text-primary-c">{s.value}</div>
               <div className="text-[11px] text-muted-c">{s.label}</div>
             </div>
           ))}
@@ -130,7 +130,7 @@ export default function ToolDetail() {
         {tab === "adoption" && (
           <div role="tabpanel" id="panel-adoption" aria-labelledby="tab-adoption" tabIndex={0} data-testid="tab-content-adoption">
             <div className="surface-card border-l-4 rounded-r-lg p-4" style={{ borderColor: tool.color }}>
-              <div className="font-mono text-xs uppercase tracking-wider text-muted-c mb-2">Opinionated placement</div>
+              <div className="text-xs uppercase tracking-wider text-muted-c mb-2">Opinionated placement</div>
               <div className="md-content"><ReactMarkdown>{tool.adoption_note}</ReactMarkdown></div>
             </div>
             <Link to="/guidance" className="inline-flex items-center gap-1.5 mt-4 text-sm font-medium" style={{ color: tool.color }}>

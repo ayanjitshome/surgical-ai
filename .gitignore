@@ -100,3 +100,9 @@ graft/
 graphify-out/
 /graft/**
 /graphify-out/**
+
+# SQLite runtime database
+backend/data/
+*.db
+*.db-wal
+*.db-shm
