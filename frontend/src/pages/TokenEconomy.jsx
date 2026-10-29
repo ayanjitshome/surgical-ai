@@ -3,12 +3,12 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Coins, Zap, TrendingDown, AlertTriangle, CheckCircle2, XCircle,
   Database, MessageSquare, Terminal, Flame, Lock, Infinity as InfinityIcon,
-  Save, RotateCcw, Table2, Calendar, DollarSign,
+  Save, RotateCcw, Table2, Calendar, DollarSign, RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   CACHED_WEIGHT, OUTPUT_WEIGHT, STORAGE_KEY, DEFAULTS,
-  FALLBACK_MODELS, CUSTOM_MODEL, loadScenario, fmtUsd,
+  FALLBACK_MODELS, CUSTOM_MODEL, loadScenario, fmtUsd, computeCosts,
 } from "@/lib/scenario";
 
 /* -------- Content model (adapted to any agentic AI tool) -------- */
@@ -587,6 +587,23 @@ const Calculator = () => {
             : <>A well-cached session with concise outputs can run <strong className="text-primary-c">5 to 10x longer</strong> on the same usage cap than an un-cached verbose one.</>}
         </span>
       </p>
+
+      {mode === "monthly" && (
+        <PresetComparison
+          budgetUsd={budgetUsd}
+          hoursPerDay={hoursPerDay}
+          daysPerMonth={daysPerMonth}
+          modelId={modelId}
+          selectedModel={selectedModel}
+          customInputRate={customInputRate}
+          customOutputRate={customOutputRate}
+        />
+      )}
+
+      <AdminPricingRefresh
+        livePricing={livePricing}
+        onRefreshed={(next) => setLivePricing(next)}
+      />
     </section>
   );
 };
@@ -624,6 +641,200 @@ const Stat = ({ label, value, tone = "neutral", icon, testId }) => {
       <div className="mt-1 text-2xl font-semibold tracking-[-0.02em] flex items-center gap-2" style={{ color: toneStyle.color }}>
         {icon}{value}
       </div>
+    </div>
+  );
+};
+
+/* -------- Preset Comparison ------
+ * Load two presets side by side against the user's current monthly budget
+ * and model. Each side swaps in the preset's input / cached / output /
+ * prompts-per-hour values and reuses the shared computeCosts(). */
+
+const PresetComparison = ({ budgetUsd, hoursPerDay, daysPerMonth, modelId, selectedModel, customInputRate, customOutputRate }) => {
+  const [leftId, setLeftId] = useState("claude");
+  const [rightId, setRightId] = useState("antigravity");
+
+  const left = PRESETS.find((p) => p.id === leftId);
+  const right = PRESETS.find((p) => p.id === rightId);
+
+  const sideStats = (preset) => {
+    const scenario = {
+      ...preset.values,
+      budgetUsd, hoursPerDay, daysPerMonth, modelId, customInputRate, customOutputRate,
+    };
+    return computeCosts(scenario, selectedModel);
+  };
+
+  const leftStats = sideStats(left);
+  const rightStats = sideStats(right);
+  const cheaperId = leftStats.usdPerMonth <= rightStats.usdPerMonth ? "left" : "right";
+  const diff = Math.abs(leftStats.usdPerMonth - rightStats.usdPerMonth);
+
+  return (
+    <section className="mt-6 pt-5 border-t border-c" data-testid="preset-comparison" aria-labelledby="preset-comparison-title">
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+        <h3 id="preset-comparison-title" className="hig-headline text-primary-c">Compare two presets on your budget</h3>
+        <span className="hig-footnote">
+          Winner is <strong className="text-primary-c">{fmtUsd(diff)}/mo</strong> cheaper on {fmtUsd(budgetUsd)}.
+        </span>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-3">
+        <PresetSide
+          side="left"
+          preset={left}
+          onChange={setLeftId}
+          stats={leftStats}
+          budgetUsd={budgetUsd}
+          isWinner={cheaperId === "left"}
+        />
+        <PresetSide
+          side="right"
+          preset={right}
+          onChange={setRightId}
+          stats={rightStats}
+          budgetUsd={budgetUsd}
+          isWinner={cheaperId === "right"}
+        />
+      </div>
+    </section>
+  );
+};
+
+const PresetSide = ({ side, preset, onChange, stats, budgetUsd, isWinner }) => {
+  const over = stats.usdPerMonth > budgetUsd;
+  const tone = over ? "var(--warning)" : (isWinner ? "var(--success)" : "var(--text-primary)");
+  const borderColor = isWinner ? (over ? "var(--warning)" : "var(--success)") : "var(--line)";
+  return (
+    <div
+      className="hig-card p-4 relative"
+      style={{ borderColor, boxShadow: isWinner ? `0 0 0 1px ${borderColor}` : undefined }}
+      data-testid={`preset-side-${side}`}
+    >
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <label htmlFor={`preset-${side}-select`} className="hig-footnote">Scenario {side === "left" ? "A" : "B"}</label>
+        {isWinner && (
+          <span className="hig-chip" style={{ background: over ? "rgba(255,159,10,0.14)" : "rgba(48,209,88,0.14)", color: over ? "var(--warning)" : "var(--success)", borderColor: "transparent" }} data-testid={`preset-side-${side}-winner`}>
+            {over ? "Less bad" : "Cheaper"}
+          </span>
+        )}
+      </div>
+
+      <select
+        id={`preset-${side}-select`}
+        data-testid={`preset-${side}-select`}
+        value={preset.id}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors mb-3"
+      >
+        {PRESETS.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+      </select>
+
+      <div className="hig-footnote mb-3 flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: preset.accent }} />
+        {preset.values.inputTokens.toLocaleString()} in, {preset.values.cachedPct}% cached, {preset.values.outputTokens.toLocaleString()} out, {preset.values.promptsPerHour}/h
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        <MiniStat label="Monthly" value={fmtUsd(stats.usdPerMonth)} color={tone} testId={`preset-${side}-monthly`} />
+        <MiniStat label="Of budget" value={`${Math.min(999, Math.round(stats.monthlyBudgetUsed * 100))}%`} color={tone} testId={`preset-${side}-pct`} />
+        <MiniStat
+          label={over ? "Days to cap" : "Runway"}
+          value={over
+            ? (stats.runwayDays >= 1 ? `${Math.floor(stats.runwayDays)}d` : "<1d")
+            : (stats.monthlyBudgetUsed > 0 ? `${(1 / stats.monthlyBudgetUsed).toFixed(1)}mo` : "∞")}
+          color={tone}
+          testId={`preset-${side}-runway`}
+        />
+      </div>
+    </div>
+  );
+};
+
+const MiniStat = ({ label, value, color, testId }) => (
+  <div className="rounded-[10px] px-2.5 py-2 border border-c" style={{ background: "var(--bg-card-hover)" }} data-testid={testId}>
+    <div className="hig-footnote">{label}</div>
+    <div className="text-[15px] font-semibold tracking-[-0.01em]" style={{ color }}>{value}</div>
+  </div>
+);
+
+/* -------- Admin pricing refresh ------
+ * Small footer link that busts the backend's 24h LiteLLM cache. Admin token
+ * is prompted on first use and kept in sessionStorage. */
+
+const AdminPricingRefresh = ({ livePricing, onRefreshed }) => {
+  const [status, setStatus] = useState(null); // "ok" | "fail" | "running"
+  const [message, setMessage] = useState("");
+
+  const run = async () => {
+    let token = sessionStorage.getItem("surgicalai.adminToken") || "";
+    if (!token) {
+      token = window.prompt("Admin token (asked once per browser session, kept in sessionStorage):") || "";
+      if (!token) return;
+      sessionStorage.setItem("surgicalai.adminToken", token);
+    }
+    setStatus("running");
+    setMessage("Pulling LiteLLM...");
+    try {
+      const base = process.env.REACT_APP_BACKEND_URL || "";
+      const r = await fetch(`${base}/api/admin/pricing/refresh`, {
+        method: "POST",
+        headers: { "X-Admin-Token": token },
+      });
+      if (r.status === 401) {
+        sessionStorage.removeItem("surgicalai.adminToken");
+        setStatus("fail");
+        setMessage("Rejected. Token cleared, click again to re-enter.");
+        return;
+      }
+      if (!r.ok) {
+        setStatus("fail");
+        setMessage(`Failed with HTTP ${r.status}`);
+        return;
+      }
+      const data = await r.json();
+      const live = (data.models || []).filter((m) => m.source === "live").length;
+      onRefreshed({
+        models: data.models,
+        fetched_at: data.fetched_at,
+        source: live === data.models.length ? "live" : "mixed",
+        stale: false,
+        source_url: data.source_url,
+      });
+      setStatus("ok");
+      setMessage(`Refreshed. ${live}/${data.models.length} models resolved live.`);
+    } catch (e) {
+      setStatus("fail");
+      setMessage(String(e.message || e));
+    }
+  };
+
+  const stamp = livePricing?.fetched_at ? new Date(livePricing.fetched_at).toLocaleString() : "never";
+
+  return (
+    <div className="mt-5 pt-4 border-t border-c flex flex-wrap items-center gap-3 text-[13px]" data-testid="admin-pricing-refresh">
+      <span className="hig-footnote">
+        Pricing cache (24h). Last pulled: <span className="text-secondary-c">{stamp}</span>
+      </span>
+      <button
+        type="button"
+        onClick={run}
+        disabled={status === "running"}
+        data-testid="admin-pricing-refresh-button"
+        className="hig-chip hover:text-primary-c transition-colors disabled:opacity-60"
+      >
+        <RefreshCw className={cn("w-3.5 h-3.5", status === "running" && "animate-spin")} aria-hidden="true" />
+        Refresh now
+      </button>
+      {message && (
+        <span
+          className="hig-footnote"
+          style={{ color: status === "ok" ? "var(--success)" : status === "fail" ? "var(--warning)" : "var(--text-muted)" }}
+          data-testid="admin-pricing-refresh-status"
+        >
+          {message}
+        </span>
+      )}
     </div>
   );
 };

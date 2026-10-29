@@ -185,6 +185,20 @@ On first boot the backend auto-seeds all seven tools into SQLite. No manual seed
 - There is no authentication in v1. The only protected routes are the two bulk-maintenance admin endpoints.
 - If `yarn start` cannot reach the API, confirm the backend is up on `:8001` and that `CORS_ORIGINS` either includes `http://localhost:3000` or is left as `*`.
 
+### Prose linting
+
+The repo ships a [Vale](https://vale.sh) config at `.vale.ini` that bans em dashes, formulaic transitions, and a short list of AI-slop words from user-facing copy.
+
+```bash
+# One-time setup (installs Vale into ~/.local/bin)
+./scripts/install-vale.sh
+
+# Run against the whole repo
+vale .
+```
+
+The rules live under `.vale/styles/SurgicalAI/`. Add project-specific words to `.vale/styles/config/vocabularies/SurgicalAI/accept.txt` so Vale stops flagging them as unknown.
+
 ---
 
 ## Can the frontend run without the backend?

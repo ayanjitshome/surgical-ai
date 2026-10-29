@@ -1,0 +1,11 @@
+extends: existence
+message: "'%s' is a formulaic transition. Cut it or restructure the sentence."
+level: warning
+ignorecase: true
+tokens:
+  - '\bMoreover\b'
+  - '\bAdditionally\b'
+  - '\bFurthermore\b'
+  - '\bUltimately\b'
+  - 'In conclusion'
+  - 'Not only .{1,80} but also'

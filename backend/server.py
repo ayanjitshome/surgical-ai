@@ -337,6 +337,14 @@ async def get_pricing():
     return result
 
 
+@api_router.post("/admin/pricing/refresh")
+async def refresh_pricing(_: bool = Depends(require_admin)):
+    """Bust the 24h pricing cache and pull LiteLLM again right now."""
+    _PRICING_CACHE["data"] = None
+    _PRICING_CACHE["fetched_at"] = None
+    return await get_pricing()
+
+
 @api_router.post("/admin/refresh/{tool_id}")
 async def refresh_tool(tool_id: str):
     async with _get_db() as db:

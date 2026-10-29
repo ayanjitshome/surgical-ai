@@ -1,0 +1,6 @@
+extends: existence
+message: "Em dash found. Use a comma, period, or parentheses instead."
+level: error
+scope: raw
+tokens:
+  - '—'
