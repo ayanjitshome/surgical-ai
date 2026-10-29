@@ -10,7 +10,7 @@ WORKDIR /build
 ENV REACT_APP_BACKEND_URL=""
 
 COPY frontend/package.json frontend/yarn.lock ./
-RUN yarn install --frozen-lockfile
+RUN yarn config set strict-ssl false && yarn install --frozen-lockfile
 COPY frontend/ ./
 RUN yarn build
 
