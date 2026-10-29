@@ -1,171 +1,132 @@
 # Surgical AI Hub
 
-![Surgical AI](assets/appview.png)
+<p align="center">
+  <img src="assets/surgical-ai-hub-logo.png" alt="Surgical AI Hub" width="300" />
+</p>
 
-An internal knowledge-product SPA that gives opinionated guidance on setting up and orchestrating seven developer tools - **Ponytail, Trail, Serena, Graphify, Codebase Memory, Archify, Agentsview** - to reduce AI-agent token waste in VSCode.
+An opinionated SPA that teaches you how to combine seven developer tools — **Ponytail, Trail, Serena, Graphify, Codebase Memory, Archify, Agentsview** — to cut token waste in any AI-agentic IDE (Claude Code, Copilot, Codex, Antigravity).
 
-- **Knowledge Base** - per-tool deep-dive pages (what, why, token mechanics, adoption order, platform notes, cached GitHub README)
-- **Guided Setup Wizard** - platform-aware, step-by-step, with copy-paste commands, validation checkpoints and troubleshooting
-- **Decision Support Guide** - a short questionnaire that outputs a recommended tool stack with reasoning and estimated savings
-- **Interactive Ecosystem Dependency Map** - a pannable/zoomable React Flow graph of how the tools connect
+- **Ecosystem Hub** — pannable React Flow graph of how the tools depend on each other
+- **Decision Guide** — short questionnaire → recommended stack with reasoning and estimated savings
+- **Prompt Playbook & Prompt Builder** — ready-to-copy prompts with a **live BPE token count** (o200k_base) next to the agent dropdown
+- **Token Economy** — interactive cost calculator with Per-prompt and Monthly-plan modes, model rate presets (Sonnet, Opus, GPT-5, Gemini…), **live pricing** pulled from LiteLLM's community price list, side-by-side agent comparison and per-agent playbooks
+- **Tool Knowledge Base** — per-tool deep-dive pages (what, why, token mechanics, adoption order, cached GitHub README)
 
 ---
 
-## Quickest start - one Docker container (recommended)
+## Quickest start — one Docker container (recommended)
 
-Run the **entire app (frontend + backend + MongoDB) in a single container** - no local Python, Node, or MongoDB install needed. You only need Docker.
+Run the entire app (frontend + backend + **SQLite**) in a single container. You only need Docker — **no local Python, Node, or database install**.
 
 ```bash
 # from the repo root
-docker build -t surgical-ai . && docker rm -f surgical-ai-hub 2>/dev/null || true && docker run -d --name surgical-ai-hub -p 9999:9999 surgical-ai
+docker build -t surgical-ai . && \
+docker rm -f surgical-ai-hub 2>/dev/null || true && \
+docker run -d --name surgical-ai-hub -p 9999:9999 \
+  -v surgical-ai-data:/data \
+  surgical-ai
 ```
 
 Then open **http://localhost:9999**.
 
-That's it. Inside the container, nginx serves the production React build and proxies `/api` to the FastAPI backend, while `mongod` runs alongside them (managed by supervisor). The database is seeded automatically on first boot.
+Inside the container, nginx serves the production React build and proxies `/api` to the FastAPI backend, and SQLite stores everything in `/data/app.db`.
 
 **Notes**
 
-- **Data is ephemeral** by default (resets when the container is removed). The app re-seeds its content on every start, so this is fine for normal use. To persist MongoDB data across container removals, mount a volume
+- `-v surgical-ai-data:/data` persists the SQLite database (tools catalog + cached GitHub READMEs) across container restarts and rebuilds. **Without the volume, data is ephemeral** — the DB is auto-seeded on every start, so it still works, but you'll lose any cached READMEs you pulled.
 - **Multi-arch**: builds and runs on both Apple Silicon (arm64) and Intel/AMD (amd64).
-- **Run in the background**: add `-d` (and drop `--rm`), then stop with `docker stop surgical-ai-hub`.
-- The maintenance endpoints use an `ADMIN_TOKEN` baked as `change-me-in-production` (see `docker/supervisord.conf`). Override it for real deployments with `-e ADMIN_TOKEN=...` plus a matching entry, or edit the supervisor config.
+- Run `docker logs -f surgical-ai-hub` to tail logs; stop with `docker stop surgical-ai-hub`.
+- The maintenance endpoints are protected by `ADMIN_TOKEN`. Override the default for real deployments with `-e ADMIN_TOKEN=<long-random-string>`.
 
-> Prefer running the three services yourself (for active development with hot reload)? Use the manual setup below.
+> Prefer running the services yourself (for active development with hot reload)? Use the manual setup below.
+
+---
+
+## 🖥️ Desktop installer (coming soon)
+
+Native **macOS (.dmg)** and **Windows (.msi)** installers with in-app auto-update from GitHub Releases are planned. See [`DESKTOP_INSTALLER.md`](DESKTOP_INSTALLER.md) for the full plan (Tauri + Python sidecar, auto-update via signed `latest.json`, signing requirements, release workflow).
 
 ---
 
 ## Tech Stack
 
-
-| Layer    | Choice                                                        |
-| ---------- | --------------------------------------------------------------- |
-| Frontend | React 19 (CRA + craco), React Router, Tailwind CSS            |
-| Viz      | React Flow (`@xyflow/react`)                                  |
-| Backend  | FastAPI (Python)                                              |
-| Database | MongoDB (via Motor)                                           |
-| GitHub   | GitHub REST API (unauthenticated) via`httpx`, cached in Mongo |
+| Layer    | Choice                                                     |
+| -------- | ---------------------------------------------------------- |
+| Frontend | React 19 (CRA + craco), React Router, Tailwind, Apple HIG design tokens |
+| Viz      | React Flow (`@xyflow/react`)                               |
+| Backend  | FastAPI (Python)                                           |
+| Database | **SQLite** (via `aiosqlite`) — single file, zero setup     |
+| Tokeniser| `gpt-tokenizer` (o200k_base BPE), lazy-loaded in Prompt Builder |
+| Pricing  | LiteLLM community price list, proxied + cached by `/api/pricing` |
+| GitHub   | GitHub REST API (unauthenticated) via `httpx`, cached in SQLite |
 
 ```
 .
 ├── backend/            # FastAPI app
 │   ├── server.py       # API entrypoint (app = FastAPI())
-│   ├── seed_data.py    # Curated tool content (seeded to MongoDB)
+│   ├── seed_data.py    # Curated tool content (seeded into SQLite)
+│   ├── data/           # SQLite file lives here (gitignored)
 │   ├── requirements.txt
-│   └── .env            # NOT committed - create locally
-└── frontend/           # React app
-    ├── src/
-    ├── package.json
-    └── .env            # NOT committed - create locally
+│   └── .env            # NOT committed — create locally
+├── frontend/           # React app
+│   ├── src/
+│   ├── package.json
+│   └── .env            # NOT committed — create locally
+├── docker/             # nginx + supervisor configs for the single-container image
+├── Dockerfile
+└── DESKTOP_INSTALLER.md
 ```
 
 ---
 
 ## Prerequisites
 
-- **Python 3.8+** (tested through Python 3.13 - all backend deps ship prebuilt wheels, no compiler/Rust needed)
+- **Python 3.11+** (tested through 3.13 — all backend deps ship prebuilt wheels, no compiler/Rust needed)
 - **Node.js 18+** and **Yarn** (`npm install -g yarn`)
-- **MongoDB 6.0+** running locally on the default port `27017` (see the per-platform install guide below)
+- **No database to install.** SQLite ships with Python; the DB file is auto-provisioned on first boot.
 
 ---
 
-## MongoDB setup (per platform)
+## Database
 
-The backend needs a running MongoDB reachable at `mongodb://localhost:27017`. Pick the option for your OS. The database and collections are created automatically on first run - no manual DB creation needed.
+Surgical AI Hub uses **SQLite**. There is nothing to install, start, or configure — on first run the backend creates `backend/data/app.db` and seeds it with all seven tools.
 
-### Option A - Docker (any platform, simplest)
-
-Works identically on macOS, Windows, Linux and WSL. Requires Docker Desktop / Docker Engine.
-
-```bash
-docker run -d --name surgical-ai-mongo -p 27017:27017 -v surgical-ai-mongo-data:/data/db mongo:7
-```
-
-- `-v ...-data:/data/db` persists your data across restarts.
-- Start/stop later with `docker start surgical-ai-mongo` / `docker stop surgical-ai-mongo`.
-
-### macOS (Homebrew)
-
-```bash
-brew tap mongodb/brew
-brew install mongodb-community@7.0
-brew services start mongodb-community@7.0   # runs on localhost:27017
-```
-
-Stop with `brew services stop mongodb-community@7.0`.
-
-### Windows
-
-1. Download the **MongoDB Community Server** MSI from https://www.mongodb.com/try/download/community
-2. Run the installer, choose **Complete**, and tick **Install MongoDB as a Service** (it then auto-starts on `localhost:27017`).
-3. (Optional) Install **MongoDB Compass** for a GUI.
-
-Or with Chocolatey:
-
-```powershell
-choco install mongodb
-```
-
-### Linux (Ubuntu / Debian)
-
-```bash
-sudo apt-get update
-sudo apt-get install -y gnupg curl
-curl -fsSL https://pgp.mongodb.com/server-7.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
-echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu $(lsb_release -cs)/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
-sudo apt-get update
-sudo apt-get install -y mongodb-org
-sudo systemctl enable --now mongod   # runs on localhost:27017
-```
-
-### WSL (Windows Subsystem for Linux)
-
-Easiest is **Docker Desktop** with WSL integration (Option A). If you prefer a native install, follow the **Linux (Ubuntu)** steps **inside** your WSL distro, then start it with:
-
-```bash
-sudo systemctl start mongod          # or: sudo service mongod start
-```
-
-Keep the connection string as `mongodb://localhost:27017` - WSL forwards localhost to the Windows host.
-
-### Verify MongoDB is up
-
-```bash
-mongosh --eval "db.runCommand({ ping: 1 })"   # expect { ok: 1 }
-```
+- **Location:** controlled by `DATABASE_PATH` in `backend/.env` (defaults to `backend/data/app.db` locally, `/data/app.db` in Docker).
+- **Reset:** stop the backend, delete the file (`rm backend/data/app.db`), restart. Fresh re-seed on next boot.
+- **Admin re-seed without stopping:** `POST /api/admin/reseed` with the `X-Admin-Token` header.
 
 ---
 
 ## 1. Clone
 
 ```bash
-git clone <your-github-repo-url>
-cd <your-repo-name>
+git clone https://github.com/ayanjitshome/surgical-ai.git
+cd surgical-ai
 ```
 
 ## 2. Environment variables
 
-`.env` files are **not** committed to Git (an `.env.example` is provided in each folder as a template - copy it to `.env`). Create them manually:
+`.env` files are **not** committed to Git. Create them manually.
 
 **`backend/.env`**
 
 ```env
-MONGO_URL=mongodb://localhost:27017
-DB_NAME=surgical_ai_hub
+DATABASE_PATH=/absolute/path/to/surgical-ai/backend/data/app.db
 CORS_ORIGINS=http://localhost:3000
-# Optional: only needed to call the maintenance endpoints
-# (POST /api/admin/refresh and /api/admin/reseed). Leave unset to disable them.
-# The per-tool "Refresh from GitHub" button does NOT need this.
 ADMIN_TOKEN=change-me-to-a-long-random-string
 ```
+
+| Key             | What it does                                                                                           | Required?                                                                                           |
+| --------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| `DATABASE_PATH` | Absolute path to the SQLite file. The parent directory is auto-created.                               | **Optional.** Defaults to `backend/data/app.db` relative to `server.py`.                            |
+| `CORS_ORIGINS`  | Comma-separated list of allowed origins for the browser. Use `http://localhost:3000` for local dev.    | **Optional.** Defaults to `*`. The backend disables cookie credentials so wildcard is safe.         |
+| `ADMIN_TOKEN`   | Required to call the bulk-maintenance endpoints `POST /api/admin/refresh` and `POST /api/admin/reseed`. Pass it as `X-Admin-Token: <value>`. Known placeholders (`change-me`, `admin`, etc.) are rejected at startup. | **Optional.** If unset, those two endpoints are disabled with a `503`. The per-tool "Refresh from GitHub" button does **not** need this. |
 
 **`frontend/.env`**
 
 ```env
 REACT_APP_BACKEND_URL=http://localhost:8001
 ```
-
-> Quick copy: `cp backend/.env.example backend/.env` and `cp frontend/.env.example frontend/.env`, then adjust values.
 
 > The frontend calls `${REACT_APP_BACKEND_URL}/api/...`, so the backend **must** stay on port `8001` with the `/api` prefix (or update this value to match).
 
@@ -183,47 +144,46 @@ yarn install
 
 ## 4. Run
 
-Make sure **MongoDB is running first**, then:
-
 ```bash
-# Backend - from /backend
+# Backend — from /backend
 uvicorn server:app --host 0.0.0.0 --port 8001 --reload
 
-# Frontend - from /frontend (new terminal)
+# Frontend — from /frontend (new terminal)
 yarn start
 ```
 
 - Frontend: **http://localhost:3000**
 - Backend API: **http://localhost:8001/api**
 
-On first boot the backend **auto-seeds** all seven tools into MongoDB - no manual seed step needed.
+On first boot the backend **auto-seeds** all seven tools into SQLite — no manual seed step needed.
 
 ---
 
 ## API Endpoints (all prefixed with `/api`)
 
+| Method | Path                      | Purpose                                                     |
+| ------ | ------------------------- | ----------------------------------------------------------- |
+| GET    | `/api/meta`               | Platforms, workflow stages, adoption order                  |
+| GET    | `/api/tools`              | All seven tools (adoption order)                            |
+| GET    | `/api/tools/{id}`         | Full tool detail                                            |
+| GET    | `/api/ecosystem`          | Nodes + edges for the dependency map                        |
+| POST   | `/api/decision`           | Rule-based stack recommendation                             |
+| GET    | `/api/guidance/tradeoffs` | Tradeoffs + cost playbook                                   |
+| GET    | `/api/pricing`            | Live per-1M-token rates (Claude/GPT/Gemini), cached 24 h    |
+| POST   | `/api/admin/refresh/{id}` | Fetch & cache one tool's GitHub README (public, rate-limited) |
+| POST   | `/api/admin/refresh`      | Refresh all READMEs (requires `X-Admin-Token`)              |
+| POST   | `/api/admin/reseed`       | Re-seed tool content (requires `X-Admin-Token`)             |
 
-| Method | Path                      | Purpose                                    |
-| -------- | --------------------------- | -------------------------------------------- |
-| GET    | `/api/meta`               | Platforms, workflow stages, adoption order |
-| GET    | `/api/tools`              | All seven tools (adoption order)           |
-| GET    | `/api/tools/{id}`         | Full tool detail                           |
-| GET    | `/api/ecosystem`          | Nodes + edges for the dependency map       |
-| POST   | `/api/decision`           | Rule-based stack recommendation            |
-| GET    | `/api/guidance/tradeoffs` | Tradeoffs + cost playbook                  |
-| POST   | `/api/admin/refresh/{id}` | Fetch & cache one tool's GitHub README     |
-| POST   | `/api/admin/refresh`      | Refresh all READMEs                        |
-| POST   | `/api/admin/reseed`       | Re-seed tool content                       |
-
-GitHub README fetching is **unauthenticated** - no token required. Use the "Refresh from GitHub" button on a tool page (or the endpoints above) to populate the README cache.
+- GitHub README fetching is **unauthenticated** — no token required. Use the "Refresh from GitHub" button on a tool page (or the endpoints above).
+- `/api/pricing` proxies [LiteLLM's community price list](https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json), maps the latest keys to Claude Sonnet/Opus/Haiku, GPT-5/mini/4o and Gemini 2.5 Pro, and caches the result in-process for 24 hours. Falls back to hardcoded rates if the upstream is unreachable.
 
 ---
 
 ## Notes
 
-- **Supervisor** is only used in the hosted environment. Locally you just run the two commands above.
-- There is **no authentication** in v1.
-- If `yarn start` can't reach the API, confirm the backend is up on `:8001` and that `CORS_ORIGINS` includes `http://localhost:3000`.
+- **Supervisor** is only used in the hosted / Docker environment. Locally you just run the two commands above.
+- There is **no authentication** in v1 — the only protected routes are the two bulk-maintenance admin endpoints.
+- If `yarn start` can't reach the API, confirm the backend is up on `:8001` and that `CORS_ORIGINS` either includes `http://localhost:3000` or is left as `*`.
 
 ---
 
@@ -233,17 +193,17 @@ GitHub README fetching is **unauthenticated** - no token required. Use the "Refr
 
 Everything the user actually interacts with is loaded from the API (there is no static/offline fallback), so with the backend down:
 
+| Area                                                  | Behaviour with backend OFF                                                                     |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Page shell (sidebar, header, hero text, theme toggle) | ✅ Renders fine — it's static                                                                   |
+| **Ecosystem map** (home)                              | ❌ Empty bordered box — it only renders when `/api/ecosystem` returns                           |
+| **Sidebar tool list / stages / platforms**            | ❌ Empty — populated from `/api/tools` and `/api/meta`                                          |
+| **Tool detail pages**                                 | ❌ Stuck on "Loading tool…" (the `/api/tools/{id}` query never resolves)                        |
+| **Decision questionnaire**                            | ⚠️ Questions render (hardcoded), but **Submit fails** — it POSTs to `/api/decision`             |
+| **Token Economy — Monthly plan**                      | ⚠️ Loads with the hardcoded fallback rates; "Live prices" chip reports "Built-in rates"         |
+| **Prompt Builder**                                    | ✅ Works — tokeniser is client-side; agent / tool lists are hardcoded                           |
+| **Search (Cmd+K)**                                    | ⚠️ Opens, but returns no results (the index is built from `/api/tools`)                        |
 
-| Area                                                  | Behaviour with backend OFF                                                                        |
-| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Page shell (sidebar, header, hero text, theme toggle) | ✅ Renders fine - it's static                                                                     |
-| **Ecosystem map** (home)                              | ❌ Empty bordered box - it only renders when`/api/ecosystem` returns (`{eco && <EcosystemMap/>}`) |
-| **Sidebar tool list / stages / platforms**            | ❌ Empty - populated from`/api/tools` and `/api/meta`                                             |
-| **Tool detail pages**                                 | ❌ Stuck on "Loading tool…" (the`/api/tools/{id}` query never resolves)                          |
-| **Decision questionnaire**                            | ⚠️ Questions render (they're hardcoded), but**Submit fails** - it POSTs to `/api/decision`      |
-| **Guidance / tradeoffs / adoption order**             | ❌ Empty - from`/api/guidance` and `/api/tools`                                                   |
-| **Search (Cmd+K)**                                    | ⚠️ Opens, but returns no results (the index is built from`/api/tools`)                          |
+**Why:** the frontend has no hardcoded tool metadata — the dependency graph, the recommendation logic, the GitHub READMEs, and the live pricing all live in the backend + SQLite.
 
-**Why:** the frontend has no hardcoded content - all tool metadata, the dependency graph, the recommendation logic and the GitHub READMEs live in the backend + MongoDB. React Query requests simply fail (network error / pending), and components either show empty defaults (`[]`) or a loading state.
-
-**So, to see anything useful you must run all three:** MongoDB → FastAPI backend → React frontend. If the UI loads but looks empty, the backend (or MongoDB) is almost certainly not running, or `REACT_APP_BACKEND_URL` is pointing at the wrong place.
+**So, to see anything useful you need the backend running.** If the UI loads but looks empty, the backend is almost certainly down or `REACT_APP_BACKEND_URL` is pointing at the wrong place.
