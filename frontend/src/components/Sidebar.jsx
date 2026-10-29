@@ -2,7 +2,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useTools, useMeta } from "@/hooks/useData";
 import { platformIcon, stageIcon } from "@/lib/icons";
-import { Boxes, Compass, Network, ChevronRight, Wand2, Sparkles } from "lucide-react";
+import { Boxes, Compass, Network, ChevronRight, Wand2, Sparkles, Blocks } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
 
@@ -54,6 +54,10 @@ export const Sidebar = ({ onClose }) => {
           <NavLink to="/prompt/builder" onClick={onClose} data-testid="nav-link-prompt-builder"
             className={({ isActive }) => cn(linkBase, isActive ? "surface-card text-primary-c border border-c" : "text-secondary-c hover:text-primary-c")}>
             <Sparkles className="w-4 h-4" style={{ color: "#F59E0B" }} /> Prompt Builder
+          </NavLink>
+          <NavLink to="/tokeneconomy" onClick={onClose} data-testid="nav-link-prompt-builder"
+            className={({ isActive }) => cn(linkBase, isActive ? "surface-card text-primary-c border border-c" : "text-secondary-c hover:text-primary-c")}>
+            <Blocks className="w-4 h-4" style={{ color: "#F59E0B" }} /> Token Economy
           </NavLink>
         </div>
 
