@@ -1,5 +1,8 @@
 # AI Agent Toolkit Hub - PRD
 
+## GitHub Repository
+Canonical remote: **https://github.com/ayanjitshome/surgical-ai** (branch: `main`). All future pulls/rebases/pushes target this repo.
+
 ## ⚠️ MANDATORY GIT PUSH RULE (owner-mandated)
 Every future push to git MUST use this exact identity and flow:
 ```
