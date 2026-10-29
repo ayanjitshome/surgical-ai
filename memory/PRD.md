@@ -1,5 +1,17 @@
 # AI Agent Toolkit Hub - PRD
 
+## ⚠️ MANDATORY GIT PUSH RULE (owner-mandated)
+Every future push to git MUST use this exact identity and flow:
+```
+git config local user.name "Ayanjit Shome" && \
+git config local user.email "ayanjitshome@outlook.com" && \
+git add . && \
+git commit -m "Your commit message" && \
+git push
+```
+Always set the local user.name/user.email to Ayanjit Shome / ayanjitshome@outlook.com before committing. Note: on this platform the agent itself does not run git push; actual pushes are done by the user via the "Save to Github" feature, which must be configured to use this identity.
+
+
 ## Original Problem Statement
 
 Internal knowledge-product SPA guiding solo devs & small teams to set up and orchestrate six developer tools (Graft, Serena, Graphify, Codebase Memory, Archify, Agentsview) to reduce AI-agent token waste in VSCode. Four core features: Knowledge Base, Guided Setup Wizard, Decision Support Guide, Interactive Ecosystem Dependency Map (React Flow). GitHub README content cached via FastAPI (manual refresh). No auth, no saved state in v1.
