@@ -1,7 +1,9 @@
 /* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useTheme } from "@/context/ThemeContext";
-import { Moon, Sun, Search, Menu, Compass, ChevronRight } from "lucide-react";
+import { Moon, Sun, Search, Menu, Compass, ChevronRight, Github } from "lucide-react";
+
+const GITHUB_REPO_URL = "https://github.com/ayanjitshome/surgical-ai";
 
 export const Header = ({ onOpenSearch, onOpenSidebar }) => {
   const { theme, toggle } = useTheme();
@@ -46,6 +48,18 @@ export const Header = ({ onOpenSearch, onOpenSidebar }) => {
           <span className="hidden sm:inline text-[13px]">Search</span>
           <kbd className="hidden sm:inline font-mono text-[10px] px-1.5 py-0.5 rounded-md border border-c text-muted-c">⌘K</kbd>
         </button>
+
+        <a
+          href={GITHUB_REPO_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-testid="header-github-link"
+          aria-label="View source on GitHub"
+          title="View source on GitHub"
+          className="h-9 w-9 flex items-center justify-center rounded-[10px] border border-c bg-[var(--bg-card)] text-secondary-c hover:text-primary-c hover:bg-[var(--bg-card-hover)] transition-colors"
+        >
+          <Github className="w-4 h-4" aria-hidden="true" />
+        </a>
 
         <button
           onClick={toggle}
