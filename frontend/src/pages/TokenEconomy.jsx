@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Coins, Zap, TrendingDown, AlertTriangle, CheckCircle2, XCircle,
   Database, MessageSquare, Terminal, Flame, Lock, Infinity as InfinityIcon,
-  Save, RotateCcw, Table2,
+  Save, RotateCcw, Table2, Calendar, DollarSign,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -132,7 +132,18 @@ const TAB_CONTENT = {
 const OUTPUT_WEIGHT = 5;
 const CACHED_WEIGHT = 0.1;
 const STORAGE_KEY = "surgicalai.tokenEconomy.scenario";
-const DEFAULTS = { inputTokens: 20000, cachedPct: 80, outputTokens: 2000, promptsPerHour: 8 };
+const DEFAULTS = {
+  inputTokens: 20000,
+  cachedPct: 80,
+  outputTokens: 2000,
+  promptsPerHour: 8,
+  // Monthly-mode defaults
+  mode: "prompt",         // "prompt" | "monthly"
+  budgetUsd: 25,          // Claude Team-ish cap
+  hoursPerDay: 4,         // active working hours
+  daysPerMonth: 20,       // working days in a month
+  ratePerMInput: 3,       // $ per 1M input tokens (Claude Sonnet-ish list)
+};
 
 const PRESETS = [
   {
@@ -187,18 +198,32 @@ function loadScenario() {
   } catch { return null; }
 }
 
+function fmtUsd(n) {
+  if (n >= 1000) return "$" + Math.round(n).toLocaleString();
+  if (n >= 10) return "$" + n.toFixed(0);
+  return "$" + n.toFixed(2);
+}
+
 const Calculator = () => {
   const initial = typeof window !== "undefined" ? loadScenario() : null;
   const [inputTokens, setInputTokens] = useState(initial?.inputTokens ?? DEFAULTS.inputTokens);
   const [cachedPct, setCachedPct] = useState(initial?.cachedPct ?? DEFAULTS.cachedPct);
   const [outputTokens, setOutputTokens] = useState(initial?.outputTokens ?? DEFAULTS.outputTokens);
   const [promptsPerHour, setPromptsPerHour] = useState(initial?.promptsPerHour ?? DEFAULTS.promptsPerHour);
+  const [mode, setMode] = useState(initial?.mode ?? DEFAULTS.mode);
+  const [budgetUsd, setBudgetUsd] = useState(initial?.budgetUsd ?? DEFAULTS.budgetUsd);
+  const [hoursPerDay, setHoursPerDay] = useState(initial?.hoursPerDay ?? DEFAULTS.hoursPerDay);
+  const [daysPerMonth, setDaysPerMonth] = useState(initial?.daysPerMonth ?? DEFAULTS.daysPerMonth);
+  const [ratePerMInput, setRatePerMInput] = useState(initial?.ratePerMInput ?? DEFAULTS.ratePerMInput);
   const [savedAt, setSavedAt] = useState(initial ? "loaded" : null);
   const [activePreset, setActivePreset] = useState(null);
 
   // Debounced auto-save so returning users see their own numbers.
   useEffect(() => {
-    const scenario = { inputTokens, cachedPct, outputTokens, promptsPerHour };
+    const scenario = {
+      inputTokens, cachedPct, outputTokens, promptsPerHour,
+      mode, budgetUsd, hoursPerDay, daysPerMonth, ratePerMInput,
+    };
     const t = setTimeout(() => {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(scenario));
@@ -206,7 +231,7 @@ const Calculator = () => {
       } catch { /* storage disabled - silent */ }
     }, 500);
     return () => clearTimeout(t);
-  }, [inputTokens, cachedPct, outputTokens, promptsPerHour]);
+  }, [inputTokens, cachedPct, outputTokens, promptsPerHour, mode, budgetUsd, hoursPerDay, daysPerMonth, ratePerMInput]);
 
   const applyPreset = (preset) => {
     setInputTokens(preset.values.inputTokens);
@@ -221,19 +246,36 @@ const Calculator = () => {
     setCachedPct(DEFAULTS.cachedPct);
     setOutputTokens(DEFAULTS.outputTokens);
     setPromptsPerHour(DEFAULTS.promptsPerHour);
+    setMode(DEFAULTS.mode);
+    setBudgetUsd(DEFAULTS.budgetUsd);
+    setHoursPerDay(DEFAULTS.hoursPerDay);
+    setDaysPerMonth(DEFAULTS.daysPerMonth);
+    setRatePerMInput(DEFAULTS.ratePerMInput);
     setActivePreset(null);
   };
 
   const stats = useMemo(() => {
     const cached = inputTokens * (cachedPct / 100);
     const fresh = inputTokens - cached;
+    // Token-weight cost (unitless): cached counts as 10%, output as 5x.
     const costWithCache = cached * CACHED_WEIGHT + fresh + outputTokens * OUTPUT_WEIGHT;
     const costNoCache = inputTokens + outputTokens * OUTPUT_WEIGHT;
     const savings = Math.max(0, 1 - costWithCache / costNoCache);
     const hourlyCost = costWithCache * promptsPerHour;
     const fiveHour = hourlyCost * 5;
-    return { costWithCache, costNoCache, savings, hourlyCost, fiveHour };
-  }, [inputTokens, cachedPct, outputTokens, promptsPerHour]);
+    // $ cost: cost-index is already in input-token-equivalents, so multiply by input rate.
+    const usdPerPrompt = (costWithCache / 1_000_000) * ratePerMInput;
+    const usdPerDay = usdPerPrompt * promptsPerHour * hoursPerDay;
+    const usdPerMonth = usdPerDay * daysPerMonth;
+    const runwayDays = usdPerDay > 0 ? budgetUsd / usdPerDay : Infinity;
+    const monthlyBudgetUsed = budgetUsd > 0 ? usdPerMonth / budgetUsd : 0;
+    return {
+      costWithCache, costNoCache, savings, hourlyCost, fiveHour,
+      usdPerPrompt, usdPerDay, usdPerMonth, runwayDays, monthlyBudgetUsed,
+    };
+  }, [inputTokens, cachedPct, outputTokens, promptsPerHour, budgetUsd, hoursPerDay, daysPerMonth, ratePerMInput]);
+
+  const overBudget = stats.usdPerMonth > budgetUsd;
 
   return (
     <section className="hig-elevated p-6 sm:p-8 fade-up" data-testid="token-economy-calculator" aria-labelledby="calc-title">
@@ -242,10 +284,43 @@ const Calculator = () => {
           <Zap className="w-5 h-5" style={{ color: "var(--brand)" }} aria-hidden="true" />
         </div>
         <div className="flex-1 min-w-[220px]">
-          <h2 id="calc-title" className="hig-title-3 text-primary-c">What a prompt actually costs</h2>
-          <p className="hig-footnote mt-1">Model-agnostic estimate. Input tokens from cache cost ~10% of fresh ones. Output tokens are the real drain.</p>
+          <h2 id="calc-title" className="hig-title-3 text-primary-c">
+            {mode === "monthly" ? "Will your plan last the month?" : "What a prompt actually costs"}
+          </h2>
+          <p className="hig-footnote mt-1">
+            {mode === "monthly"
+              ? "Project a monthly spend from your typical session, in USD. Caching discounts input tokens; output tokens count 5x."
+              : "Model-agnostic estimate. Input tokens from cache cost ~10% of fresh ones. Output tokens are the real drain."}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Mode toggle */}
+          <div role="group" aria-label="Calculator mode" className="inline-flex p-1 rounded-[10px] border border-c bg-[var(--bg-card-hover)]">
+            <button
+              type="button"
+              onClick={() => setMode("prompt")}
+              aria-pressed={mode === "prompt"}
+              data-testid="calc-mode-prompt"
+              className={cn(
+                "flex items-center gap-1.5 px-3 h-8 rounded-[8px] text-[13px] font-medium transition-all",
+                mode === "prompt" ? "bg-[var(--bg-card)] text-primary-c shadow-[var(--shadow-elev-1)]" : "text-secondary-c"
+              )}
+            >
+              <Zap className="w-3.5 h-3.5" aria-hidden="true" /> Per prompt
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("monthly")}
+              aria-pressed={mode === "monthly"}
+              data-testid="calc-mode-monthly"
+              className={cn(
+                "flex items-center gap-1.5 px-3 h-8 rounded-[8px] text-[13px] font-medium transition-all",
+                mode === "monthly" ? "bg-[var(--bg-card)] text-primary-c shadow-[var(--shadow-elev-1)]" : "text-secondary-c"
+              )}
+            >
+              <Calendar className="w-3.5 h-3.5" aria-hidden="true" /> Monthly plan
+            </button>
+          </div>
           {savedAt && (
             <span className="hig-footnote inline-flex items-center gap-1.5" data-testid="calc-saved-indicator">
               <Save className="w-3.5 h-3.5" aria-hidden="true" />
@@ -325,29 +400,127 @@ const Calculator = () => {
         />
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Stat label="Effective cost / prompt" value={fmt(stats.costWithCache)} tone="neutral" testId="stat-cost" />
-        <Stat label="Vs no cache" value={fmt(stats.costNoCache)} tone="muted" testId="stat-nocache" />
-        <Stat
-          label="Saved by caching"
-          value={`${Math.round(stats.savings * 100)}%`}
-          tone="positive"
-          testId="stat-savings"
-          icon={<TrendingDown className="w-4 h-4" aria-hidden="true" />}
-        />
-        <Stat
-          label="Drain over 5h"
-          value={fmt(stats.fiveHour)}
-          tone="warning"
-          testId="stat-drain"
-          icon={<Flame className="w-4 h-4" aria-hidden="true" />}
-        />
-      </div>
+      {mode === "monthly" && (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6 pt-5 border-t border-c" data-testid="monthly-fields">
+          <Field
+            label="Monthly budget"
+            hint="Your plan's $ cap (e.g. Claude Team $25)"
+            value={budgetUsd} min={5} max={500} step={5} suffix=" $"
+            onChange={setBudgetUsd}
+            testId="calc-budget"
+          />
+          <Field
+            label="$ per 1M input tokens"
+            hint="List rate for input (output uses 5x)"
+            value={ratePerMInput} min={1} max={30} step={1} suffix=" $"
+            onChange={setRatePerMInput}
+            testId="calc-rate"
+          />
+          <Field
+            label="Hours active / day"
+            hint="How long the agent is really working"
+            value={hoursPerDay} min={1} max={12} step={1} suffix=" h"
+            onChange={setHoursPerDay}
+            testId="calc-hours"
+          />
+          <Field
+            label="Active days / month"
+            hint="Working days you'll run these prompts"
+            value={daysPerMonth} min={1} max={31} step={1} suffix=" d"
+            onChange={setDaysPerMonth}
+            testId="calc-days"
+          />
+        </div>
+      )}
+
+      {mode === "prompt" ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" data-testid="stats-prompt">
+          <Stat label="Effective cost / prompt" value={fmt(stats.costWithCache)} tone="neutral" testId="stat-cost" />
+          <Stat label="Vs no cache" value={fmt(stats.costNoCache)} tone="muted" testId="stat-nocache" />
+          <Stat
+            label="Saved by caching"
+            value={`${Math.round(stats.savings * 100)}%`}
+            tone="positive"
+            testId="stat-savings"
+            icon={<TrendingDown className="w-4 h-4" aria-hidden="true" />}
+          />
+          <Stat
+            label="Drain over 5h"
+            value={fmt(stats.fiveHour)}
+            tone="warning"
+            testId="stat-drain"
+            icon={<Flame className="w-4 h-4" aria-hidden="true" />}
+          />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" data-testid="stats-monthly">
+          <Stat
+            label="$ per prompt"
+            value={fmtUsd(stats.usdPerPrompt)}
+            tone="neutral"
+            testId="stat-usd-prompt"
+            icon={<DollarSign className="w-4 h-4" aria-hidden="true" />}
+          />
+          <Stat
+            label="$ per day"
+            value={fmtUsd(stats.usdPerDay)}
+            tone="muted"
+            testId="stat-usd-day"
+          />
+          <Stat
+            label="Monthly spend"
+            value={fmtUsd(stats.usdPerMonth)}
+            tone={overBudget ? "warning" : "positive"}
+            testId="stat-usd-month"
+            icon={<Calendar className="w-4 h-4" aria-hidden="true" />}
+          />
+          <Stat
+            label={overBudget ? "Days until cap" : "Months of runway"}
+            value={
+              overBudget
+                ? (stats.runwayDays >= 1 ? Math.floor(stats.runwayDays) + "d" : "<1d")
+                : (stats.monthlyBudgetUsed > 0 ? (1 / stats.monthlyBudgetUsed).toFixed(1) + "mo" : "∞")
+            }
+            tone={overBudget ? "warning" : "positive"}
+            testId="stat-runway"
+            icon={<Flame className="w-4 h-4" aria-hidden="true" />}
+          />
+        </div>
+      )}
+
+      {/* Monthly-mode budget bar */}
+      {mode === "monthly" && (
+        <div className="mt-5" data-testid="budget-bar-wrap" aria-live="polite">
+          <div className="flex items-baseline justify-between mb-1.5">
+            <span className="hig-footnote">
+              You've projected <strong className="text-primary-c">{fmtUsd(stats.usdPerMonth)}</strong> against your <strong className="text-primary-c">{fmtUsd(budgetUsd)}</strong> cap.
+            </span>
+            <span className="hig-footnote">
+              {overBudget
+                ? <span style={{ color: "var(--warning)" }}>Over by {fmtUsd(stats.usdPerMonth - budgetUsd)}</span>
+                : <span style={{ color: "var(--success)" }}>Under by {fmtUsd(budgetUsd - stats.usdPerMonth)}</span>}
+            </span>
+          </div>
+          <div className="h-2.5 w-full rounded-full overflow-hidden" style={{ background: "var(--bg-card-hover)" }} role="progressbar"
+               aria-valuenow={Math.min(100, Math.round(stats.monthlyBudgetUsed * 100))} aria-valuemin={0} aria-valuemax={100}
+               aria-label="Monthly budget used">
+            <div
+              className="h-full transition-all duration-300"
+              style={{
+                width: `${Math.min(100, stats.monthlyBudgetUsed * 100)}%`,
+                background: overBudget ? "var(--warning)" : "var(--success)",
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       <p className="hig-footnote mt-5 flex items-start gap-2">
         <InfinityIcon className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
         <span>
-          Rule of thumb: a well-cached session with concise outputs can run <strong className="text-primary-c">5-10x longer</strong> on the same usage cap than an un-cached verbose one.
+          {mode === "monthly"
+            ? <>Monthly $ math uses your <strong className="text-primary-c">$/1M input tokens</strong> rate; output tokens count 5x. Different models and plans vary - treat this as a planning estimate, not an invoice.</>
+            : <>Rule of thumb: a well-cached session with concise outputs can run <strong className="text-primary-c">5-10x longer</strong> on the same usage cap than an un-cached verbose one.</>}
         </span>
       </p>
     </section>

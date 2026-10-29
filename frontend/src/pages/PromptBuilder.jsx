@@ -32,6 +32,10 @@ export default function PromptBuilder() {
     [task, languages, platform, agentObj, activeIds, tools, constraints, output, validation]
   );
 
+  // Rough tokeniser: ~4 chars per token for English/code (OpenAI heuristic).
+  // Minimum 1 token for any non-empty prompt so the chip never reads "0 tokens".
+  const tokenCount = prompt.length ? Math.max(1, Math.round(prompt.length / 4)) : 0;
+
   const toggleTool = (id) =>
     setActiveIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
 
@@ -81,7 +85,16 @@ export default function PromptBuilder() {
               <input id="builder-languages" data-testid="builder-languages-input" value={languages} onChange={(e) => setLanguages(e.target.value)} placeholder="TypeScript, Python" className={cn(inputCls, "mt-1.5")} />
             </div>
             <div>
-              <label htmlFor="builder-agent" className="text-xs uppercase tracking-wider text-muted-c">AI agent</label>
+              <div className="flex items-center justify-between gap-2">
+                <label htmlFor="builder-agent" className="text-xs uppercase tracking-wider text-muted-c">AI agent</label>
+                <span
+                  className="hig-chip hig-chip-accent"
+                  data-testid="builder-token-count"
+                  title={`${prompt.length.toLocaleString()} characters, ~${tokenCount.toLocaleString()} tokens (chars / 4)`}
+                >
+                  ~{tokenCount.toLocaleString()} tokens
+                </span>
+              </div>
               <select id="builder-agent" data-testid="builder-agent-select" value={agent} onChange={(e) => setAgent(e.target.value)} className={cn(inputCls, "mt-1.5")}>
                 {AGENTS.map((a) => <option key={a.v} value={a.v}>{a.l}</option>)}
               </select>
@@ -128,7 +141,7 @@ export default function PromptBuilder() {
         <div className="lg:sticky lg:top-4 self-start">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-xs uppercase tracking-wider text-muted-c">Generated prompt</span>
-            <span className="text-[10px] text-muted-c">{prompt.length} chars</span>
+            <span className="text-[10px] text-muted-c" data-testid="prompt-size-chip">~{tokenCount.toLocaleString()} tokens · {prompt.length.toLocaleString()} chars</span>
           </div>
           <div data-testid="generated-prompt">
             <CodeBlock code={prompt} label="prompt.md" testId="copy-generated-prompt-button" />
