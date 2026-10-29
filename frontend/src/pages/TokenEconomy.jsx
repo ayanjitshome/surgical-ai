@@ -133,19 +133,20 @@ const OUTPUT_WEIGHT = 5;
 const CACHED_WEIGHT = 0.1;
 const STORAGE_KEY = "surgicalai.tokenEconomy.scenario";
 
-/* Known model rate presets. Prices are per 1M tokens in USD and reflect
- * publicly-listed vendor rates as of early 2026 - treat them as planning
- * approximations, not invoices. Picking "custom" exposes the raw sliders. */
-const MODELS = [
-  { id: "claude-sonnet",   label: "Claude Sonnet",   vendor: "Anthropic", input: 3,    output: 15,  tokWeight: 5 },
-  { id: "claude-opus",     label: "Claude Opus",     vendor: "Anthropic", input: 15,   output: 75,  tokWeight: 5 },
-  { id: "claude-haiku",    label: "Claude Haiku",    vendor: "Anthropic", input: 0.80, output: 4,   tokWeight: 5 },
-  { id: "gpt-5",           label: "GPT-5",           vendor: "OpenAI",    input: 5,    output: 15,  tokWeight: 3 },
-  { id: "gpt-5-mini",      label: "GPT-5 mini",      vendor: "OpenAI",    input: 0.25, output: 2,   tokWeight: 8 },
-  { id: "gpt-4o",          label: "GPT-4o",          vendor: "OpenAI",    input: 2.50, output: 10,  tokWeight: 4 },
-  { id: "gemini-2-5-pro",  label: "Gemini 2.5 Pro",  vendor: "Google",    input: 1.25, output: 10,  tokWeight: 8 },
-  { id: "custom",          label: "Custom rate",     vendor: "You",       input: 3,    output: 15,  tokWeight: 5 },
+/* Known model rate presets. Baseline rates reflect publicly-listed vendor
+ * prices as of early 2026 and are used as a fallback. On page load the UI
+ * calls `/api/pricing` which pulls fresh rates from LiteLLM's community
+ * price list and overlays them. Picking "custom" exposes the raw sliders. */
+const FALLBACK_MODELS = [
+  { id: "claude-sonnet",   label: "Claude Sonnet",   vendor: "Anthropic", input: 3,    output: 15,  tokWeight: 5, source: "fallback" },
+  { id: "claude-opus",     label: "Claude Opus",     vendor: "Anthropic", input: 15,   output: 75,  tokWeight: 5, source: "fallback" },
+  { id: "claude-haiku",    label: "Claude Haiku",    vendor: "Anthropic", input: 0.80, output: 4,   tokWeight: 5, source: "fallback" },
+  { id: "gpt-5",           label: "GPT-5",           vendor: "OpenAI",    input: 5,    output: 15,  tokWeight: 3, source: "fallback" },
+  { id: "gpt-5-mini",      label: "GPT-5 mini",      vendor: "OpenAI",    input: 0.25, output: 2,   tokWeight: 8, source: "fallback" },
+  { id: "gpt-4o",          label: "GPT-4o",          vendor: "OpenAI",    input: 2.50, output: 10,  tokWeight: 4, source: "fallback" },
+  { id: "gemini-2-5-pro",  label: "Gemini 2.5 Pro",  vendor: "Google",    input: 1.25, output: 10,  tokWeight: 8, source: "fallback" },
 ];
+const CUSTOM_MODEL = { id: "custom", label: "Custom rate", vendor: "You", input: 3, output: 15, tokWeight: 5, source: "fallback" };
 
 const DEFAULTS = {
   inputTokens: 20000,
@@ -237,6 +238,30 @@ const Calculator = () => {
   const [savedAt, setSavedAt] = useState(initial ? "loaded" : null);
   const [activePreset, setActivePreset] = useState(null);
 
+  // Live pricing - start with the hardcoded fallback, overlay the server
+  // response once /api/pricing resolves.
+  const [livePricing, setLivePricing] = useState({ models: FALLBACK_MODELS, fetched_at: null, source: "fallback", stale: false });
+  const [pricingError, setPricingError] = useState(null);
+  useEffect(() => {
+    const base = process.env.REACT_APP_BACKEND_URL || "";
+    let cancelled = false;
+    fetch(`${base}/api/pricing`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((data) => {
+        if (cancelled || !data?.models?.length) return;
+        setLivePricing({
+          models: data.models,
+          fetched_at: data.fetched_at,
+          source: data.models.every((m) => m.source === "live") ? "live" : "mixed",
+          stale: !!data.stale,
+          source_url: data.source_url,
+        });
+      })
+      .catch((e) => { if (!cancelled) setPricingError(e.message); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const MODELS = useMemo(() => [...livePricing.models, CUSTOM_MODEL], [livePricing]);
   const selectedModel = MODELS.find((m) => m.id === modelId) || MODELS[0];
   const effectiveInputRate = modelId === "custom" ? customInputRate : selectedModel.input;
   const effectiveOutputRate = modelId === "custom" ? customOutputRate : selectedModel.output;
@@ -465,9 +490,22 @@ const Calculator = () => {
                   </option>
                 ))}
               </select>
-              <div id="calc-model-hint" className="hig-footnote mt-1">
-                Input / output rate per 1M tokens
-                {selectedModel.vendor !== "You" && ` · ${selectedModel.vendor}`}
+              <div id="calc-model-hint" className="hig-footnote mt-1 flex items-center gap-1.5 flex-wrap" data-testid="pricing-freshness">
+                <span>Input / output rate per 1M tokens</span>
+                {selectedModel.vendor !== "You" && <span>· {selectedModel.vendor}</span>}
+                {modelId !== "custom" && (
+                  livePricing.source === "live" || livePricing.source === "mixed" ? (
+                    <span className="hig-chip" style={{ background: "rgba(48,209,88,0.14)", borderColor: "transparent", color: "var(--success)" }} title={livePricing.source_url || "LiteLLM community pricing"}>
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--success)" }} />
+                      Live prices{livePricing.fetched_at ? ` · refreshed ${new Date(livePricing.fetched_at).toLocaleDateString()}` : ""}
+                    </span>
+                  ) : (
+                    <span className="hig-chip" title={pricingError || "Using built-in rates"}>
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--text-muted)" }} />
+                      Built-in rates
+                    </span>
+                  )
+                )}
               </div>
             </div>
             <Field
