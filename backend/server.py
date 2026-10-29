@@ -56,6 +56,40 @@ if ADMIN_TOKEN and ADMIN_TOKEN.strip().lower() in _WEAK_ADMIN_TOKENS:
 # Minimum seconds between per-tool GitHub refreshes (bounds outbound-call abuse).
 REFRESH_COOLDOWN_SECONDS = 15
 
+# --- Live model pricing (LiteLLM community-maintained JSON) ---
+# Cached in-process for 24h; failures fall back to hardcoded rates so the page
+# always has a sensible model dropdown even offline.
+_PRICING_CACHE: dict[str, Any] = {"data": None, "fetched_at": None}
+_PRICING_TTL_SECONDS = 24 * 60 * 60
+_PRICING_SOURCE_URL = "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json"
+# Each entry: our stable id, display label, vendor, list of candidate LiteLLM
+# keys to try (newest first), and a sensible fallback rate (per 1M tokens).
+# tokWeight is the per-prompt cost-index multiplier - how output-heavy the
+# model is relative to its own input (output_rate / input_rate rounded).
+_MODEL_LOOKUPS = [
+    {"id": "claude-sonnet",  "label": "Claude Sonnet",   "vendor": "Anthropic",
+     "keys": ["claude-sonnet-4-5", "claude-sonnet-4", "claude-3-5-sonnet-latest", "claude-3-5-sonnet-20241022"],
+     "fallback": {"input": 3.0,  "output": 15.0, "tokWeight": 5}},
+    {"id": "claude-opus",    "label": "Claude Opus",     "vendor": "Anthropic",
+     "keys": ["claude-opus-4-5", "claude-opus-4", "claude-3-opus-latest", "claude-3-opus-20240229"],
+     "fallback": {"input": 15.0, "output": 75.0, "tokWeight": 5}},
+    {"id": "claude-haiku",   "label": "Claude Haiku",    "vendor": "Anthropic",
+     "keys": ["claude-haiku-4-5", "claude-3-5-haiku-latest", "claude-3-5-haiku-20241022"],
+     "fallback": {"input": 0.80, "output": 4.0,  "tokWeight": 5}},
+    {"id": "gpt-5",          "label": "GPT-5",           "vendor": "OpenAI",
+     "keys": ["gpt-5", "gpt-5-latest", "openai/gpt-5"],
+     "fallback": {"input": 5.0,  "output": 15.0, "tokWeight": 3}},
+    {"id": "gpt-5-mini",     "label": "GPT-5 mini",      "vendor": "OpenAI",
+     "keys": ["gpt-5-mini", "openai/gpt-5-mini"],
+     "fallback": {"input": 0.25, "output": 2.0,  "tokWeight": 8}},
+    {"id": "gpt-4o",         "label": "GPT-4o",          "vendor": "OpenAI",
+     "keys": ["gpt-4o", "gpt-4o-2024-11-20", "gpt-4o-latest", "openai/gpt-4o"],
+     "fallback": {"input": 2.50, "output": 10.0, "tokWeight": 4}},
+    {"id": "gemini-2-5-pro", "label": "Gemini 2.5 Pro",  "vendor": "Google",
+     "keys": ["gemini-2.5-pro", "gemini/gemini-2.5-pro", "gemini-2.5-pro-latest"],
+     "fallback": {"input": 1.25, "output": 10.0, "tokWeight": 8}},
+]
+
 
 def require_admin(x_admin_token: str | None = Header(default=None)):
     if not ADMIN_TOKEN:
@@ -235,6 +269,72 @@ async def decision(answers: DecisionAnswers):
 @api_router.get("/guidance/tradeoffs")
 async def get_tradeoffs():
     return {"tradeoffs": seed_data.TRADEOFFS, "cost_playbook": seed_data.COST_PLAYBOOK}
+
+
+@api_router.get("/pricing")
+async def get_pricing():
+    """Return per-1M-token rates for our model dropdown.
+
+    Pulls LiteLLM's community-maintained price JSON once per day, maps the
+    keys we care about to our stable ids, and falls back to the hardcoded
+    rates on any error so the page always renders.
+    """
+    now = datetime.now(timezone.utc)
+    cached = _PRICING_CACHE["data"]
+    fetched_at = _PRICING_CACHE["fetched_at"]
+    if cached and fetched_at and (now - fetched_at).total_seconds() < _PRICING_TTL_SECONDS:
+        return cached
+
+    raw: dict | None = None
+    try:
+        async with httpx.AsyncClient(timeout=10, follow_redirects=True) as c:
+            r = await c.get(_PRICING_SOURCE_URL)
+            r.raise_for_status()
+            raw = r.json()
+    except Exception as e:
+        logger.warning("Pricing fetch failed: %s", e)
+
+    if raw is None:
+        if cached:
+            # Serve the previous good copy with a stale flag so the UI can note it.
+            return {**cached, "stale": True}
+        models = [{
+            "id": m["id"], "label": m["label"], "vendor": m["vendor"],
+            **m["fallback"], "resolved_from": None, "source": "fallback",
+        } for m in _MODEL_LOOKUPS]
+        return {"models": models, "fetched_at": None, "source_url": _PRICING_SOURCE_URL, "stale": False}
+
+    models = []
+    for m in _MODEL_LOOKUPS:
+        matched_key = next((k for k in m["keys"] if k in raw and isinstance(raw[k], dict)), None)
+        if matched_key:
+            found = raw[matched_key]
+            inp = (found.get("input_cost_per_token") or 0) * 1_000_000
+            out = (found.get("output_cost_per_token") or 0) * 1_000_000
+            if inp > 0 and out > 0:
+                tok_weight = round(out / inp, 1)
+                models.append({
+                    "id": m["id"], "label": m["label"], "vendor": m["vendor"],
+                    "input": round(inp, 4), "output": round(out, 4),
+                    "tokWeight": tok_weight,
+                    "resolved_from": matched_key, "source": "live",
+                })
+                continue
+        # Fallback for this one model
+        models.append({
+            "id": m["id"], "label": m["label"], "vendor": m["vendor"],
+            **m["fallback"], "resolved_from": None, "source": "fallback",
+        })
+
+    result = {
+        "models": models,
+        "fetched_at": now.isoformat(),
+        "source_url": _PRICING_SOURCE_URL,
+        "stale": False,
+    }
+    _PRICING_CACHE["data"] = result
+    _PRICING_CACHE["fetched_at"] = now
+    return result
 
 
 @api_router.post("/admin/refresh/{tool_id}")
