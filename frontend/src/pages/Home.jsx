@@ -92,7 +92,7 @@ export default function Home() {
           Orchestrate seven tools to <span style={{ color: "var(--brand)" }}>starve token waste</span> out of your AI agents.
         </h1>
         <p className="text-base text-secondary-c mt-4 max-w-2xl leading-relaxed">
-          Opinionated setup & orchestration guidance for Ponytail, Trail, Serena, Graphify, Codebase Memory, Archify and Agentsview - tuned for VSCode agents across Mac, Windows, WSL, containers, remote SSH and locked-down corporate machines.
+          Opinionated setup and orchestration guidance for Ponytail, Trail, Serena, Graphify, Codebase Memory, Archify and Agentsview. Tuned for VSCode agents across Mac, Windows, WSL, containers, remote SSH and locked-down corporate machines.
         </p>
         <div className="flex flex-wrap items-center gap-3 mt-6">
           <button onClick={() => navigate("/decide")} data-testid="hero-get-started-button" className="flex items-center gap-2 px-5 py-3 rounded-md font-semibold text-black transition-transform hover:scale-[1.03]" style={{ background: "var(--brand)", color: "#fff" }}>
@@ -112,7 +112,7 @@ export default function Home() {
         <div className="mt-6 flex items-start gap-3 rounded-xl border p-4 max-w-3xl" style={{ borderColor: "rgba(245,158,11,0.4)", background: "rgba(245,158,11,0.08)" }} data-testid="evolving-landscape-note">
           <Info className="w-5 h-5 mt-0.5 shrink-0" style={{ color: "#F59E0B" }} />
           <p className="text-sm text-secondary-c leading-relaxed">
-            <span className="font-semibold text-primary-c">A note on the fast-moving landscape:</span> the tools featured here reflect today&apos;s best-in-class stack. AI tooling evolves extremely fast, so expect some of these to change, merge, or be replaced over time. Treat the structure and principles as the durable part, and revalidate the specific tools before you commit to them.
+            <span className="font-semibold text-primary-c">A note on the fast-moving landscape:</span> the tools listed here reflect what works well today. AI tooling moves quickly, so expect some to change, merge, or be replaced. Treat the structure and principles as the durable part. Revalidate the specific tools before you commit to them.
           </p>
         </div>
       </section>

@@ -12,38 +12,38 @@ import { cn } from "@/lib/utils";
 const AGENT_NOTES = {
   "Claude / Claude Code": {
     accent: "#D97757",
-    caching: "Claude Projects: freeze the Knowledge files + Custom Instructions - these form the stable prefix that gets the 90% cache discount.",
-    conversation: "Keep related work in one chat so the prefix stays warm. Start a fresh chat only when switching tasks.",
-    cli: "Claude Code: use /compact (not /clear) around 70% of the context window. Keep your MCP tool list stable.",
-    output: "Ask for diffs or just the changed lines - never 'rewrite the whole file with comments'.",
+    caching: "In Claude Projects, freeze the Knowledge files and Custom Instructions. They form the stable prefix that gets the 90% cache discount.",
+    conversation: "Keep related work in one chat so the prefix stays warm. Start a fresh chat only when you switch tasks.",
+    cli: "In Claude Code, use /compact (not /clear) around 70% of the context window. Keep your MCP tool list stable.",
+    output: "Ask for diffs or just the changed lines. Never 'rewrite the whole file with comments'.",
   },
   "GitHub Copilot": {
     accent: "#1F6FEB",
-    caching: "Copilot Chat caches on repo + open-file context. Avoid renaming files mid-session; it invalidates the index.",
-    conversation: "Group questions in the same chat panel. New file = new context, so revisit explanations only when needed.",
-    cli: "Pin your workspace with .github/copilot-instructions.md - stable instructions = stable prefix.",
+    caching: "Copilot Chat caches on repo and open-file context. Avoid renaming files mid-session. It invalidates the index.",
+    conversation: "Group questions in the same chat panel. A new file means a new context, so revisit explanations only when needed.",
+    cli: "Pin your workspace with .github/copilot-instructions.md. Stable instructions mean a stable prefix.",
     output: "Prefer 'suggest a single edit' over 'rewrite'. Use inline chat for narrow surgical changes.",
   },
   "OpenAI Codex / Codex CLI": {
     accent: "#10A37F",
-    caching: "Codex CLI caches on system prompt + sandbox file snapshot. Keep AGENTS.md and your tool list static.",
+    caching: "Codex CLI caches on the system prompt and sandbox file snapshot. Keep AGENTS.md and your tool list static.",
     conversation: "Chain tasks in one session when they share files. Spawn a new session for unrelated work.",
-    cli: "Use codex compact / summary passes instead of clearing history. Keep sandbox tools deterministic (sort_keys=True on JSON).",
-    output: "Ask for patches (diffs), not full rewrites. Request tests inline rather than a separate pass.",
+    cli: "Use codex compact or summary passes instead of clearing history. Keep sandbox tools deterministic (sort_keys=True on JSON).",
+    output: "Ask for patches (diffs), not full rewrites. Request tests inline rather than in a separate pass.",
   },
   "Google Antigravity": {
     accent: "#4285F4",
-    caching: "Antigravity caches on the Workflow + MCP tool graph. Lock your workflow nodes before heavy use.",
-    conversation: "Each plan runs with the same preamble - once a plan is set, iterate inside it rather than replanning.",
-    cli: "In the agentic IDE, surface the plan but don't edit the plan mid-task - a plan edit resets the cache window.",
-    output: "Instruct the agent to emit only the diff and the test, not the full file.",
+    caching: "Antigravity caches on the Workflow and MCP tool graph. Lock your workflow nodes before heavy use.",
+    conversation: "Every plan runs with the same preamble. Once a plan is set, iterate inside it rather than replanning.",
+    cli: "In the agentic IDE, surface the plan, but do not edit the plan mid-task. A plan edit resets the cache window.",
+    output: "Tell the agent to emit only the diff and the test, not the full file.",
   },
   "Any agent (universal)": {
     accent: "var(--brand)",
-    caching: "Treat the first ~2k tokens of your context as sacred: tool definitions, project rules, schemas. Never edit them during a work session.",
+    caching: "Treat the first 2k tokens of your context as sacred. Tool definitions, project rules, schemas. Never edit them during a work session.",
     conversation: "Append-only wins. A linear conversation with a stable top is the cheapest shape a prompt can take.",
-    cli: "Summarise, don't clear. Keep tool outputs deterministic (sorted keys, stable formats, no timestamps in payloads).",
-    output: "Output tokens drain budgets 4-7x faster than cached input. Ask for diffs, not rewrites.",
+    cli: "Summarise, do not clear. Keep tool outputs deterministic (sorted keys, stable formats, no timestamps in payloads).",
+    output: "Output tokens drain budgets 4 to 7x faster than cached input. Ask for diffs, not rewrites.",
   },
 };
 
@@ -57,12 +57,12 @@ const TABS = [
 const TAB_CONTENT = {
   caching: {
     headline: "Lock the stable prefix.",
-    sub: "Caching gives you a ~90% discount on input tokens - but only when the top of your prompt is byte-for-byte identical to a previous request within the TTL window.",
+    sub: "Caching gives you a 90% discount on input tokens, but only when the top of your prompt is byte-for-byte identical to a previous request inside the TTL window.",
     quickWins: [
-      "Upload heavy docs (API refs, schemas, brand rules) into a project / knowledge base once.",
+      "Upload heavy docs (API refs, schemas, brand rules) into a project or knowledge base once.",
       "Freeze your custom instructions. Do not edit them mid-session.",
-      "Keep dynamic data (today's date, env vars) out of the preamble.",
-      "Changing a single character in the prefix invalidates the cache - treat it as code.",
+      "Keep changing values (today's date, env vars) out of the preamble.",
+      "Changing a single character in the prefix invalidates the cache. Treat it as code.",
     ],
     doDont: [
       { ok: true, text: "Put universal rules in instructions and leave them alone." },
@@ -73,43 +73,43 @@ const TAB_CONTENT = {
   },
   conversation: {
     headline: "Append-only beats restart.",
-    sub: "Caches read linearly from the top. Keep related questions in one chat - the preamble and your prior turns are already warm. Start a new chat only when you fully switch tasks.",
+    sub: "Caches read linearly from the top. Keep related questions in one chat. The preamble and your prior turns are already warm. Start a new chat only when you fully switch tasks.",
     quickWins: [
       "Batch all questions about a feature in one chat.",
-      "Start a new chat when switching to a different domain (code → marketing).",
-      "A new chat in the same project still hits the project-knowledge cache - just without the stale history.",
-      "Avoid 'rephrase my last question' loops; each rewrite breaks the warm trail.",
+      "Start a new chat when switching to a different domain (code to marketing).",
+      "A new chat in the same project still hits the project-knowledge cache, just without the stale history.",
+      "Avoid 'rephrase my last question' loops. Each rewrite breaks the warm trail.",
     ],
     doDont: [
       { ok: true, text: "Stay in one chat for a single feature or bug." },
       { ok: true, text: "Open a fresh chat when context no longer applies." },
-      { ok: false, text: "Keep stretching one chat across unrelated tasks - old turns bloat input." },
-      { ok: false, text: "Clear and restart mid-task; you lose the whole cached prefix." },
+      { ok: false, text: "Keep stretching one chat across unrelated tasks. Old turns bloat input." },
+      { ok: false, text: "Clear and restart mid-task. You lose the whole cached prefix." },
     ],
   },
   cli: {
     headline: "Keep the tool surface boring.",
     sub: "In CLIs and agentic IDEs, every tool definition and MCP server description lives in the system prompt. Turning tools on or off rewrites the preamble.",
     quickWins: [
-      "Pin a stable set of MCP / plugin tools before a session; don't toggle mid-flow.",
-      "Prefer /compact or summary passes over /clear - they preserve the stable preamble.",
+      "Pin a stable set of MCP or plugin tools before a session. Do not toggle mid-flow.",
+      "Prefer /compact or summary passes over /clear. They preserve the stable preamble.",
       "Make custom tool outputs deterministic: sort_keys=True on JSON, no timestamps in payloads.",
       "Keep instruction files (AGENTS.md, .copilot-instructions, project rules) static during a run.",
     ],
     doDont: [
       { ok: true, text: "Lock your MCP tool list for the duration of a task." },
       { ok: true, text: "Summarise instead of clearing when context nears the limit." },
-      { ok: false, text: "Toggle tools / MCP servers mid-task to 'free up space'." },
+      { ok: false, text: "Toggle tools or MCP servers mid-task to 'free up space'." },
       { ok: false, text: "Emit non-deterministic JSON from your custom tools." },
     ],
   },
   output: {
     headline: "The output tax is unavoidable.",
-    sub: "Caching only discounts input tokens. Output tokens cost full price - and typically drain usage limits 4-7x faster than input. The cheapest fix is to ask for less.",
+    sub: "Caching only discounts input tokens. Output tokens cost full price, and typically drain usage limits 4 to 7x faster than input. The cheapest fix is to ask for less.",
     quickWins: [
-      "Ask for diffs, not full files. 'Show me the 10 lines to change' not 'rewrite with comments'.",
-      "Tell the agent to be concise - verbosity burns the budget twice (now and in future context).",
-      "Avoid 'explain, then do it' prompts - do the work, explain only if asked.",
+      "Ask for diffs, not full files. 'Show me the 10 lines to change', not 'rewrite with comments'.",
+      "Tell the agent to be concise. Verbosity burns the budget twice (now, and in future context).",
+      "Avoid 'explain, then do it' prompts. Do the work, explain only if asked.",
       "For reviews, request 'top 3 issues' rather than exhaustive essays.",
     ],
     doDont: [
@@ -126,8 +126,8 @@ const TAB_CONTENT = {
  * index (relative to input tokens at list price = 1.0x).
  *  - cached input    = 0.10x of normal input
  *  - uncached input  = 1.00x
- *  - output tokens   = 5.00x (midpoint of the "4-7x drain" rule)
- * Numbers are approximations - usage caps vary by plan/model.
+ *  - output tokens   = 5.00x (midpoint of the 4 to 7x drain rule)
+ * Numbers are approximations. Usage caps vary by plan and model.
  */
 const OUTPUT_WEIGHT = 5;
 const CACHED_WEIGHT = 0.1;
@@ -167,21 +167,21 @@ const PRESETS = [
   {
     id: "claude",
     label: "Typical Claude session",
-    hint: "Projects + long chat, lots of cached prefix",
+    hint: "Projects, long chat, lots of cached prefix",
     accent: "#D97757",
     values: { inputTokens: 60000, cachedPct: 85, outputTokens: 1800, promptsPerHour: 10 },
   },
   {
     id: "copilot",
     label: "Copilot heavy day",
-    hint: "Repo index + short back-and-forth edits",
+    hint: "Repo index, short back-and-forth edits",
     accent: "#1F6FEB",
     values: { inputTokens: 15000, cachedPct: 70, outputTokens: 800, promptsPerHour: 24 },
   },
   {
     id: "codex",
     label: "Codex CLI run",
-    hint: "Sandbox + AGENTS.md, diff-first replies",
+    hint: "Sandbox, AGENTS.md, diff-first replies",
     accent: "#10A37F",
     values: { inputTokens: 40000, cachedPct: 75, outputTokens: 1500, promptsPerHour: 6 },
   },
@@ -348,7 +348,7 @@ const Calculator = () => {
           <p className="hig-footnote mt-1">
             {mode === "monthly"
               ? "Project a monthly spend from your typical session, in USD. Caching discounts input tokens; output tokens count 5x."
-              : "Model-agnostic estimate. Input tokens from cache cost ~10% of fresh ones. Output tokens are the real drain."}
+              : "Model-agnostic estimate. Input tokens from cache cost about 10% of fresh ones. Output tokens are the real drain."}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -486,7 +486,7 @@ const Calculator = () => {
               >
                 {MODELS.map((m) => (
                   <option key={m.id} value={m.id}>
-                    {m.label}{m.id === "custom" ? "" : ` — $${m.input}/${m.output} per 1M`}
+                    {m.label}{m.id === "custom" ? "" : ` ($${m.input}/${m.output} per 1M)`}
                   </option>
                 ))}
               </select>
@@ -631,8 +631,8 @@ const Calculator = () => {
         <InfinityIcon className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
         <span>
           {mode === "monthly"
-            ? <>Monthly $ math uses <strong className="text-primary-c">{selectedModel.label}</strong>'s rates ({`$${effectiveInputRate}/$${effectiveOutputRate} per 1M, input/output`}). Prices approximate as of early 2026 - check the vendor page before committing.</>
-            : <>Rule of thumb: a well-cached session with concise outputs can run <strong className="text-primary-c">5-10x longer</strong> on the same usage cap than an un-cached verbose one.</>}
+            ? <>Monthly $ math uses <strong className="text-primary-c">{selectedModel.label}</strong>'s rates ({`$${effectiveInputRate}/$${effectiveOutputRate} per 1M, input and output`}). Prices approximate as of early 2026. Check the vendor page before committing.</>
+            : <>A well-cached session with concise outputs can run <strong className="text-primary-c">5 to 10x longer</strong> on the same usage cap than an un-cached verbose one.</>}
         </span>
       </p>
     </section>
@@ -826,45 +826,45 @@ const AgentCallouts = ({ active }) => {
 
 const COMPARISON_ROWS = [
   { label: "Cache mechanism", values: {
-    claude: "Stable prefix hash (Projects + instructions + files + prior turns)",
-    copilot: "Repo + open-file index with Chat preamble",
-    codex: "System prompt + sandbox snapshot + AGENTS.md",
-    antigravity: "Workflow graph + MCP tool descriptions",
+    claude: "Stable prefix hash (Projects, instructions, files, prior turns)",
+    copilot: "Repo and open-file index with the Chat preamble",
+    codex: "System prompt, sandbox snapshot, AGENTS.md",
+    antigravity: "Workflow graph and MCP tool descriptions",
   } },
   { label: "Cache TTL", values: {
     claude: "5 min default, 1 hr with extended TTL",
-    copilot: "Session-scoped (as long as workspace is open)",
-    codex: "Session-scoped (until compact / reset)",
+    copilot: "Session-scoped (as long as the workspace is open)",
+    codex: "Session-scoped (until compact or reset)",
     antigravity: "Plan-scoped (resets on plan edit)",
   } },
   { label: "Cached input discount", values: {
-    claude: "~90% off list price",
+    claude: "About 90% off list price",
     copilot: "Flat seat pricing (no per-token)",
-    codex: "~90% off list price",
-    antigravity: "~90% off list price",
+    codex: "About 90% off list price",
+    antigravity: "About 90% off list price",
   } },
   { label: "Output token weight", values: {
-    claude: "4-7x the input rate",
-    copilot: "Seat-capped; no direct metering",
-    codex: "4-5x the input rate",
-    antigravity: "4-6x the input rate",
+    claude: "4 to 7x the input rate",
+    copilot: "Seat-capped. No direct metering.",
+    codex: "4 to 5x the input rate",
+    antigravity: "4 to 6x the input rate",
   } },
   { label: "Biggest cache killer", values: {
     claude: "Editing project instructions or swapping files",
-    copilot: "Renaming / moving files mid-session",
+    copilot: "Renaming or moving files mid-session",
     codex: "Toggling MCP tools or editing AGENTS.md",
     antigravity: "Editing the plan while it runs",
   } },
   { label: "How to compact", values: {
     claude: "/compact in Claude Code",
-    copilot: "Close & re-open the chat panel (no built-in compact)",
-    codex: "codex summary / compact pass",
+    copilot: "Close and re-open the chat panel (no built-in compact)",
+    codex: "codex summary or compact pass",
     antigravity: "Agent-driven summary step in the plan",
   } },
   { label: "Best fit", values: {
     claude: "Long, exploratory sessions on a stable repo",
     copilot: "Short surgical edits across many files",
-    codex: "Scripted / autonomous CLI work with tests",
+    codex: "Scripted or autonomous CLI work with tests",
     antigravity: "Multi-step agentic workflows",
   } },
 ];
@@ -883,7 +883,7 @@ const AgentComparison = () => (
       <h2 id="comparison-title" className="hig-title-3 text-primary-c">Agents side-by-side</h2>
     </div>
     <p className="hig-footnote mb-4 max-w-2xl">
-      Qualitative snapshot of how the main agentic tools handle caching and output economics. Numeric multipliers are rough rules of thumb - always check the current pricing page before committing to a plan.
+      Qualitative snapshot of how the main agentic tools handle caching and output economics. Numeric multipliers are rough. Always check the current pricing page before committing to a plan.
     </p>
     <div className="hig-card overflow-hidden">
       <div className="overflow-x-auto">
@@ -944,8 +944,8 @@ const TokenEconomy = () => {
           Make every token work <span style={{ color: "var(--brand)" }}>twice as hard</span>.
         </h1>
         <p className="hig-body text-secondary-c mt-4 max-w-2xl">
-          The principles below apply to any agentic AI tool - Claude, Copilot, Codex, Antigravity, or your own MCP stack.
-          Caching discounts input tokens by ~90%, but only if you treat the top of your context as sacred.
+          The principles below apply to any agentic AI tool (Claude, Copilot, Codex, Antigravity, or your own MCP stack).
+          Caching discounts input tokens by about 90%, but only if you treat the top of your context as sacred.
         </p>
       </div>
 
@@ -967,10 +967,10 @@ const TokenEconomy = () => {
             <AlertTriangle className="w-5 h-5" style={{ color: "var(--warning)" }} aria-hidden="true" />
           </div>
           <div>
-            <h2 id="trap-title" className="hig-title-3 text-primary-c">The one trap caching can't fix</h2>
+            <h2 id="trap-title" className="hig-title-3 text-primary-c">The one trap caching cannot fix</h2>
             <p className="hig-body text-secondary-c mt-2 max-w-3xl">
               Caching only discounts <strong className="text-primary-c">input</strong> tokens.
-              Output tokens cost full price and drain usage caps roughly <strong className="text-primary-c">4-7x faster</strong> than input.
+              Output tokens cost full price and drain usage caps roughly <strong className="text-primary-c">4 to 7x faster</strong> than input.
               A perfectly cached prompt that asks the agent to "rewrite the entire 500-line file with comments" will still blow through your limit.
               Ask for <em>diffs</em>, demand brevity, and let the tools do the heavy context work.
             </p>

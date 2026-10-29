@@ -106,7 +106,7 @@ export default function PromptBuilder() {
                   className="hig-chip hig-chip-accent"
                   data-testid="builder-token-count"
                   title={isExactTokens
-                    ? `BPE token count (o200k_base) — ${prompt.length.toLocaleString()} characters`
+                    ? `BPE token count (o200k_base), ${prompt.length.toLocaleString()} characters`
                     : `Loading tokenizer… showing ~chars/4 estimate (${prompt.length.toLocaleString()} chars)`}
                 >
                   {isExactTokens ? "" : "~"}{tokenCount.toLocaleString()} tokens

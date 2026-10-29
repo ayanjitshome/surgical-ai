@@ -106,3 +106,4 @@ backend/data/
 *.db
 *.db-wal
 *.db-shm
+frontend/node_modules/.cache/default-development/2.pack
