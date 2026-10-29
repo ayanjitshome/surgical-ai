@@ -1,7 +1,7 @@
 /* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useTheme } from "@/context/ThemeContext";
-import { Moon, Sun, Search, Menu, Compass, ChevronRight, Github } from "lucide-react";
+import { Moon, Sun, Search, Menu, PlaneTakeoff, ChevronRight, Github } from "lucide-react";
 
 const GITHUB_REPO_URL = "https://github.com/ayanjitshome/surgical-ai";
 
@@ -75,9 +75,11 @@ export const Header = ({ onOpenSearch, onOpenSidebar }) => {
         <button
           onClick={() => navigate("/decide")}
           data-testid="header-get-started-button"
-          className="hig-btn hig-btn-primary hidden sm:flex"
+          aria-label="Get started"
+          title="Get started"
+          className="hig-btn hig-btn-primary h-9 w-9 p-0 flex items-center justify-center"
         >
-          <Compass className="w-4 h-4" aria-hidden="true" /> Get Started
+          <PlaneTakeoff className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
     </header>
