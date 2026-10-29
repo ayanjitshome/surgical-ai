@@ -6,6 +6,10 @@ import {
   Save, RotateCcw, Table2, Calendar, DollarSign,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  CACHED_WEIGHT, OUTPUT_WEIGHT, STORAGE_KEY, DEFAULTS,
+  FALLBACK_MODELS, CUSTOM_MODEL, loadScenario, fmtUsd,
+} from "@/lib/scenario";
 
 /* -------- Content model (adapted to any agentic AI tool) -------- */
 
@@ -128,40 +132,10 @@ const TAB_CONTENT = {
  *  - uncached input  = 1.00x
  *  - output tokens   = 5.00x (midpoint of the 4 to 7x drain rule)
  * Numbers are approximations. Usage caps vary by plan and model.
+ * Shared constants (CACHED_WEIGHT, OUTPUT_WEIGHT, STORAGE_KEY, DEFAULTS,
+ * FALLBACK_MODELS, CUSTOM_MODEL, loadScenario, fmtUsd) live in
+ * `lib/scenario.js` so Home's BudgetVerdict and this page agree.
  */
-const OUTPUT_WEIGHT = 5;
-const CACHED_WEIGHT = 0.1;
-const STORAGE_KEY = "surgicalai.tokenEconomy.scenario";
-
-/* Known model rate presets. Baseline rates reflect publicly-listed vendor
- * prices as of early 2026 and are used as a fallback. On page load the UI
- * calls `/api/pricing` which pulls fresh rates from LiteLLM's community
- * price list and overlays them. Picking "custom" exposes the raw sliders. */
-const FALLBACK_MODELS = [
-  { id: "claude-sonnet",   label: "Claude Sonnet",   vendor: "Anthropic", input: 3,    output: 15,  tokWeight: 5, source: "fallback" },
-  { id: "claude-opus",     label: "Claude Opus",     vendor: "Anthropic", input: 15,   output: 75,  tokWeight: 5, source: "fallback" },
-  { id: "claude-haiku",    label: "Claude Haiku",    vendor: "Anthropic", input: 0.80, output: 4,   tokWeight: 5, source: "fallback" },
-  { id: "gpt-5",           label: "GPT-5",           vendor: "OpenAI",    input: 5,    output: 15,  tokWeight: 3, source: "fallback" },
-  { id: "gpt-5-mini",      label: "GPT-5 mini",      vendor: "OpenAI",    input: 0.25, output: 2,   tokWeight: 8, source: "fallback" },
-  { id: "gpt-4o",          label: "GPT-4o",          vendor: "OpenAI",    input: 2.50, output: 10,  tokWeight: 4, source: "fallback" },
-  { id: "gemini-2-5-pro",  label: "Gemini 2.5 Pro",  vendor: "Google",    input: 1.25, output: 10,  tokWeight: 8, source: "fallback" },
-];
-const CUSTOM_MODEL = { id: "custom", label: "Custom rate", vendor: "You", input: 3, output: 15, tokWeight: 5, source: "fallback" };
-
-const DEFAULTS = {
-  inputTokens: 20000,
-  cachedPct: 80,
-  outputTokens: 2000,
-  promptsPerHour: 8,
-  // Monthly-mode defaults
-  mode: "prompt",         // "prompt" | "monthly"
-  budgetUsd: 25,          // Claude Team-ish cap
-  hoursPerDay: 4,         // active working hours
-  daysPerMonth: 20,       // working days in a month
-  modelId: "claude-sonnet",
-  customInputRate: 3,     // $ per 1M input tokens (used only when modelId === "custom")
-  customOutputRate: 15,
-};
 
 const PRESETS = [
   {
@@ -198,28 +172,6 @@ function fmt(n) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1) + "k";
   return Math.round(n).toString();
-}
-
-function loadScenario() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    // Validate shape - fall back to defaults on anything funky.
-    if (
-      typeof parsed.inputTokens === "number" &&
-      typeof parsed.cachedPct === "number" &&
-      typeof parsed.outputTokens === "number" &&
-      typeof parsed.promptsPerHour === "number"
-    ) return parsed;
-    return null;
-  } catch { return null; }
-}
-
-function fmtUsd(n) {
-  if (n >= 1000) return "$" + Math.round(n).toLocaleString();
-  if (n >= 10) return "$" + n.toFixed(0);
-  return "$" + n.toFixed(2);
 }
 
 const Calculator = () => {

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEcosystem, useTools } from "@/hooks/useData";
 import { EcosystemMap } from "@/components/ecosystem/EcosystemMap";
+import { BudgetVerdict } from "@/components/BudgetVerdict";
 import { stageIcon } from "@/lib/icons";
 import { X, ArrowRight, BookOpen, Settings2, Compass, Layers, Zap, TrendingDown, Wand2, Info, Sparkles } from "lucide-react";
 
@@ -115,6 +116,10 @@ export default function Home() {
             <span className="font-semibold text-primary-c">A note on the fast-moving landscape:</span> the tools listed here reflect what works well today. AI tooling moves quickly, so expect some to change, merge, or be replaced. Treat the structure and principles as the durable part. Revalidate the specific tools before you commit to them.
           </p>
         </div>
+      </section>
+
+      <section className="px-5 sm:px-8 max-w-6xl mx-auto mt-2 mb-8">
+        <BudgetVerdict />
       </section>
 
       <section className="px-5 sm:px-8 max-w-6xl mx-auto">
