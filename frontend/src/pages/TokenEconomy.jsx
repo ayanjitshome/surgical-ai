@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Coins, Zap, TrendingDown, AlertTriangle, CheckCircle2, XCircle,
   Database, MessageSquare, Terminal, Flame, Lock, Infinity as InfinityIcon,
-  Save, RotateCcw, Table2, Calendar, DollarSign, RefreshCw,
+  Save, RotateCcw, Table2, Calendar, DollarSign, RefreshCw, Star,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -730,14 +730,37 @@ const MiniStat = ({ label, value, color, testId }) => (
 );
 
 /* -------- Model picker ------
- * Vendor filter chips above a searchable, grouped dropdown. Scales as the
- * LiteLLM model list grows without burying the current selection. */
+ * Vendor filter chips above a searchable, grouped dropdown. Pinned models
+ * are stored in localStorage and surfaced in a "Pinned" group at the top
+ * so a user's regulars are always one click away. */
 
 const VENDOR_ORDER = ["Anthropic", "OpenAI", "Google", "You"];
+const PINNED_STORAGE_KEY = "surgicalai.tokenEconomy.pinnedModels";
+
+const loadPinned = () => {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(PINNED_STORAGE_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
+  } catch { return []; }
+};
 
 const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInputRate, effectiveOutputRate, livePricing, pricingError }) => {
   const [vendorFilter, setVendorFilter] = useState("All");
   const [query, setQuery] = useState("");
+  const [pinnedIds, setPinnedIds] = useState(() => loadPinned());
+
+  useEffect(() => {
+    try { localStorage.setItem(PINNED_STORAGE_KEY, JSON.stringify(pinnedIds)); } catch {}
+  }, [pinnedIds]);
+
+  const togglePin = (id) => {
+    if (!id || id === "custom") return;
+    setPinnedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  };
+  const isPinned = (id) => pinnedIds.includes(id);
+  const currentPinned = isPinned(modelId);
 
   const availableVendors = useMemo(() => {
     const seen = new Set();
@@ -754,14 +777,28 @@ const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInpu
     });
   }, [models, vendorFilter, query]);
 
+  // Pinned appear once in a Pinned group (in the user's pin order) and are
+  // removed from their vendor group below to avoid duplication in the list.
   const grouped = useMemo(() => {
+    const pinnedList = pinnedIds
+      .map((id) => filtered.find((m) => m.id === id))
+      .filter(Boolean);
+    const pinnedSet = new Set(pinnedList.map((m) => m.id));
+
     const map = new Map();
     filtered.forEach((m) => {
+      if (pinnedSet.has(m.id)) return;
       if (!map.has(m.vendor)) map.set(m.vendor, []);
       map.get(m.vendor).push(m);
     });
-    return [...map.entries()].sort((a, b) => VENDOR_ORDER.indexOf(a[0]) - VENDOR_ORDER.indexOf(b[0]));
-  }, [filtered]);
+    const vendorGroups = [...map.entries()].sort(
+      (a, b) => VENDOR_ORDER.indexOf(a[0]) - VENDOR_ORDER.indexOf(b[0])
+    );
+
+    return pinnedList.length
+      ? [["★ Pinned", pinnedList], ...vendorGroups]
+      : vendorGroups;
+  }, [filtered, pinnedIds]);
 
   return (
     <div data-testid="calc-model-picker">
@@ -807,27 +844,48 @@ const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInpu
           data-testid="calc-model-search"
           className="w-full h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors"
         />
-        <select
-          id="calc-model"
-          data-testid="calc-model-select"
-          value={modelId}
-          onChange={(e) => setModelId(e.target.value)}
-          className="w-full h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors cursor-pointer"
-          aria-describedby="calc-model-hint"
-        >
-          {grouped.length === 0 && (
-            <option value={modelId} disabled>No models match the filter</option>
-          )}
-          {grouped.map(([vendor, list]) => (
-            <optgroup key={vendor} label={vendor}>
-              {list.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.label}{m.id === "custom" ? "" : ` ($${m.input}/${m.output} per 1M)`}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
+        <div className="flex items-stretch gap-2">
+          <select
+            id="calc-model"
+            data-testid="calc-model-select"
+            value={modelId}
+            onChange={(e) => setModelId(e.target.value)}
+            className="flex-1 min-w-0 h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors cursor-pointer"
+            aria-describedby="calc-model-hint"
+          >
+            {grouped.length === 0 && (
+              <option value={modelId} disabled>No models match the filter</option>
+            )}
+            {grouped.map(([vendor, list]) => (
+              <optgroup key={vendor} label={vendor}>
+                {list.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {isPinned(m.id) ? "★ " : ""}{m.label}{m.id === "custom" ? "" : ` ($${m.input}/${m.output} per 1M)`}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => togglePin(modelId)}
+            disabled={modelId === "custom"}
+            aria-pressed={currentPinned}
+            aria-label={currentPinned ? `Unpin ${selectedModel.label}` : `Pin ${selectedModel.label} to top`}
+            title={modelId === "custom" ? "Custom rate cannot be pinned" : (currentPinned ? "Unpin from top" : "Pin to top")}
+            data-testid="calc-model-pin"
+            className={cn(
+              "h-10 w-10 flex items-center justify-center rounded-[10px] border border-c surface-card transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+              currentPinned ? "text-[color:var(--brand)] hover:text-primary-c" : "text-secondary-c hover:text-primary-c"
+            )}
+          >
+            <Star
+              className="w-4 h-4"
+              fill={currentPinned ? "currentColor" : "none"}
+              aria-hidden="true"
+            />
+          </button>
+        </div>
       </div>
 
       <div id="calc-model-hint" className="hig-footnote mt-1 flex items-center gap-1.5 flex-wrap" data-testid="pricing-freshness">
