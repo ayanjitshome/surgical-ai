@@ -52,7 +52,7 @@ Native macOS (`.dmg`) and Windows (`.msi`) installers with in-app auto-update fr
 
 | Layer     | Choice                                                     |
 | --------- | ---------------------------------------------------------- |
-| Frontend  | React 19 (CRA + craco), React Router, Tailwind, Apple HIG design tokens |
+| Frontend  | React 19 on Vite 8, React Router 7, Tailwind 4, Apple HIG design tokens |
 | Viz       | React Flow (`@xyflow/react`)                               |
 | Backend   | FastAPI (Python)                                           |
 | Database  | SQLite (via `aiosqlite`). Single file, zero setup.         |

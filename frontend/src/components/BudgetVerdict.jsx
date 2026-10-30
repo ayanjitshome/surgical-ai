@@ -17,7 +17,7 @@ export const BudgetVerdict = () => {
 
   useEffect(() => {
     setScenario(loadScenario());
-    const base = process.env.REACT_APP_BACKEND_URL || "";
+    const base = import.meta.env.REACT_APP_BACKEND_URL || "";
     let cancelled = false;
     fetch(`${base}/api/pricing`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : Promise.reject()))

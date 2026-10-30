@@ -144,3 +144,30 @@ Full audit + prune pass. Everything stays within existing majors, no breaking ch
 - `craco.config.js`: deleted the `@emergentbase/overlay` and `@emergentbase/visual-edits` require-and-wrap branches (packages were already uninstalled; the `require()` calls were silently failing). `isDevServer` constant dropped too.
 
 **Verified:** `/`, `/decide`, `/guidance`, `/prompt`, `/prompt/builder`, `/tokeneconomy` all render with the shared header, zero page errors. Backend `/api/tools` and `/api/pricing/refresh` return healthy payloads. Vale lint still passes across all 33 source files.
+
+## 2026-10 - Bundler migration + full "latest" upgrade
+
+User asked for every package on absolute latest, with code adapted around any breaking change. CRA cannot run Tailwind v4, so the toolchain itself moved.
+
+**New bundler**: Create React App + CRACO replaced by **Vite 8** + `@vitejs/plugin-react` + `@tailwindcss/vite`.
+- `craco.config.js`, `postcss.config.js`, `public/index.html` deleted.
+- New files: `vite.config.js`, `index.html` at project root, `src/main.jsx` (renamed from `src/index.js`), `src/App.jsx` (renamed from `src/App.js` so Vite's react plugin picks up the JSX).
+- `package.json` now has `"type": "module"`, scripts are `vite` / `vite build` / `vite preview`.
+- `vite.config.js` sets `envPrefix: ["REACT_APP_", "VITE_"]` so the system contract (`REACT_APP_BACKEND_URL`) keeps working, and binds dev server to `0.0.0.0:3000` with `allowedHosts: true` for the Kubernetes ingress.
+- All `process.env.REACT_APP_BACKEND_URL` reads migrated to `import.meta.env.REACT_APP_BACKEND_URL` (4 files).
+
+**Tailwind v3 → v4**:
+- `tailwindcss@4`, `@tailwindcss/vite@4`.
+- `src/index.css` now uses `@import "tailwindcss"; @import "tw-animate-css"; @config "../tailwind.config.js";`.
+- Replaced the deprecated `tailwindcss-animate` plugin with `tw-animate-css`.
+- Added a base layer that pins `border-color` back to `gray-200` so v4's new `currentColor` default does not drift the UI.
+
+**lucide-react 0.516 → 1.64**:
+- v1 removed brand icons for trademark reasons. Replaced the `Github` import with a shared inline Octocat SVG at `src/components/BrandIcons.jsx`, consumed by `Header.jsx` and `ToolDetail.jsx`.
+
+**Also upgraded within the current major** (patch + minor only, no behavior changes needed): `react` 19.3.1, `react-dom` 19.3.1, `react-router-dom` 7.18.5, `@tanstack/react-query` 5.105, `sonner` 2.0.8, `tailwind-merge` 3.7, `gpt-tokenizer` 4.1, `axios` latest 1.x, plus Vite plugins.
+
+**Second dead-code pass** (consumers were removed in the previous cleanup): dropped all 27 `@radix-ui/*` primitives, `class-variance-authority`, `cmdk`, `date-fns`, `embla-carousel-react`, `input-otp`, `react-day-picker`, `react-hook-form`, `react-resizable-panels`, `vaul`, plus `autoprefixer`, `postcss`, `dotenv` (dev) now that CRACO is gone.
+
+**Numbers**: dependencies went from 50+ to **15 runtime + 5 dev**. `yarn audit` findings went from the original 50 (2 Critical / 16 High / 21 Moderate / 11 Low) to **0 vulnerabilities**. `yarn build` produces a 1.5 kB index + 1 MB JS bundle in ~1 s. All six main routes render with the shared header, Monthly plan mode of Token Economy still lists all 33 live models, and Vale lint stays clean across 34 source files.
+
