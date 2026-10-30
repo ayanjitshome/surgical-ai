@@ -190,3 +190,7 @@ Routing + nav:
 
 Zero new dependencies. All content lint-clean through Vale.
 
+
+## 2026-10 - Ecosystem map control glyphs visible in dark mode
+
+`index.css` extended so the three default React Flow control buttons (zoom in, zoom out, fit view) pick up the current theme's `--text-secondary` token on their nested `<path>` fills, matching the custom Fullscreen button. Hover lifts to `--text-primary`. CSS-only change, no React Flow or theme-context edits.
