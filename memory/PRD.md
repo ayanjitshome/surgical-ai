@@ -111,3 +111,18 @@ Owner wants hard-to-remove authorship attribution + legal artifacts.
 - HTML markers (index.html): meta author + copyright, html[data-author], #root[data-author], HTML comment.
 - Backend: AUTHOR/COPYRIGHT constants, X-Author/X-Copyright response headers (middleware), author+copyright fields in /api/ and /api/meta, startup log banner. Verified via curl.
 Caveat: deters casual removal; a determined dev editing source can still strip the guard - LICENSE + headers are the legal backstop.
+
+
+## 2026-10 - Expanded model coverage from LiteLLM registry
+
+Token Economy picker widened from 4 models to 11, all resolving live from `model_prices_and_context_window.json`:
+
+- Anthropic: Claude Opus 5.5, Sonnet 5.5, Haiku 5.5, Fable 5.1
+- OpenAI: GPT-6 Sol, Luna, Astra, and GPT-5.6 Terra
+- Google: Gemini 3.1 Pro, 3.8 Flash, 4 Argon
+
+Backend (`server.py`): `_MODEL_LOOKUPS` rewritten with candidate keys per model, fallback rates derived from the current LiteLLM entries.
+Shared math (`lib/scenario.js`): `FALLBACK_MODELS` + `DEFAULTS.modelId` updated to the new set, default is `claude-sonnet-5-5`.
+UI (`TokenEconomy.jsx`): new `ModelPicker` component - vendor filter chips (All / Anthropic / OpenAI / Google / You) above a searchable, `optgroup`-grouped dropdown so the picker scales as the list grows.
+Pricing refresh endpoint is public (`POST /api/pricing/refresh`), the old `/api/admin/pricing/refresh` route was removed.
+Verified: `curl /api/pricing/refresh` returned 11/11 live, UI smoke test confirmed chip filter + search + dropdown all work.
