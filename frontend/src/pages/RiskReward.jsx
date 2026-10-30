@@ -192,7 +192,7 @@ const DiminishingReturnsChart = () => {
         <h2 className="text-2xl font-bold text-primary-c flex items-center gap-2 mb-2">
           <Gauge className="w-6 h-6" style={{ color: "#FF9F0A" }} /> Diminishing Returns
         </h2>
-        <p className="text-secondary-c max-w-prose leading-relaxed">
+        <p className="text-secondary-c leading-relaxed">
           A 100-mile trip. The faster you go, the less extra time you save, and the risk of an accident curves up sharply after 70 mph. The same shape appears when you push an AI assistant from "autocomplete" to "autonomous agent".
         </p>
       </header>
@@ -528,7 +528,7 @@ const TaskMatrix = () => (
       <h2 className="text-2xl font-bold text-primary-c flex items-center gap-2 mb-2">
         <Brain className="w-6 h-6" style={{ color: "#BF5AF2" }} /> Task Delegation Matrix
       </h2>
-      <p className="text-secondary-c max-w-prose leading-relaxed">
+      <p className="text-secondary-c leading-relaxed">
         The usual advice flipped on its head: use the assistant where it earns the most leverage, and write the small stuff yourself to keep the craft sharp.
       </p>
     </header>
@@ -571,7 +571,7 @@ export default function RiskReward() {
         <h1 className="text-3xl sm:text-4xl font-bold text-primary-c max-w-3xl">
           <span style={{ color: "#FF453A" }}>Risk</span> vs. <span style={{ color: "#30D158" }}>Reward</span>
         </h1>
-        <p className="text-secondary-c mt-3 max-w-2xl leading-relaxed">
+        <p className="text-secondary-c mt-3 leading-relaxed">
           A field guide for developers and tech leads choosing where AI pays off and where it quietly costs you. Three views: the core concerns, the shape of the trade-off, and a matrix for the next pull request.
         </p>
       </section>
