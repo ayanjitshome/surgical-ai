@@ -797,7 +797,7 @@ const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInpu
         })}
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-2">
+      <div className="flex flex-col gap-2">
         <input
           type="search"
           value={query}
@@ -805,14 +805,14 @@ const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInpu
           placeholder="Search models..."
           aria-label="Search models"
           data-testid="calc-model-search"
-          className="sm:w-44 h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors"
+          className="w-full h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors"
         />
         <select
           id="calc-model"
           data-testid="calc-model-select"
           value={modelId}
           onChange={(e) => setModelId(e.target.value)}
-          className="flex-1 h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors"
+          className="w-full h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors cursor-pointer"
           aria-describedby="calc-model-hint"
         >
           {grouped.length === 0 && (
