@@ -171,3 +171,22 @@ User asked for every package on absolute latest, with code adapted around any br
 
 **Numbers**: dependencies went from 50+ to **15 runtime + 5 dev**. `yarn audit` findings went from the original 50 (2 Critical / 16 High / 21 Moderate / 11 Low) to **0 vulnerabilities**. `yarn build` produces a 1.5 kB index + 1 MB JS bundle in ~1 s. All six main routes render with the shared header, Monthly plan mode of Token Economy still lists all 33 live models, and Vale lint stays clean across 34 source files.
 
+
+## 2026-10 - "Risk & Reward" page
+
+New page at `/risk-reward`, linked from the sidebar as **Risk & Reward**. Three sections:
+
+1. **Four concern cards**: Cost Management, Codebase Visibility, Rigorous Validation Overhead, Critical Thinking Retention. Each has an icon tile, one-line hook, two-sentence body, and three concrete "watch for" signals.
+2. **Diminishing Returns chart**: hand-rolled inline SVG, dual-axis. Time Saved (blue, left axis in hours) overlaid with Risk Index (red, right axis 0-100) across 20-120 mph. Visitors drag a slider to anchor a vertical marker; three readouts update live (time saved, risk, verdict). A "Sweet spot" annotation sits at 70 mph, a soft red wash marks the 85-120 mph cliff zone.
+3. **Task Delegation Matrix**: 2x2 grid of Manual vs AI against Low vs High complexity. The inverse of the usual advice is encoded in colour: green "Keep sharp" (manual, low) and green "Optimal AI use" (AI, high), with amber on the other diagonal. Each quadrant lists 3 concrete coding examples.
+
+Files added:
+- `src/pages/RiskReward.jsx` (page composition + three section components)
+- `src/components/BrandIcons.jsx` was already in place from the lucide v1 migration
+
+Routing + nav:
+- `src/App.jsx` registers `/risk-reward`.
+- `src/Sidebar.jsx` adds a `Gauge`-icon NavLink in red (`#FF453A`) that fits the "safety" palette of the page.
+
+Zero new dependencies. All content lint-clean through Vale.
+

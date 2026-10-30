@@ -2,7 +2,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useTools, useMeta } from "@/hooks/useData";
 import { stageIcon } from "@/lib/icons";
-import { Boxes, Compass, Network, ChevronRight, Wand2, Sparkles, Coins } from "lucide-react";
+import { Boxes, Compass, Network, ChevronRight, Wand2, Sparkles, Coins, Gauge } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
 
@@ -69,6 +69,11 @@ export const Sidebar = ({ onClose }) => {
             className={({ isActive }) => cn(linkBase, isActive ? linkActive : linkIdle)}>
             <Coins className="w-[18px] h-[18px]" style={{ color: "#30D158" }} aria-hidden="true" />
             <span>Token Economy</span>
+          </NavLink>
+          <NavLink to="/risk-reward" onClick={onClose} data-testid="nav-link-risk-reward"
+            className={({ isActive }) => cn(linkBase, isActive ? linkActive : linkIdle)}>
+            <Gauge className="w-[18px] h-[18px]" style={{ color: "#FF453A" }} aria-hidden="true" />
+            <span>Risk & Reward</span>
           </NavLink>
         </div>
 
