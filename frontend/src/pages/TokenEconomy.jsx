@@ -758,35 +758,20 @@ const MiniStat = ({ label, value, color, testId }) => (
   </div>
 );
 
-/* -------- Admin pricing refresh ------
- * Small footer link that busts the backend's 24h LiteLLM cache. Admin token
- * is prompted on first use and kept in sessionStorage. */
+/* -------- Pricing refresh ------
+ * Small footer link that busts the backend's 24h LiteLLM cache. Public
+ * endpoint because it only pulls a public GitHub JSON. */
 
 const AdminPricingRefresh = ({ livePricing, onRefreshed }) => {
   const [status, setStatus] = useState(null); // "ok" | "fail" | "running"
   const [message, setMessage] = useState("");
 
   const run = async () => {
-    let token = sessionStorage.getItem("surgicalai.adminToken") || "";
-    if (!token) {
-      token = window.prompt("Admin token (asked once per browser session, kept in sessionStorage):") || "";
-      if (!token) return;
-      sessionStorage.setItem("surgicalai.adminToken", token);
-    }
     setStatus("running");
     setMessage("Pulling LiteLLM...");
     try {
       const base = process.env.REACT_APP_BACKEND_URL || "";
-      const r = await fetch(`${base}/api/admin/pricing/refresh`, {
-        method: "POST",
-        headers: { "X-Admin-Token": token },
-      });
-      if (r.status === 401) {
-        sessionStorage.removeItem("surgicalai.adminToken");
-        setStatus("fail");
-        setMessage("Rejected. Token cleared, click again to re-enter.");
-        return;
-      }
+      const r = await fetch(`${base}/api/pricing/refresh`, { method: "POST" });
       if (!r.ok) {
         setStatus("fail");
         setMessage(`Failed with HTTP ${r.status}`);

@@ -337,9 +337,14 @@ async def get_pricing():
     return result
 
 
-@api_router.post("/admin/pricing/refresh")
-async def refresh_pricing(_: bool = Depends(require_admin)):
-    """Bust the 24h pricing cache and pull LiteLLM again right now."""
+@api_router.post("/pricing/refresh")
+async def refresh_pricing():
+    """Bust the 24h pricing cache and pull LiteLLM again right now.
+
+    This endpoint is public because it only pulls a public JSON from LiteLLM's
+    GitHub, there is nothing sensitive to protect and the fetch is bounded by
+    the 24h cache plus the single outbound call per invocation.
+    """
     _PRICING_CACHE["data"] = None
     _PRICING_CACHE["fetched_at"] = None
     return await get_pricing()
