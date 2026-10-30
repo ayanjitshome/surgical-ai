@@ -1,7 +1,9 @@
 /* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useTheme } from "@/context/ThemeContext";
-import { Moon, Sun, Search, Menu, PlaneTakeoff, ChevronRight, Github } from "lucide-react";
+import { Moon, Sun, Search, Menu, PlaneTakeoff, ChevronRight } from "lucide-react";
+import { GithubMark } from "@/components/BrandIcons";
+
 
 const GITHUB_REPO_URL = "https://github.com/ayanjitshome/surgical-ai";
 
@@ -58,7 +60,7 @@ export const Header = ({ onOpenSearch, onOpenSidebar }) => {
           title="View source on GitHub"
           className="h-9 w-9 flex items-center justify-center rounded-[10px] border border-c bg-[var(--bg-card)] text-secondary-c hover:text-primary-c hover:bg-[var(--bg-card-hover)] transition-colors"
         >
-          <Github className="w-4 h-4" aria-hidden="true" />
+          <GithubMark className="w-4 h-4" />
         </a>
 
         <button

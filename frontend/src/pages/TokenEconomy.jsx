@@ -195,7 +195,7 @@ const Calculator = () => {
   const [livePricing, setLivePricing] = useState({ models: FALLBACK_MODELS, fetched_at: null, source: "fallback", stale: false });
   const [pricingError, setPricingError] = useState(null);
   useEffect(() => {
-    const base = process.env.REACT_APP_BACKEND_URL || "";
+    const base = import.meta.env.REACT_APP_BACKEND_URL || "";
     let cancelled = false;
     fetch(`${base}/api/pricing`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
@@ -922,7 +922,7 @@ const AdminPricingRefresh = ({ livePricing, onRefreshed }) => {
     setStatus("running");
     setMessage("Pulling LiteLLM...");
     try {
-      const base = process.env.REACT_APP_BACKEND_URL || "";
+      const base = import.meta.env.REACT_APP_BACKEND_URL || "";
       const r = await fetch(`${base}/api/pricing/refresh`, { method: "POST" });
       if (!r.ok) {
         setStatus("fail");

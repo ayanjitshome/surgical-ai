@@ -7,7 +7,8 @@ import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import { getTool, refreshTool } from "@/lib/api";
 import { platformIcon } from "@/lib/icons";
-import { Settings2, Github, RefreshCw, TrendingDown, Zap, Clock, ArrowLeft, Layers, BookText } from "lucide-react";
+import { Settings2, RefreshCw, TrendingDown, Zap, Clock, ArrowLeft, Layers, BookText } from "lucide-react";
+import { GithubMark } from "@/components/BrandIcons";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +17,7 @@ const TABS = [
   { id: "mechanics", label: "Token Mechanics", icon: TrendingDown },
   { id: "adoption", label: "Adoption Order", icon: Layers },
   { id: "platform", label: "Platform Notes", icon: Settings2 },
-  { id: "readme", label: "GitHub README", icon: Github },
+  { id: "readme", label: "GitHub README", icon: GithubMark },
 ];
 
 export default function ToolDetail() {
@@ -80,7 +81,7 @@ export default function ToolDetail() {
               <Settings2 className="w-4 h-4" /> Set Up
             </button>
             <a href={tool.github_repo} target="_blank" rel="noreferrer" data-testid="tool-github-link" className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-md border border-bright-c text-sm text-primary-c hover:surface-card">
-              <Github className="w-4 h-4" /> Repo
+              <GithubMark className="w-4 h-4" /> Repo
             </a>
           </div>
         </div>
@@ -174,7 +175,7 @@ export default function ToolDetail() {
               <div className="md-content surface-card border border-c rounded-lg p-5"><ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSanitize]}>{tool.github_cache}</ReactMarkdown></div>
             ) : (
               <div className="surface-card border border-dashed border-bright-c rounded-lg p-8 text-center">
-                <Github className="w-8 h-8 mx-auto text-muted-c mb-3" />
+                <GithubMark className="w-8 h-8 mx-auto text-muted-c mb-3" />
                 <p className="text-secondary-c">No cached README yet. Pull the latest from <a href={tool.github_repo} target="_blank" rel="noreferrer" style={{ color: tool.color }}>{tool.github_repo.replace("https://github.com/", "")}</a>.</p>
                 <button onClick={() => refresh.mutate()} disabled={refresh.isPending} data-testid="refresh-github-empty-button" className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-md font-semibold text-black" style={{ background: tool.color }}>
                   <RefreshCw className={cn("w-4 h-4", refresh.isPending && "animate-spin")} /> Fetch now
