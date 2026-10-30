@@ -1,21 +1,52 @@
 /* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
+import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTools, useMeta } from "@/hooks/useData";
 import { stageIcon } from "@/lib/icons";
-import { Boxes, Compass, Network, ChevronRight, Wand2, Sparkles, Coins, Gauge } from "lucide-react";
+import { Boxes, Compass, Network, ChevronRight, Wand2, Sparkles, Coins, Gauge, ChevronDown, Wrench, Workflow } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
-
-const SectionLabel = ({ children }) => (
-  <div className="px-3 pt-6 pb-2 text-[11px] uppercase tracking-[0.08em] font-semibold text-muted-c">
-    {children}
-  </div>
-);
 
 const linkBase =
   "flex items-center gap-3 px-3 py-2 rounded-[10px] text-[0.9375rem] transition-all duration-150";
 const linkIdle = "text-secondary-c hover:text-primary-c hover:bg-[var(--bg-card-hover)]";
 const linkActive = "text-primary-c bg-[var(--bg-card)] shadow-[var(--shadow-elev-1)]";
+
+/* -------- Collapsible section ------
+ * Click-to-expand with a mutually exclusive parent: at most one group is open
+ * at a time so the sidebar height stays tight and scrolling stays minimal. */
+const AccordionSection = ({ id, label, Icon, color, open, onToggle, children }) => {
+  const panelId = `sidebar-section-${id}`;
+  return (
+    <div className="pt-4" data-testid={`sidebar-section-${id}`}>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-controls={panelId}
+        data-testid={`sidebar-toggle-${id}`}
+        className={cn(
+          "w-full flex items-center justify-between gap-2 px-3 py-2 rounded-[10px] text-[11px] uppercase tracking-[0.08em] font-semibold transition-colors",
+          open ? "text-primary-c bg-[var(--bg-card-hover)]" : "text-muted-c hover:text-primary-c hover:bg-[var(--bg-card-hover)]"
+        )}
+      >
+        <span className="flex items-center gap-2">
+          <Icon className="w-3.5 h-3.5" style={{ color }} aria-hidden="true" />
+          {label}
+        </span>
+        <ChevronDown
+          className={cn("w-3.5 h-3.5 transition-transform", open ? "rotate-0" : "-rotate-90")}
+          aria-hidden="true"
+        />
+      </button>
+      {open && (
+        <div id={panelId} className="mt-1 space-y-1" role="region" aria-label={label}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const Sidebar = ({ onClose }) => {
   const { data: tools = [] } = useTools();
@@ -23,6 +54,16 @@ export const Sidebar = ({ onClose }) => {
   const location = useLocation();
 
   const stages = meta?.workflow_stages || [];
+
+  // One group open at a time. Null means both closed.
+  const [openGroup, setOpenGroup] = useState(null);
+  const toggle = (id) => setOpenGroup((prev) => (prev === id ? null : id));
+
+  // Auto-open the group the current route lives in so the active item is visible.
+  useEffect(() => {
+    if (location.pathname.startsWith("/tools/")) setOpenGroup("tools");
+    else if (location.pathname.startsWith("/stage/")) setOpenGroup("stages");
+  }, [location.pathname]);
 
   return (
     <nav
@@ -77,8 +118,14 @@ export const Sidebar = ({ onClose }) => {
           </NavLink>
         </div>
 
-        <SectionLabel>Tools</SectionLabel>
-        <div className="space-y-1">
+        <AccordionSection
+          id="tools"
+          label="Tools"
+          Icon={Wrench}
+          color="#0A84FF"
+          open={openGroup === "tools"}
+          onToggle={() => toggle("tools")}
+        >
           {tools.map((t) => {
             const active = location.pathname === `/tools/${t.id}` || location.pathname === `/tools/${t.id}/setup`;
             return (
@@ -92,10 +139,16 @@ export const Sidebar = ({ onClose }) => {
               </NavLink>
             );
           })}
-        </div>
+        </AccordionSection>
 
-        <SectionLabel>By Workflow Stage</SectionLabel>
-        <div className="space-y-1">
+        <AccordionSection
+          id="stages"
+          label="By Workflow Stage"
+          Icon={Workflow}
+          color="#BF5AF2"
+          open={openGroup === "stages"}
+          onToggle={() => toggle("stages")}
+        >
           {stages.map((s) => {
             const Icon = stageIcon(s.id);
             return (
@@ -106,7 +159,7 @@ export const Sidebar = ({ onClose }) => {
               </NavLink>
             );
           })}
-        </div>
+        </AccordionSection>
       </div>
     </nav>
   );
