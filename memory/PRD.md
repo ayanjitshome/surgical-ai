@@ -115,14 +115,13 @@ Caveat: deters casual removal; a determined dev editing source can still strip t
 
 ## 2026-10 - Expanded model coverage from LiteLLM registry
 
-Token Economy picker widened from 4 models to 11, all resolving live from `model_prices_and_context_window.json`:
+Token Economy picker widened from 4 models to the full set the user requested, all resolving live from `model_prices_and_context_window.json` (32 live / 0 fallback on the first refresh):
 
-- Anthropic: Claude Opus 5.5, Sonnet 5.5, Haiku 5.5, Fable 5.1
-- OpenAI: GPT-6 Sol, Luna, Astra, and GPT-5.6 Terra
-- Google: Gemini 3.1 Pro, 3.8 Flash, 4 Argon
+- Anthropic (13): Claude Opus 5.5, 5, 4.8, 4.7, 4.6, 4.5; Sonnet 5.5, 5, 4.6; Haiku 5.5, 4.5; Fable 5, Fable 5.1
+- OpenAI (13): GPT-5 Codex, 5.1 Codex, 5.2 Codex, 5.3 Codex; GPT-5, 5.1, 5.2, 5.5, 5.6 Terra; GPT-6 Sol, Luna, Astra, 6.1 Terra
+- Google (6): Gemini 3.1 Pro, 3 Flash, 3.5 Flash, 3.8 Flash, 4 Argon, 2.5 Pro
 
 Backend (`server.py`): `_MODEL_LOOKUPS` rewritten with candidate keys per model, fallback rates derived from the current LiteLLM entries.
-Shared math (`lib/scenario.js`): `FALLBACK_MODELS` + `DEFAULTS.modelId` updated to the new set, default is `claude-sonnet-5-5`.
-UI (`TokenEconomy.jsx`): new `ModelPicker` component - vendor filter chips (All / Anthropic / OpenAI / Google / You) above a searchable, `optgroup`-grouped dropdown so the picker scales as the list grows.
+Shared math (`lib/scenario.js`): `FALLBACK_MODELS` + `DEFAULTS.modelId` updated to match, default is `claude-sonnet-5-5`.
+UI (`TokenEconomy.jsx`): `ModelPicker` component - vendor filter chips (All / Anthropic / OpenAI / Google / You) above a searchable, `optgroup`-grouped dropdown.
 Pricing refresh endpoint is public (`POST /api/pricing/refresh`), the old `/api/admin/pricing/refresh` route was removed.
-Verified: `curl /api/pricing/refresh` returned 11/11 live, UI smoke test confirmed chip filter + search + dropdown all work.
