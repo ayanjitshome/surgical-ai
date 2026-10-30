@@ -194,3 +194,11 @@ Zero new dependencies. All content lint-clean through Vale.
 ## 2026-10 - Ecosystem map control glyphs visible in dark mode
 
 `index.css` extended so the three default React Flow control buttons (zoom in, zoom out, fit view) pick up the current theme's `--text-secondary` token on their nested `<path>` fills, matching the custom Fullscreen button. Hover lifts to `--text-primary`. CSS-only change, no React Flow or theme-context edits.
+
+
+## 2026-10 - Ecosystem map: Lucide controls, legend chip, fullscreen parity
+
+- All four React Flow control buttons (zoom in, zoom out, fit view, full screen) now render as Lucide icons (`ZoomIn`, `ZoomOut`, `Scan`, `Maximize2`/`Minimize2`) via `<ControlButton>` wrappers in `EcosystemMap.jsx`. `showZoom={false}` and `showFitView={false}` suppress the stock buttons; the custom wrappers call `rfRef.current.zoomIn/zoomOut/fitView` and `toggleFullscreen`.
+- Added a `<Panel position="bottom-left">` legend chip above the control bar. It lists one coloured dot and label per pipeline layer, sourced dynamically from the first node of each layer so colour and name stay in sync with seed data.
+- `index.css` now carries one vendor override: `.react-flow__controls-button svg { fill: none !important; max-width: 14px; max-height: 14px; }`. React Flow's own stylesheet forces `fill: currentColor` on nested SVGs, which painted the Lucide magnifier circles as solid dots in light mode; `fill: none !important` restores the Lucide default. The earlier path-level fill rule from the dark-mode fix is removed since all four buttons are now Lucide-based.
+- Fullscreen parity verified via scripted `requestFullscreen` on the wrapper div: all four buttons report `inFs: true`, `svgFill: none`, `svgStroke: rgb(71, 85, 105)` (slate secondary). CSS variables and the vendor override cascade into the browser top layer unchanged.

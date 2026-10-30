@@ -290,8 +290,14 @@ body {
 .react-flow__controls-button { background: var(--bg-card); border-bottom: 1px solid var(--line); }
 .react-flow__controls-button:hover { background: var(--bg-card-hover); }
 .react-flow__controls-button { color: var(--text-secondary); }
-.react-flow__controls-button svg,
-.react-flow__controls-button svg path { fill: var(--text-secondary); }
-.react-flow__controls-button:hover svg,
-.react-flow__controls-button:hover svg path { fill: var(--text-primary); }
+.react-flow__controls-button:hover { color: var(--text-primary); }
+/* Lucide icons draw with stroke="currentColor" and expect fill="none";
+   React Flow's own stylesheet (loaded after ours) forces
+   fill: currentColor on nested SVGs, which paints the magnifier circles
+   as solid dots. Vendor override to restore the Lucide default. */
+.react-flow__controls-button svg {
+  fill: none !important;
+  max-width: 14px;
+  max-height: 14px;
+}
 .react-flow__attribution { display: none; }
