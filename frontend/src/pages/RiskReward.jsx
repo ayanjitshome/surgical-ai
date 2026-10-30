@@ -189,8 +189,10 @@ const DiminishingReturnsChart = () => {
       aria-label="Diminishing returns chart"
     >
       <header className="mb-4">
-        <h2 className="hig-title-2 text-primary-c">Diminishing Returns</h2>
-        <p className="hig-footnote text-secondary-c mt-1 max-w-prose">
+        <h2 className="text-2xl font-bold text-primary-c flex items-center gap-2 mb-2">
+          <Gauge className="w-6 h-6" style={{ color: "#FF9F0A" }} /> Diminishing Returns
+        </h2>
+        <p className="text-secondary-c max-w-prose leading-relaxed">
           A 100-mile trip. The faster you go, the less extra time you save, and the risk of an accident curves up sharply after 70 mph. The same shape appears when you push an AI assistant from "autocomplete" to "autonomous agent".
         </p>
       </header>
@@ -523,8 +525,10 @@ const TaskMatrix = () => (
     aria-label="Task delegation matrix"
   >
     <header className="mb-5">
-      <h2 className="hig-title-2 text-primary-c">Task Delegation Matrix</h2>
-      <p className="hig-footnote text-secondary-c mt-1 max-w-prose">
+      <h2 className="text-2xl font-bold text-primary-c flex items-center gap-2 mb-2">
+        <Brain className="w-6 h-6" style={{ color: "#BF5AF2" }} /> Task Delegation Matrix
+      </h2>
+      <p className="text-secondary-c max-w-prose leading-relaxed">
         The usual advice flipped on its head: use the assistant where it earns the most leverage, and write the small stuff yourself to keep the craft sharp.
       </p>
     </header>
@@ -552,21 +556,30 @@ const TaskMatrix = () => (
 
 /* -------- Page composition ------ */
 
+const ACCENT = "#FF453A";
+
 export default function RiskReward() {
   return (
-    <div className="max-w-[1200px] mx-auto px-4 lg:px-8 py-10 space-y-10" data-testid="risk-reward-page">
-      <header className="space-y-2">
-        <div className="flex items-center gap-2 text-muted-c hig-footnote">
-          <Gauge className="w-4 h-4" aria-hidden="true" />
-          <span>Strategic AI Usage</span>
+    <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 space-y-14 fade-up" data-testid="risk-reward-page">
+      <section>
+        <div
+          className="text-xs uppercase tracking-[0.25em] font-semibold mb-3 flex items-center gap-2"
+          style={{ color: ACCENT }}
+        >
+          <Gauge className="w-4 h-4" aria-hidden="true" /> {"// strategic ai usage"}
         </div>
-        <h1 className="hig-large-title text-primary-c">Risk vs. Reward</h1>
-        <p className="hig-body text-secondary-c max-w-prose">
+        <h1 className="text-3xl sm:text-4xl font-bold text-primary-c max-w-3xl">
+          Risk <span style={{ color: ACCENT }}>vs. Reward</span>
+        </h1>
+        <p className="text-secondary-c mt-3 max-w-2xl leading-relaxed">
           A field guide for developers and tech leads choosing where AI pays off and where it quietly costs you. Three views: the core concerns, the shape of the trade-off, and a matrix for the next pull request.
         </p>
-      </header>
+      </section>
 
-      <section data-testid="concern-cards" aria-label="Core concerns">
+      <section data-testid="concern-cards">
+        <h2 className="text-2xl font-bold text-primary-c flex items-center gap-2 mb-5">
+          <ShieldCheck className="w-6 h-6" style={{ color: "#30D158" }} /> Core concerns
+        </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {CONCERN_CARDS.map((c) => (
             <ConcernCard key={c.id} card={c} />
