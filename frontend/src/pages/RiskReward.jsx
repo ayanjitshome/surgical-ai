@@ -111,7 +111,7 @@ const ConcernCard = ({ card }) => {
  * marker; the two overlaid curves (time saved vs. accident risk) reveal the
  * sweet spot and the cliff. */
 
-const BASELINE_MPH = 40;
+const BASELINE_MPH = 30;
 const TRIP_MILES = 100;
 
 // Risk curve: ~flat up to 60, then quadratic blow-up. Scaled to 0..100.
