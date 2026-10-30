@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Coins, Zap, TrendingDown, AlertTriangle, CheckCircle2, XCircle,
   Database, MessageSquare, Terminal, Flame, Lock, Infinity as InfinityIcon,
-  Save, RotateCcw, Table2, Calendar, DollarSign, RefreshCw,
+  Save, RotateCcw, Table2, Calendar, DollarSign, RefreshCw, Star,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -420,46 +420,17 @@ const Calculator = () => {
               onChange={setBudgetUsd}
               testId="calc-budget"
             />
-            {/* Model dropdown replaces the raw $/1M rate slider */}
-            <div>
-              <div className="flex items-baseline justify-between mb-2">
-                <label htmlFor="calc-model" className="hig-headline text-primary-c">Model</label>
-                <span className="text-[13px] font-mono text-primary-c" data-testid="calc-model-rate">
-                  ${effectiveInputRate.toFixed(2)} / ${effectiveOutputRate.toFixed(2)}
-                </span>
-              </div>
-              <select
-                id="calc-model"
-                data-testid="calc-model-select"
-                value={modelId}
-                onChange={(e) => setModelId(e.target.value)}
-                className="w-full h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors"
-                aria-describedby="calc-model-hint"
-              >
-                {MODELS.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.label}{m.id === "custom" ? "" : ` ($${m.input}/${m.output} per 1M)`}
-                  </option>
-                ))}
-              </select>
-              <div id="calc-model-hint" className="hig-footnote mt-1 flex items-center gap-1.5 flex-wrap" data-testid="pricing-freshness">
-                <span>Input / output rate per 1M tokens</span>
-                {selectedModel.vendor !== "You" && <span>· {selectedModel.vendor}</span>}
-                {modelId !== "custom" && (
-                  livePricing.source === "live" || livePricing.source === "mixed" ? (
-                    <span className="hig-chip" style={{ background: "rgba(48,209,88,0.14)", borderColor: "transparent", color: "var(--success)" }} title={livePricing.source_url || "LiteLLM community pricing"}>
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--success)" }} />
-                      Live prices{livePricing.fetched_at ? ` · refreshed ${new Date(livePricing.fetched_at).toLocaleDateString()}` : ""}
-                    </span>
-                  ) : (
-                    <span className="hig-chip" title={pricingError || "Using built-in rates"}>
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--text-muted)" }} />
-                      Built-in rates
-                    </span>
-                  )
-                )}
-              </div>
-            </div>
+            {/* Model picker: vendor chips + search above a grouped dropdown */}
+            <ModelPicker
+              models={MODELS}
+              modelId={modelId}
+              setModelId={setModelId}
+              selectedModel={selectedModel}
+              effectiveInputRate={effectiveInputRate}
+              effectiveOutputRate={effectiveOutputRate}
+              livePricing={livePricing}
+              pricingError={pricingError}
+            />
             <Field
               label="Hours active / day"
               hint="How long the agent is really working"
@@ -757,6 +728,187 @@ const MiniStat = ({ label, value, color, testId }) => (
     <div className="text-[15px] font-semibold tracking-[-0.01em]" style={{ color }}>{value}</div>
   </div>
 );
+
+/* -------- Model picker ------
+ * Vendor filter chips above a searchable, grouped dropdown. Pinned models
+ * are stored in localStorage and surfaced in a "Pinned" group at the top
+ * so a user's regulars are always one click away. */
+
+const VENDOR_ORDER = ["Anthropic", "OpenAI", "Google", "You"];
+const PINNED_STORAGE_KEY = "surgicalai.tokenEconomy.pinnedModels";
+
+const loadPinned = () => {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(PINNED_STORAGE_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
+  } catch { return []; }
+};
+
+const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInputRate, effectiveOutputRate, livePricing, pricingError }) => {
+  const [vendorFilter, setVendorFilter] = useState("All");
+  const [query, setQuery] = useState("");
+  const [pinnedIds, setPinnedIds] = useState(() => loadPinned());
+
+  useEffect(() => {
+    try { localStorage.setItem(PINNED_STORAGE_KEY, JSON.stringify(pinnedIds)); } catch {}
+  }, [pinnedIds]);
+
+  const togglePin = (id) => {
+    if (!id || id === "custom") return;
+    setPinnedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  };
+  const isPinned = (id) => pinnedIds.includes(id);
+  const currentPinned = isPinned(modelId);
+
+  const availableVendors = useMemo(() => {
+    const seen = new Set();
+    models.forEach((m) => seen.add(m.vendor));
+    return VENDOR_ORDER.filter((v) => seen.has(v));
+  }, [models]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return models.filter((m) => {
+      if (vendorFilter !== "All" && m.vendor !== vendorFilter) return false;
+      if (!q) return true;
+      return m.label.toLowerCase().includes(q) || m.vendor.toLowerCase().includes(q);
+    });
+  }, [models, vendorFilter, query]);
+
+  // Pinned appear once in a Pinned group (in the user's pin order) and are
+  // removed from their vendor group below to avoid duplication in the list.
+  const grouped = useMemo(() => {
+    const pinnedList = pinnedIds
+      .map((id) => filtered.find((m) => m.id === id))
+      .filter(Boolean);
+    const pinnedSet = new Set(pinnedList.map((m) => m.id));
+
+    const map = new Map();
+    filtered.forEach((m) => {
+      if (pinnedSet.has(m.id)) return;
+      if (!map.has(m.vendor)) map.set(m.vendor, []);
+      map.get(m.vendor).push(m);
+    });
+    const vendorGroups = [...map.entries()].sort(
+      (a, b) => VENDOR_ORDER.indexOf(a[0]) - VENDOR_ORDER.indexOf(b[0])
+    );
+
+    return pinnedList.length
+      ? [["★ Pinned", pinnedList], ...vendorGroups]
+      : vendorGroups;
+  }, [filtered, pinnedIds]);
+
+  return (
+    <div data-testid="calc-model-picker">
+      <div className="flex items-baseline justify-between mb-2">
+        <label htmlFor="calc-model" className="hig-headline text-primary-c">Model</label>
+        <span className="text-[13px] font-mono text-primary-c" data-testid="calc-model-rate">
+          ${effectiveInputRate.toFixed(2)} / ${effectiveOutputRate.toFixed(2)}
+        </span>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5 mb-2" role="tablist" aria-label="Filter by vendor" data-testid="calc-model-vendor-chips">
+        {["All", ...availableVendors].map((v) => {
+          const active = vendorFilter === v;
+          return (
+            <button
+              key={v}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => setVendorFilter(v)}
+              data-testid={`calc-model-vendor-${v.toLowerCase()}`}
+              className={cn(
+                "hig-chip transition-colors",
+                active
+                  ? "text-white border-transparent"
+                  : "text-secondary-c hover:text-primary-c"
+              )}
+              style={active ? { background: "var(--brand)" } : undefined}
+            >
+              {v}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search models..."
+          aria-label="Search models"
+          data-testid="calc-model-search"
+          className="w-full h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors"
+        />
+        <div className="flex items-stretch gap-2">
+          <select
+            id="calc-model"
+            data-testid="calc-model-select"
+            value={modelId}
+            onChange={(e) => setModelId(e.target.value)}
+            className="flex-1 min-w-0 h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors cursor-pointer"
+            aria-describedby="calc-model-hint"
+          >
+            {grouped.length === 0 && (
+              <option value={modelId} disabled>No models match the filter</option>
+            )}
+            {grouped.map(([vendor, list]) => (
+              <optgroup key={vendor} label={vendor}>
+                {list.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {isPinned(m.id) ? "★ " : ""}{m.label}{m.id === "custom" ? "" : ` ($${m.input}/${m.output} per 1M)`}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => togglePin(modelId)}
+            disabled={modelId === "custom"}
+            aria-pressed={currentPinned}
+            aria-label={currentPinned ? `Unpin ${selectedModel.label}` : `Pin ${selectedModel.label} to top`}
+            title={modelId === "custom" ? "Custom rate cannot be pinned" : (currentPinned ? "Unpin from top" : "Pin to top")}
+            data-testid="calc-model-pin"
+            className={cn(
+              "h-10 w-10 flex items-center justify-center rounded-[10px] border border-c surface-card transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+              currentPinned ? "text-[color:var(--brand)] hover:text-primary-c" : "text-secondary-c hover:text-primary-c"
+            )}
+          >
+            <Star
+              className="w-4 h-4"
+              fill={currentPinned ? "currentColor" : "none"}
+              aria-hidden="true"
+            />
+          </button>
+        </div>
+      </div>
+
+      <div id="calc-model-hint" className="hig-footnote mt-1 flex items-center gap-1.5 flex-wrap" data-testid="pricing-freshness">
+        <span>Input / output rate per 1M tokens</span>
+        {selectedModel.vendor !== "You" && <span>· {selectedModel.vendor}</span>}
+        {modelId !== "custom" && (
+          livePricing.source === "live" || livePricing.source === "mixed" ? (
+            <span className="hig-chip" style={{ background: "rgba(48,209,88,0.14)", borderColor: "transparent", color: "var(--success)" }} title={livePricing.source_url || "LiteLLM community pricing"}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--success)" }} />
+              Live prices{livePricing.fetched_at ? ` · refreshed ${new Date(livePricing.fetched_at).toLocaleDateString()}` : ""}
+            </span>
+          ) : (
+            <span className="hig-chip" title={pricingError || "Using built-in rates"}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--text-muted)" }} />
+              Built-in rates
+            </span>
+          )
+        )}
+      </div>
+    </div>
+  );
+};
+
 
 /* -------- Pricing refresh ------
  * Small footer link that busts the backend's 24h LiteLLM cache. Public
