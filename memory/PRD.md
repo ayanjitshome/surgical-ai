@@ -125,3 +125,22 @@ Backend (`server.py`): `_MODEL_LOOKUPS` rewritten with candidate keys per model,
 Shared math (`lib/scenario.js`): `FALLBACK_MODELS` + `DEFAULTS.modelId` updated to match, default is `claude-sonnet-5-5`.
 UI (`TokenEconomy.jsx`): `ModelPicker` component - vendor filter chips (All / Anthropic / OpenAI / Google / You) above a searchable, `optgroup`-grouped dropdown.
 Pricing refresh endpoint is public (`POST /api/pricing/refresh`), the old `/api/admin/pricing/refresh` route was removed.
+
+
+## 2026-10 - Security sweep and dead-code cleanup
+
+Full audit + prune pass. Everything stays within existing majors, no breaking changes.
+
+**Security:** reduced `yarn audit` findings from 50 (2 Critical / 16 High / 21 Moderate / 11 Low) to **5 Low**.
+- Bumped direct: `axios` to the latest 1.x.
+- Added `resolutions` for react-scripts transitives: `body-parser`, `fast-uri`, `follow-redirects`, `launch-editor`, `postcss-selector-parser`, `qs`, `shell-quote`, `svgo`.
+- Backend `pip-audit`: no known vulnerabilities.
+
+**Dead code removed:**
+- Unused app libraries: `@hookform/resolvers`, `cra-template`, `dayjs`, `framer-motion`, `lodash`, `recharts`, `swr`, `zod`, `@types/lodash`.
+- Unused dev tooling (no lint config exists): `eslint`, `@eslint/js`, `eslint-plugin-import`, `eslint-plugin-jsx-a11y`, `eslint-plugin-react`, `eslint-plugin-react-hooks`, `globals`, `@babel/plugin-proposal-private-property-in-object`.
+- Shadcn UI kit pruned to only the components actually used in src (`sonner.jsx`); 45 unused primitives removed.
+- `src/hooks/use-toast.js` removed (orphan).
+- `craco.config.js`: deleted the `@emergentbase/overlay` and `@emergentbase/visual-edits` require-and-wrap branches (packages were already uninstalled; the `require()` calls were silently failing). `isDevServer` constant dropped too.
+
+**Verified:** `/`, `/decide`, `/guidance`, `/prompt`, `/prompt/builder`, `/tokeneconomy` all render with the shared header, zero page errors. Backend `/api/tools` and `/api/pricing/refresh` return healthy payloads. Vale lint still passes across all 33 source files.
