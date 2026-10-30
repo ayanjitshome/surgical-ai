@@ -1,13 +1,13 @@
 /* © 2026 Ayanjit Shome. All rights reserved. Concept by Ayanjit Shome. */
 import { useMemo, useCallback, useRef, useState, useEffect } from "react";
 import {
-  ReactFlow, Background, Controls, ControlButton,
+  ReactFlow, Background, Controls, ControlButton, Panel,
   useNodesState, useEdgesState, MarkerType,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { ToolNode } from "@/components/ecosystem/ToolNode";
 import { useTheme } from "@/context/ThemeContext";
-import { Maximize2, Minimize2 } from "lucide-react";
+import { ZoomIn, ZoomOut, Scan, Maximize2, Minimize2 } from "lucide-react";
 
 const nodeTypes = { tool: ToolNode };
 
@@ -132,7 +132,56 @@ export const EcosystemMap = ({ data, onSelect, selectedId }) => {
         style={{ background: palette.primary }}
       >
         <Background color={palette.border} gap={28} size={1.5} />
-        <Controls showInteractive={false} showFitView={false}>
+        <Panel position="bottom-left" style={{ marginBottom: 148, marginLeft: 10 }}>
+          <div
+            data-testid="ecosystem-layer-legend"
+            className="flex flex-wrap items-center gap-2 text-[10px] font-mono px-2.5 py-1.5 rounded-md"
+            style={{
+              background: palette.card,
+              border: `1px solid ${palette.border}`,
+              boxShadow: theme === "dark" ? "0 2px 10px rgba(0,0,0,0.35)" : "0 1px 4px rgba(15,23,42,0.08)",
+            }}
+          >
+            {LAYERS.map((layer) => {
+              const node = data.nodes.find((n) => n.layer === layer);
+              if (!node) return null;
+              return (
+                <span key={layer} className="flex items-center gap-1.5" title={node.layer_name}>
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={{ background: node.color, boxShadow: `0 0 6px ${node.color}99` }}
+                  />
+                  <span style={{ color: palette.textSecondary }}>{node.layer_name}</span>
+                </span>
+              );
+            })}
+          </div>
+        </Panel>
+        <Controls showZoom={false} showFitView={false} showInteractive={false}>
+          <ControlButton
+            onClick={() => rfRef.current?.zoomIn()}
+            aria-label="Zoom in"
+            title="Zoom in"
+            data-testid="ecosystem-zoom-in-button"
+          >
+            <ZoomIn size={14} color={palette.textSecondary} />
+          </ControlButton>
+          <ControlButton
+            onClick={() => rfRef.current?.zoomOut()}
+            aria-label="Zoom out"
+            title="Zoom out"
+            data-testid="ecosystem-zoom-out-button"
+          >
+            <ZoomOut size={14} color={palette.textSecondary} />
+          </ControlButton>
+          <ControlButton
+            onClick={() => rfRef.current?.fitView({ padding: 0.15 })}
+            aria-label="Fit view"
+            title="Fit view"
+            data-testid="ecosystem-fit-view-button"
+          >
+            <Scan size={14} color={palette.textSecondary} />
+          </ControlButton>
           <ControlButton onClick={toggleFullscreen} aria-label={isFullscreen ? "Exit full screen" : "Full screen"} title={isFullscreen ? "Exit full screen" : "Full screen"} data-testid="ecosystem-fullscreen-button">
             {isFullscreen
               ? <Minimize2 size={14} color={palette.textSecondary} />
