@@ -569,7 +569,7 @@ export default function RiskReward() {
           <Gauge className="w-4 h-4" aria-hidden="true" /> {"// strategic ai usage"}
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold text-primary-c max-w-3xl">
-          Risk <span style={{ color: ACCENT }}>vs. Reward</span>
+          <span style={{ color: "#FF453A" }}>Risk</span> vs. <span style={{ color: "#30D158" }}>Reward</span>
         </h1>
         <p className="text-secondary-c mt-3 max-w-2xl leading-relaxed">
           A field guide for developers and tech leads choosing where AI pays off and where it quietly costs you. Three views: the core concerns, the shape of the trade-off, and a matrix for the next pull request.
