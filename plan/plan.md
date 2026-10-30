@@ -1,87 +1,72 @@
-# Surgical AI Hub — YouTube Walkthrough Video Plan
+# Fix: Ecosystem map control bar icons invisible in dark mode
 
-A 6-to-8 minute screen-capture walkthrough of the Surgical AI Hub web app, narrated as a two-presenter dialogue, aimed at a broad YouTube audience that is curious about AI coding tools but not necessarily building with them yet.
+The ecosystem dependency map's floating control bar shows a visible button strip in dark mode but the glyphs inside (zoom in, zoom out, fit view) disappear. The custom Full-screen button next to them stays visible because it is a Lucide React icon rendered with an explicit colour prop. The three default React Flow buttons are not.
 
 ## Who it's for
 
-Developers, hobbyists, students, and tech-curious viewers on YouTube who have heard of AI coding assistants, feel the pain of rising token bills or tool overload, and want a clear mental map before they commit. Not aimed at ML specialists.
+Anyone viewing the ecosystem map in dark mode. Keyboard users relying on the button labels are already fine via `aria-label`; this fixes the visual regression only.
 
 ## Core features and experience
 
-The video is the content product. The deliverables are:
+- The three default control buttons (zoom in, zoom out, fit view) match the custom Full-screen button in both themes: the glyph picks up the current theme's secondary text colour, and hover state matches the rest of the map's hover language.
+- Light mode is unchanged visually; the same variable resolves to the darker secondary tone there, so a single rule covers both themes.
+- Fullscreen (where the map wrapper enters the browser's top layer) keeps the same contrast; CSS variables inherit into that stacking context, so the fix carries over.
 
-1. A finished script (two-presenter dialogue, cold open, scene-by-scene narration, on-screen callout cues, b-roll notes, and a closing CTA block) that a creator can hand to voice talent and an editor.
-2. A storyboard document that pairs each scripted line with the exact on-screen action: which page to open, where to point, which element to magnify, what to type into any form, what hover state to show.
-3. A shot list the recorder can tick off while capturing: resolution, viewport dimensions, dark/light mode, cursor presence, and the sample inputs to use so a second take matches the first.
-4. A short self-host instructions block for the video description, so viewers who want to try it have a one-paragraph starting point.
+## User flow
 
-Scope stops at the printed/markdown artefacts above. The agent does **not** record screen capture, run editing software, generate voice audio, or publish anything on YouTube.
-
-## User flow (the viewer's journey through the video)
-
-The target structure for the 6-to-8 minute cut:
-
-- **0:00 – 0:15 Cold open.** A developer scene: three browser tabs, a growing OpenAI bill, a half-written prompt, and the question "did that assistant just rewrite half my codebase?" End with a hard cut to the hub's home page.
-- **0:15 – 0:40 Reveal and premise.** Both presenters introduce the hub and the single promise it makes: a map for choosing where AI pays off and where it quietly costs you.
-- **0:40 – 1:40 Ecosystem Hub home.** Tour the layout, the budget verdict strip, and the tool cards. One magnified hover showing the colour language the app uses (green for safe, red for risk).
-- **1:40 – 2:40 Decision Guide.** Click through the guided questions, land on a recommendation, show the "why" panel underneath.
-- **2:40 – 3:40 Token Economy calculator.** This is the signature demo. Switch to Monthly plan mode, drag the sliders, toggle vendor chips, pin a favourite model, click Refresh now, and finish on the live "33 of 33 live" chip.
-- **3:40 – 4:50 Risk and Reward page.** The emotional centre. Walk the four Concern cards briefly, then drag the Diminishing Returns slider from 40 to 120 mph with voiceover tying it back to AI use. End on the Task Delegation Matrix with the inverse-advice reveal.
-- **4:50 – 5:30 Prompt Playbook and Builder.** Fast cut: open the playbook, highlight the anatomy, jump to the builder and generate one prompt with real BPE token count.
-- **5:30 – 6:30 Adoption and Tradeoffs plus Tools catalogue.** Shorter, used as "there's more under the hood" rather than deep dives.
-- **6:30 – 7:30 Closing.** Both presenters off-screen, final frame on the hub, three CTAs appear as pinned on-screen cards:
-  - Share your biggest AI-tooling pain point in the comments.
-  - Try it live on your own machine (link in description).
-  - Star the repo and follow for updates.
-
-Timings are indicative; the cut-down to 6 minutes drops the Adoption/Tools segment first, the stretch to 8 minutes slows the Risk and Reward walk-through.
+1. Open the Ecosystem Hub.
+2. The dependency map renders with a floating control bar in the bottom-left corner.
+3. Toggle the theme between light and dark using the header toggle.
+4. In both themes, the three default glyphs read clearly against the button background; the hover tint matches the rest of the map.
 
 ## UI/UX feel
 
-The video itself:
+- Glyph colour: the same `--text-secondary` already used by the custom Full-screen button, so the four buttons feel like one set.
+- Hover tone: lifts to `--text-primary`, same gesture the rest of the app uses on interactive glyphs.
+- No shape, spacing, or button-background change. Only the icon fill is corrected.
 
-- **Voiceover.** Two presenters, named "Host" and "Dev" in the script. Host sets up each page in plain language; Dev adds the technical reaction. Casual but respectful of the audience, no jargon that is not immediately explained, no AI-slop vocabulary ("delve", "seamless", "unlock", "elevate" are all out, matching the project's Vale lint rules). No em-dashes in the script because the script must pass the same Vale lint if auto-captioned from it.
-- **Pacing.** Average scene length 20-30 seconds. One soft cut per scene, max two magnifications per minute, one data-driven moment per minute.
-- **Magnifications.** Rectangular zoom-and-highlight (not circular lens) with a 1.4x scale and a 300 ms ease. Used only when a specific chip, number, or chart point is being referenced. Over-magnifying is the single most common mistake in product tours; the script caps it.
-- **Colour and overlay.** Keep the hub's own colour language intact; overlay titles are white on a 60% black bar, same font as the app (Inter) for continuity.
-- **Captions.** Open captions baked into the video with the hub's accent colours for emphasis (red for risk-related words, green for safe-use words) so a muted scroll past the thumbnail still reads.
-- **Music.** One under-track at -22 LUFS, drops out entirely during the Risk and Reward section so the voiceover and the chart land harder.
+## Root cause
+
+`index.css` already has the rule `.react-flow__controls-button svg { fill: var(--text-secondary); }`. In `@xyflow/react` v12 the control-bar icons are nested `<path>` elements with hard-coded `fill` presentation attributes, so a fill applied on the `<svg>` wrapper never reaches the painted glyph. The custom Full-screen button escapes this because it is a Lucide icon that receives `color` as a prop and whose paths use `currentColor`.
+
+## Fix
+
+A single CSS extension in `/app/frontend/src/index.css` so the rule reaches the nested paths and the `currentColor` case:
+
+- `.react-flow__controls-button` gets `color: var(--text-secondary)` so any `currentColor` descendants pick it up.
+- `.react-flow__controls-button svg, .react-flow__controls-button svg path` both get `fill: var(--text-secondary)` so the hard-coded path fills are overridden.
+- `.react-flow__controls-button:hover svg, .react-flow__controls-button:hover svg path` lifts the glyph to `var(--text-primary)` on hover.
+
+No JavaScript edits, no React Flow version bump, no theme-context changes.
+
+## Verification
+
+- Load the Ecosystem Hub in dark mode and confirm all four control buttons (zoom in, zoom out, fit view, full screen) render visible glyphs.
+- Toggle to light mode and confirm no regression.
+- Enter fullscreen on the map and confirm the glyphs stay visible in both themes.
+- Keyboard-tab through the control bar and confirm the focus ring is still visible against the button backgrounds.
+- Hand the fix to the `testing_agent` subagent for a formal pass before finish.
 
 ## Implementation phases
 
 ### Phase 1 — MVP, built now
 
-The content artefacts listed in "Core features and experience":
-- The full script with timings, speaker tags, and on-screen cues.
-- The storyboard mapping script to screen actions.
-- The shot list and sample inputs for the Token Economy and Prompt Builder segments so takes are repeatable.
-- The description-ready self-host paragraph and CTA block.
+- Edit `/app/frontend/src/index.css` to add the path-level selectors described above.
+- Smoke-test manually in both themes.
+- Hand off to `testing_agent` for verification.
 
-Delivered as markdown under `/app/docs/youtube/` so it travels with the repo.
+### Phase 2 — Not built now
 
-### Phase 2 — Production support (not built now)
+- Scan other third-party components whose icons rely on nested path fills (none known in the current codebase).
 
-- Thumbnail design brief (three A/B candidates aligned with the hub's palette).
-- End-screen artwork copy (titles, CTA button text, repo QR).
-- A chapter-marker list formatted for pasting into the YouTube description.
+### Phase 3 — Not built now
 
-### Phase 3 — Series extension (not built now)
-
-- Short-form cutdowns: a 60-second Shorts/Reels version centred on the Risk and Reward page, and a second 60-second cut centred on the Token Economy calculator.
-- Follow-up episode scripts: one deep dive per feature (Prompt Builder, Token Economy, Risk and Reward).
+- Replace the three default React Flow controls with Lucide-based `ControlButton` wrappers for full icon-set consistency with the custom Full-screen button.
 
 ## Assumptions
 
-Choices made without asking, in the user's language and tone.
-
-- Both presenters are off-screen the entire time; no face-cam insert. The hub is the star.
-- Recording resolution is 1920 x 1080 at 60 fps, dark mode only, English UI copy. Switching themes mid-video is a distraction we skip.
-- The browser used in the recording is Chromium with the hub's own cursor; no custom cursor overlay from the editor.
-- Sample inputs for the Token Economy demo: Claude Sonnet 5.5 as the default model, 2000 prompts a day, 60% cached share, pin Opus 5.5 and GPT-6 Sol as favourites. Those numbers were picked so the "will $25 last the month?" verdict is visibly green at the start and visibly red after dragging a few sliders — a moment the script relies on.
-- Risk and Reward demo starts the slider at 40 mph, pulls it to 70 mph for "sweet spot", and finishes at 110 mph for "cliff edge". Verdict colour transitions are the on-screen beats the voiceover is written around.
-- Prompt Builder demo generates one prompt against a short pre-written seed topic ("add pagination to a FastAPI list endpoint") so the live BPE counter has something to count.
-- The video uses only in-app content; no external slides, no code editor cutaways, no terminal windows. If the voiceover needs to describe code, it describes it over the Prompt Builder output on screen.
-- The self-host paragraph for the description links to the repo's existing `README.md` quick-start section rather than re-authoring instructions in the video.
-- "Follow for updates" in the CTA refers to the repo's own watch feature and whichever handle the creator wants to list; the script leaves a placeholder bracket.
-- All on-screen typing in demos is pre-queued text pasted at ~45 wpm effective speed. Live typos are not part of the aesthetic.
-- Music licence and voice talent are out of scope for the plan; the script is written to work with any reasonably paced delivery between 150 and 170 words per minute.
+- The target contrast tone in each theme is the existing `--text-secondary` token, matching the custom Full-screen button. No new colour tokens are needed.
+- Button backgrounds and borders in the current theming are already correct; only the glyph fill was broken.
+- No change required to `EcosystemMap.jsx`. All changes are CSS-only.
+- Hover tone can lift to `--text-primary` without exceeding contrast expectations; this mirrors how other interactive glyphs in the app respond.
+- The `.dark` / `.light` class continues to live on a root element so the CSS variables cascade into the React Flow DOM, including inside browser fullscreen.
