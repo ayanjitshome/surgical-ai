@@ -111,12 +111,12 @@ const ConcernCard = ({ card }) => {
  * marker; the two overlaid curves (time saved vs. accident risk) reveal the
  * sweet spot and the cliff. */
 
-const BASELINE_MPH = 30;
+const BASELINE_MPH = 20;
 const TRIP_MILES = 100;
 
 // Risk curve: ~flat up to 60, then quadratic blow-up. Scaled to 0..100.
 const riskAt = (mph) => {
-  const x = Math.max(0, mph - 20);
+  const x = Math.max(0, mph - 10);
   return Math.min(100, Math.pow(x / 10, 2.2) * 1.1);
 };
 // Time saved vs the 40 mph baseline, in hours. Diminishing by shape of 1/x.
@@ -171,13 +171,17 @@ const DiminishingReturnsChart = () => {
   const r  = riskAt(mph);
   const mx = xForMph(mph);
 
-  const verdict = mph < 55
-    ? { label: "Safe but slow", color: "#30D158" }
-    : mph < 75
-      ? { label: "Sweet spot", color: "#30D158" }
-      : mph < 95
-        ? { label: "Diminishing returns", color: "#FF9F0A" }
-        : { label: "Cliff edge", color: "#FF453A" };
+  // const verdict =
+  //   mph < 55 ? { label: "Safe but slow", color: "#30D158" } :
+  //   mph < 75 ? { label: "Sweet spot", color: "#30D158" } :
+  //   mph < 95 ? { label: "Diminishing returns", color: "#FF9F0A" } :
+  //              { label: "Cliff edge", color: "#FF453A" };
+
+  const verdict = [
+    { max: 55, label: "Safe but slow", color: "#30D158" },
+    { max: 75, label: "Sweet spot", color: "#30D158" },
+    { max: 95, label: "Diminishing returns", color: "#FF9F0A" }
+  ].find(t => mph < t.max) || { label: "Cliff edge", color: "#FF453A" };
 
   // X-axis grid ticks every 20 mph
   const xTicks = [20, 40, 60, 80, 100, 120];
