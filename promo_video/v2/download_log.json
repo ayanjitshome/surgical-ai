@@ -1,0 +1,13 @@
+{
+  "nature": "/app/promo_video/v2/nature.mp4",
+  "vo_08_builder": "/app/promo_video/v2/vo_08_builder.mp3",
+  "vo_05_decide": "/app/promo_video/v2/vo_05_decide.mp3",
+  "music": "/app/promo_video/v2/music.wav",
+  "vo_02_ecosystem": "/app/promo_video/v2/vo_02_ecosystem.mp3",
+  "vo_06_guidance": "/app/promo_video/v2/vo_06_guidance.mp3",
+  "vo_01_intro": "/app/promo_video/v2/vo_01_intro.mp3",
+  "vo_03_risk_reward": "/app/promo_video/v2/vo_03_risk_reward.mp3",
+  "vo_09_outro": "/app/promo_video/v2/vo_09_outro.mp3",
+  "vo_07_playbook": "/app/promo_video/v2/vo_07_playbook.mp3",
+  "vo_04_token_economy": "/app/promo_video/v2/vo_04_token_economy.mp3"
+}
