@@ -1,0 +1,187 @@
+{
+  "nature": [
+    "bytedance/seedance-2.5/text-to-video",
+    "01a19448-20c3-7a11-b714-6fba6345abb4",
+    {
+      "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/bytedance/seedance-2.5/requests/01a19448-20c3-7a11-b714-6fba6345abb4/cancel",
+      "logs": null,
+      "metrics": {},
+      "queue_position": 0,
+      "request_id": "01a19448-20c3-7a11-b714-6fba6345abb4",
+      "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/bytedance/seedance-2.5/requests/01a19448-20c3-7a11-b714-6fba6345abb4",
+      "status": "IN_QUEUE",
+      "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/bytedance/seedance-2.5/requests/01a19448-20c3-7a11-b714-6fba6345abb4/status",
+      "user_queue_position": 0,
+      "user_queued_count": 1
+    }
+  ],
+  "vo:08_builder": [
+    "08_builder",
+    "fal-ai/elevenlabs/tts/multilingual-v2",
+    200,
+    {
+      "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-20d4-7b62-bae0-a375c30004a2/cancel",
+      "logs": null,
+      "metrics": {},
+      "queue_position": 0,
+      "request_id": "01a19448-20d4-7b62-bae0-a375c30004a2",
+      "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-20d4-7b62-bae0-a375c30004a2",
+      "status": "IN_QUEUE",
+      "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-20d4-7b62-bae0-a375c30004a2/status",
+      "user_queue_position": 0,
+      "user_queued_count": 1
+    }
+  ],
+  "vo:05_decide": [
+    "05_decide",
+    "fal-ai/elevenlabs/tts/multilingual-v2",
+    200,
+    {
+      "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-20dc-7a40-b60d-f7da34af07b1/cancel",
+      "logs": null,
+      "metrics": {},
+      "queue_position": 1,
+      "request_id": "01a19448-20dc-7a40-b60d-f7da34af07b1",
+      "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-20dc-7a40-b60d-f7da34af07b1",
+      "status": "IN_QUEUE",
+      "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-20dc-7a40-b60d-f7da34af07b1/status",
+      "user_queue_position": 1,
+      "user_queued_count": 2
+    }
+  ],
+  "music": [
+    "cassetteai/music-generator",
+    "01a19448-211b-79c2-ba42-70a8fd955db8",
+    {
+      "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/cassetteai/music-generator/requests/01a19448-211b-79c2-ba42-70a8fd955db8/cancel",
+      "logs": null,
+      "metrics": {},
+      "queue_position": 0,
+      "request_id": "01a19448-211b-79c2-ba42-70a8fd955db8",
+      "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/cassetteai/music-generator/requests/01a19448-211b-79c2-ba42-70a8fd955db8",
+      "status": "IN_QUEUE",
+      "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/cassetteai/music-generator/requests/01a19448-211b-79c2-ba42-70a8fd955db8/status",
+      "user_queue_position": 0,
+      "user_queued_count": 1
+    }
+  ],
+  "vo:02_ecosystem": [
+    "02_ecosystem",
+    "fal-ai/elevenlabs/tts/multilingual-v2",
+    200,
+    {
+      "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-2125-7593-a955-28089996015d/cancel",
+      "logs": null,
+      "metrics": {},
+      "queue_position": 0,
+      "request_id": "01a19448-2125-7593-a955-28089996015d",
+      "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-2125-7593-a955-28089996015d",
+      "status": "IN_QUEUE",
+      "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-2125-7593-a955-28089996015d/status",
+      "user_queue_position": 0,
+      "user_queued_count": 1
+    }
+  ],
+  "vo:06_guidance": [
+    "06_guidance",
+    "fal-ai/elevenlabs/tts/multilingual-v2",
+    200,
+    {
+      "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-2176-70e2-9779-7a8632aef9dd/cancel",
+      "logs": null,
+      "metrics": {},
+      "queue_position": 0,
+      "request_id": "01a19448-2176-70e2-9779-7a8632aef9dd",
+      "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-2176-70e2-9779-7a8632aef9dd",
+      "status": "IN_QUEUE",
+      "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-2176-70e2-9779-7a8632aef9dd/status",
+      "user_queue_position": 0,
+      "user_queued_count": 1
+    }
+  ],
+  "vo:01_intro": [
+    "01_intro",
+    "fal-ai/elevenlabs/tts/multilingual-v2",
+    200,
+    {
+      "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-21d0-7bb1-8e5b-428cfe4aeaf6/cancel",
+      "logs": null,
+      "metrics": {},
+      "queue_position": 0,
+      "request_id": "01a19448-21d0-7bb1-8e5b-428cfe4aeaf6",
+      "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-21d0-7bb1-8e5b-428cfe4aeaf6",
+      "status": "IN_QUEUE",
+      "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-21d0-7bb1-8e5b-428cfe4aeaf6/status",
+      "user_queue_position": 0,
+      "user_queued_count": 1
+    }
+  ],
+  "vo:03_risk_reward": [
+    "03_risk_reward",
+    "fal-ai/elevenlabs/tts/multilingual-v2",
+    200,
+    {
+      "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-2270-7933-9775-63bb58f5eae5/cancel",
+      "logs": null,
+      "metrics": {},
+      "queue_position": 0,
+      "request_id": "01a19448-2270-7933-9775-63bb58f5eae5",
+      "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-2270-7933-9775-63bb58f5eae5",
+      "status": "IN_QUEUE",
+      "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-2270-7933-9775-63bb58f5eae5/status",
+      "user_queue_position": 0,
+      "user_queued_count": 1
+    }
+  ],
+  "vo:09_outro": [
+    "09_outro",
+    "fal-ai/elevenlabs/tts/multilingual-v2",
+    200,
+    {
+      "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-22f0-7081-8f9d-3a2f033df186/cancel",
+      "logs": null,
+      "metrics": {},
+      "queue_position": 0,
+      "request_id": "01a19448-22f0-7081-8f9d-3a2f033df186",
+      "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-22f0-7081-8f9d-3a2f033df186",
+      "status": "IN_QUEUE",
+      "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-22f0-7081-8f9d-3a2f033df186/status",
+      "user_queue_position": 0,
+      "user_queued_count": 1
+    }
+  ],
+  "vo:07_playbook": [
+    "07_playbook",
+    "fal-ai/elevenlabs/tts/multilingual-v2",
+    200,
+    {
+      "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-23ce-7ca0-bd73-bbad59ea0c78/cancel",
+      "logs": null,
+      "metrics": {},
+      "queue_position": 0,
+      "request_id": "01a19448-23ce-7ca0-bd73-bbad59ea0c78",
+      "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-23ce-7ca0-bd73-bbad59ea0c78",
+      "status": "IN_QUEUE",
+      "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-23ce-7ca0-bd73-bbad59ea0c78/status",
+      "user_queue_position": 0,
+      "user_queued_count": 1
+    }
+  ],
+  "vo:04_token_economy": [
+    "04_token_economy",
+    "fal-ai/elevenlabs/tts/multilingual-v2",
+    200,
+    {
+      "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-240f-73e2-ac77-30b663e26150/cancel",
+      "logs": null,
+      "metrics": {},
+      "queue_position": 0,
+      "request_id": "01a19448-240f-73e2-ac77-30b663e26150",
+      "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-240f-73e2-ac77-30b663e26150",
+      "status": "IN_QUEUE",
+      "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a19448-240f-73e2-ac77-30b663e26150/status",
+      "user_queue_position": 0,
+      "user_queued_count": 1
+    }
+  ]
+}
