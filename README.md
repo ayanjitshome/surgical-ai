@@ -1,6 +1,6 @@
 # Surgical AI Hub
 
-<video src="promo_video/v3/surgical_ai_hub_reveal_v3.mp4" controls="controls" width="100%">
+<video src="https://raw.githubusercontent.com/ayanjitshome/surgical-ai/main/promo_video/v3/surgical_ai_hub_reveal_v3.mp4" controls="controls" width="100%">
   Your browser does not support the video tag.
 </video>
 
