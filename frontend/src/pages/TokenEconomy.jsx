@@ -490,7 +490,8 @@ const Calculator = () => {
               onChange={setBudgetUsd}
               testId="calc-budget"
             />
-            {/* Model picker: vendor chips + search above a grouped dropdown */}
+            {/* Model picker: grouped dropdown with pinned models first,
+                a pin toggle, and an inline refresh action. */}
             <ModelPicker
               models={MODELS}
               modelId={modelId}
@@ -502,6 +503,7 @@ const Calculator = () => {
               pricingError={pricingError}
               pinnedIds={pinnedIds}
               setPinnedIds={setPinnedIds}
+              onPricingRefreshed={(next) => setLivePricing(next)}
             />
             <Field
               label="Hours active / day"
@@ -657,11 +659,6 @@ const Calculator = () => {
           customOutputRate={customOutputRate}
         />
       )}
-
-      <AdminPricingRefresh
-        livePricing={livePricing}
-        onRefreshed={(next) => setLivePricing(next)}
-      />
     </section>
   );
 };
@@ -1084,15 +1081,19 @@ const ShortlistRow = ({ row, rank, spotlightMonthly, budgetUsd, pinned, onSwap }
 };
 
 /* -------- Model picker ------
- * Vendor filter chips above a searchable, grouped dropdown. Pinned models
- * are stored in localStorage and surfaced in a "Pinned" group at the top
- * so a user's regulars are always one click away. */
+ * Grouped dropdown with pinned models surfaced at the top, a star button
+ * for pinning the current pick, and an inline refresh action that pulls
+ * fresh LiteLLM prices and swaps them into the live catalog. */
 
 const VENDOR_ORDER = ["Anthropic", "OpenAI", "Google", "You"];
 
-const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInputRate, effectiveOutputRate, livePricing, pricingError, pinnedIds, setPinnedIds }) => {
-  const [vendorFilter, setVendorFilter] = useState("All");
-  const [query, setQuery] = useState("");
+const ModelPicker = ({
+  models, modelId, setModelId, selectedModel, effectiveInputRate,
+  effectiveOutputRate, livePricing, pricingError, pinnedIds, setPinnedIds,
+  onPricingRefreshed,
+}) => {
+  const [refreshState, setRefreshState] = useState("idle"); // idle | running | ok | fail
+  const [refreshMessage, setRefreshMessage] = useState("");
 
   const togglePin = (id) => {
     if (!id || id === "custom") return;
@@ -1101,31 +1102,16 @@ const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInpu
   const isPinned = (id) => pinnedIds.includes(id);
   const currentPinned = isPinned(modelId);
 
-  const availableVendors = useMemo(() => {
-    const seen = new Set();
-    models.forEach((m) => seen.add(m.vendor));
-    return VENDOR_ORDER.filter((v) => seen.has(v));
-  }, [models]);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return models.filter((m) => {
-      if (vendorFilter !== "All" && m.vendor !== vendorFilter) return false;
-      if (!q) return true;
-      return m.label.toLowerCase().includes(q) || m.vendor.toLowerCase().includes(q);
-    });
-  }, [models, vendorFilter, query]);
-
-  // Pinned appear once in a Pinned group (in the user's pin order) and are
-  // removed from their vendor group below to avoid duplication in the list.
+  // Pinned models surface in a leading group (in the user's pin order) and
+  // are removed from their vendor group so they appear exactly once.
   const grouped = useMemo(() => {
     const pinnedList = pinnedIds
-      .map((id) => filtered.find((m) => m.id === id))
+      .map((id) => models.find((m) => m.id === id))
       .filter(Boolean);
     const pinnedSet = new Set(pinnedList.map((m) => m.id));
 
     const map = new Map();
-    filtered.forEach((m) => {
+    models.forEach((m) => {
       if (pinnedSet.has(m.id)) return;
       if (!map.has(m.vendor)) map.set(m.vendor, []);
       map.get(m.vendor).push(m);
@@ -1133,11 +1119,38 @@ const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInpu
     const vendorGroups = [...map.entries()].sort(
       (a, b) => VENDOR_ORDER.indexOf(a[0]) - VENDOR_ORDER.indexOf(b[0])
     );
-
     return pinnedList.length
       ? [["★ Pinned", pinnedList], ...vendorGroups]
       : vendorGroups;
-  }, [filtered, pinnedIds]);
+  }, [models, pinnedIds]);
+
+  const refresh = async () => {
+    setRefreshState("running");
+    setRefreshMessage("");
+    try {
+      const base = import.meta.env.REACT_APP_BACKEND_URL || "";
+      const r = await fetch(`${base}/api/pricing/refresh`, { method: "POST" });
+      if (!r.ok) {
+        setRefreshState("fail");
+        setRefreshMessage(`HTTP ${r.status}`);
+        return;
+      }
+      const data = await r.json();
+      const live = (data.models || []).filter((m) => m.source === "live").length;
+      onPricingRefreshed({
+        models: data.models,
+        fetched_at: data.fetched_at,
+        source: live === data.models.length ? "live" : "mixed",
+        stale: false,
+        source_url: data.source_url,
+      });
+      setRefreshState("ok");
+      setRefreshMessage(`${live}/${data.models.length} live`);
+    } catch (e) {
+      setRefreshState("fail");
+      setRefreshMessage(String(e.message || e));
+    }
+  };
 
   return (
     <div data-testid="calc-model-picker">
@@ -1148,83 +1161,58 @@ const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInpu
         </span>
       </div>
 
-      <div className="flex flex-wrap gap-1.5 mb-2" role="tablist" aria-label="Filter by vendor" data-testid="calc-model-vendor-chips">
-        {["All", ...availableVendors].map((v) => {
-          const active = vendorFilter === v;
-          return (
-            <button
-              key={v}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              onClick={() => setVendorFilter(v)}
-              data-testid={`calc-model-vendor-${v.toLowerCase()}`}
-              className={cn(
-                "hig-chip transition-colors",
-                active
-                  ? "text-white border-transparent"
-                  : "text-secondary-c hover:text-primary-c"
-              )}
-              style={active ? { background: "var(--brand)" } : undefined}
-            >
-              {v}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search models..."
-          aria-label="Search models"
-          data-testid="calc-model-search"
-          className="w-full h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors"
-        />
-        <div className="flex items-stretch gap-2">
-          <select
-            id="calc-model"
-            data-testid="calc-model-select"
-            value={modelId}
-            onChange={(e) => setModelId(e.target.value)}
-            className="flex-1 min-w-0 h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors cursor-pointer"
-            aria-describedby="calc-model-hint"
-          >
-            {grouped.length === 0 && (
-              <option value={modelId} disabled>No models match the filter</option>
-            )}
-            {grouped.map(([vendor, list]) => (
-              <optgroup key={vendor} label={vendor}>
-                {list.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {isPinned(m.id) ? "★ " : ""}{m.label}{m.id === "custom" ? "" : ` ($${m.input}/${m.output} per 1M)`}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={() => togglePin(modelId)}
-            disabled={modelId === "custom"}
-            aria-pressed={currentPinned}
-            aria-label={currentPinned ? `Unpin ${selectedModel.label}` : `Pin ${selectedModel.label} to top`}
-            title={modelId === "custom" ? "Custom rate cannot be pinned" : (currentPinned ? "Unpin from top" : "Pin to top")}
-            data-testid="calc-model-pin"
-            className={cn(
-              "h-10 w-10 flex items-center justify-center rounded-[10px] border border-c surface-card transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
-              currentPinned ? "text-[color:var(--brand)] hover:text-primary-c" : "text-secondary-c hover:text-primary-c"
-            )}
-          >
-            <Star
-              className="w-4 h-4"
-              fill={currentPinned ? "currentColor" : "none"}
-              aria-hidden="true"
-            />
-          </button>
-        </div>
+      <div className="flex items-stretch gap-2">
+        <select
+          id="calc-model"
+          data-testid="calc-model-select"
+          value={modelId}
+          onChange={(e) => setModelId(e.target.value)}
+          className="flex-1 min-w-0 h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors cursor-pointer"
+          aria-describedby="calc-model-hint"
+        >
+          {grouped.map(([vendor, list]) => (
+            <optgroup key={vendor} label={vendor}>
+              {list.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {isPinned(m.id) ? "★ " : ""}{m.label}{m.id === "custom" ? "" : ` ($${m.input}/${m.output} per 1M)`}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={() => togglePin(modelId)}
+          disabled={modelId === "custom"}
+          aria-pressed={currentPinned}
+          aria-label={currentPinned ? `Unpin ${selectedModel.label}` : `Pin ${selectedModel.label} to top`}
+          title={modelId === "custom" ? "Custom rate cannot be pinned" : (currentPinned ? "Unpin from top" : "Pin to top")}
+          data-testid="calc-model-pin"
+          className={cn(
+            "h-10 w-10 flex items-center justify-center rounded-[10px] border border-c surface-card transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+            currentPinned ? "text-[color:var(--brand)] hover:text-primary-c" : "text-secondary-c hover:text-primary-c"
+          )}
+        >
+          <Star
+            className="w-4 h-4"
+            fill={currentPinned ? "currentColor" : "none"}
+            aria-hidden="true"
+          />
+        </button>
+        <button
+          type="button"
+          onClick={refresh}
+          disabled={refreshState === "running"}
+          aria-label="Refresh live pricing"
+          title={refreshState === "running" ? "Refreshing live prices…" : "Refresh live prices"}
+          data-testid="calc-model-refresh"
+          className="h-10 w-10 flex items-center justify-center rounded-[10px] border border-c surface-card text-secondary-c hover:text-primary-c transition-colors disabled:opacity-60 disabled:cursor-progress"
+        >
+          <RefreshCw
+            className={cn("w-4 h-4", refreshState === "running" && "animate-spin")}
+            aria-hidden="true"
+          />
+        </button>
       </div>
 
       <div id="calc-model-hint" className="hig-footnote mt-1 flex items-center gap-1.5 flex-wrap" data-testid="pricing-freshness">
@@ -1243,77 +1231,25 @@ const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInpu
             </span>
           )
         )}
+        {refreshState !== "idle" && (
+          <span
+            className="hig-footnote"
+            data-testid="calc-model-refresh-status"
+            style={{
+              color: refreshState === "ok" ? "var(--success)"
+                : refreshState === "fail" ? "var(--warning)"
+                : "var(--text-muted)",
+            }}
+          >
+            {refreshState === "running" ? "Refreshing…" : refreshMessage}
+          </span>
+        )}
       </div>
     </div>
   );
 };
 
 
-/* -------- Pricing refresh ------
- * Small footer link that busts the backend's 24h LiteLLM cache. Public
- * endpoint because it only pulls a public GitHub JSON. */
-
-const AdminPricingRefresh = ({ livePricing, onRefreshed }) => {
-  const [status, setStatus] = useState(null); // "ok" | "fail" | "running"
-  const [message, setMessage] = useState("");
-
-  const run = async () => {
-    setStatus("running");
-    setMessage("Pulling LiteLLM...");
-    try {
-      const base = import.meta.env.REACT_APP_BACKEND_URL || "";
-      const r = await fetch(`${base}/api/pricing/refresh`, { method: "POST" });
-      if (!r.ok) {
-        setStatus("fail");
-        setMessage(`Failed with HTTP ${r.status}`);
-        return;
-      }
-      const data = await r.json();
-      const live = (data.models || []).filter((m) => m.source === "live").length;
-      onRefreshed({
-        models: data.models,
-        fetched_at: data.fetched_at,
-        source: live === data.models.length ? "live" : "mixed",
-        stale: false,
-        source_url: data.source_url,
-      });
-      setStatus("ok");
-      setMessage(`Refreshed. ${live}/${data.models.length} models resolved live.`);
-    } catch (e) {
-      setStatus("fail");
-      setMessage(String(e.message || e));
-    }
-  };
-
-  const stamp = livePricing?.fetched_at ? new Date(livePricing.fetched_at).toLocaleString() : "never";
-
-  return (
-    <div className="mt-5 pt-4 border-t border-c flex flex-wrap items-center gap-3 text-[13px]" data-testid="admin-pricing-refresh">
-      <span className="hig-footnote">
-        Pricing cache (24h). Last pulled: <span className="text-secondary-c">{stamp}</span>
-      </span>
-      <button
-        type="button"
-        onClick={run}
-        disabled={status === "running"}
-        data-testid="admin-pricing-refresh-button"
-        className="hig-chip hover:text-primary-c transition-colors disabled:opacity-60"
-      >
-        <RefreshCw className={cn("w-3.5 h-3.5", status === "running" && "animate-spin")} aria-hidden="true" />
-        Refresh now
-      </button>
-      {message && (
-        <span
-          className="hig-footnote"
-          style={{ color: status === "ok" ? "var(--success)" : status === "fail" ? "var(--warning)" : "var(--text-muted)" }}
-          data-testid="admin-pricing-refresh-status"
-        >
-          {message}
-        </span>
-      )}
-    </div>
-  );
-};
 
 /* -------- Tabs ----------- */
 
