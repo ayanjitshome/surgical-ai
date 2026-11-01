@@ -864,7 +864,7 @@ const Spotlight = ({
 
   return (
     <section
-      className="mt-6 pt-5 border-t border-c"
+      className="mt-6 pt-5 pb-8 border-t border-c"
       aria-labelledby="spotlight-title"
       data-testid="spotlight-section"
     >
