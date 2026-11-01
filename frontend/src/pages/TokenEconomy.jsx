@@ -903,10 +903,10 @@ const Spotlight = ({
             type="button"
             onClick={onBackToRecommended}
             data-testid="spotlight-back-to-recommended"
-            className="inline-flex items-center gap-1.5 hig-footnote text-secondary-c hover:text-primary-c transition-colors"
+            className="hig-btn hig-btn-secondary inline-flex items-center gap-1.5"
           >
             <Undo2 className="w-3.5 h-3.5" aria-hidden="true" />
-            Back to recommendation
+            Show recommended
           </button>
         )}
       </div>
