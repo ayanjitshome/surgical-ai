@@ -1,10 +1,6 @@
 # Surgical AI Hub
 
-<p align="center">
-  <img src="assets/surgical-ai-hub-logo.png" alt="Surgical AI Hub" width="100" />
-</p>
-
-<video src="promo_video/v2/surgical_ai_hub_demo_v2.mp4" controls="controls" width="100%">
+<video src="promo_video/v3/surgical_ai_hub_reveal_v3.mp4" controls="controls" width="100%">
   Your browser does not support the video tag.
 </video>
 
