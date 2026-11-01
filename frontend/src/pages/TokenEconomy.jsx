@@ -4,7 +4,7 @@ import {
   Coins, Zap, TrendingDown, AlertTriangle, CheckCircle2, XCircle,
   Database, MessageSquare, Terminal, Flame, Lock, Infinity as InfinityIcon,
   Save, RotateCcw, Table2, Calendar, DollarSign, RefreshCw, Star,
-  Sparkles, ArrowRight, Undo2,
+  Sparkles, ArrowRight, Undo2, Scissors,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -382,6 +382,62 @@ const Calculator = () => {
     if (recommended) setModelId(recommended.model.id);
   };
 
+  /* -------- Fit my budget ------
+   * Trim the five usage sliders proportionally until the Spotlight's
+   * active-model spend fits under the current monthly budget. Monthly
+   * cost ~ k^4 when scaling all five sliders by k, so the analytical
+   * fit is k = (target/current)^(1/4). A tiny safety margin plus up to
+   * five retries absorb step-rounding error, and each slider is clamped
+   * to its own minimum. The button is only rendered when the Spotlight
+   * is over budget. */
+  const fitBudgetToSpotlight = () => {
+    const target = budgetUsd * 0.95;
+    const current = stats.usdPerMonth;
+    if (current <= target) return;
+
+    const SPECS = [
+      ["inputTokens", inputTokens, 1000, 1000, setInputTokens],
+      ["outputTokens", outputTokens, 100, 100, setOutputTokens],
+      ["promptsPerHour", promptsPerHour, 1, 1, setPromptsPerHour],
+      ["hoursPerDay", hoursPerDay, 1, 1, setHoursPerDay],
+      ["daysPerMonth", daysPerMonth, 1, 1, setDaysPerMonth],
+    ];
+
+    let k = Math.pow(target / current, 0.25);
+    k = Math.max(0.05, Math.min(1, k));
+
+    const trimOne = (val, mn, step, factor) => {
+      const scaled = Math.max(mn, val * factor);
+      return Math.max(mn, Math.round(scaled / step) * step);
+    };
+    const buildCandidate = (factor) => {
+      const next = {
+        inputTokens, cachedPct, outputTokens, promptsPerHour,
+        budgetUsd, hoursPerDay, daysPerMonth, mode,
+        modelId, customInputRate, customOutputRate,
+      };
+      for (const [key, val, mn, step] of SPECS) {
+        next[key] = trimOne(val, mn, step, factor);
+      }
+      return next;
+    };
+
+    let chosen = buildCandidate(k);
+    let candidateStats = computeCosts(chosen, selectedModel);
+    let attempts = 0;
+    while (candidateStats.usdPerMonth > target && attempts < 5) {
+      k *= 0.85;
+      chosen = buildCandidate(k);
+      candidateStats = computeCosts(chosen, selectedModel);
+      attempts += 1;
+    }
+
+    for (const [key, _val, _mn, _step, setter] of SPECS) {
+      setter(chosen[key]);
+    }
+    setActivePreset(null);
+  };
+
   return (
     <section className="hig-elevated p-6 sm:p-8 fade-up" data-testid="token-economy-calculator" aria-labelledby="calc-title">
       <div className="flex flex-wrap items-start gap-4 mb-5">
@@ -580,6 +636,7 @@ const Calculator = () => {
           pinnedIds={pinnedIds}
           onSwap={handleManualPick}
           onBackToRecommended={backToRecommendation}
+          onFitBudget={fitBudgetToSpotlight}
         />
       )}
 
@@ -857,6 +914,7 @@ const VENDOR_DOT = {
 const Spotlight = ({
   active, activeModel, activeStats, recommended, shortlist, budgetUsd,
   isActiveRecommended, userOverride, pinnedIds, onSwap, onBackToRecommended,
+  onFitBudget,
 }) => {
   const over = activeStats.usdPerMonth > budgetUsd;
   const activePinned = pinnedIds.includes(activeModel.id);
@@ -981,19 +1039,33 @@ const Spotlight = ({
             <div className="hig-footnote text-secondary-c">per month</div>
           </div>
 
-          <div
-            className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-[10px]"
-            style={{ background: stripBg, color: stripFg }}
-            data-testid="spotlight-headroom"
-          >
-            {over
-              ? <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
-              : <TrendingDown className="w-3.5 h-3.5" aria-hidden="true" />}
-            <span className="text-[13px] font-medium">
+          <div className="mt-3 flex items-center gap-2 flex-wrap">
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[10px]"
+              style={{ background: stripBg, color: stripFg }}
+              data-testid="spotlight-headroom"
+            >
               {over
-                ? `${fmtUsd(headroomUsd)} over your ${fmtUsd(budgetUsd)} budget`
-                : `${fmtUsd(headroomUsd)} under your ${fmtUsd(budgetUsd)} budget`}
-            </span>
+                ? <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
+                : <TrendingDown className="w-3.5 h-3.5" aria-hidden="true" />}
+              <span className="text-[13px] font-medium">
+                {over
+                  ? `${fmtUsd(headroomUsd)} over your ${fmtUsd(budgetUsd)} budget`
+                  : `${fmtUsd(headroomUsd)} under your ${fmtUsd(budgetUsd)} budget`}
+              </span>
+            </div>
+            {over && (
+              <button
+                type="button"
+                onClick={onFitBudget}
+                data-testid="spotlight-fit-budget"
+                className="hig-btn hig-btn-secondary inline-flex items-center gap-1.5"
+                title="Scale usage sliders down so this model fits your monthly budget"
+              >
+                <Scissors className="w-3.5 h-3.5" aria-hidden="true" />
+                Fit my budget
+              </button>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3 mt-4">
