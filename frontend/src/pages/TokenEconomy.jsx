@@ -4,12 +4,57 @@ import {
   Coins, Zap, TrendingDown, AlertTriangle, CheckCircle2, XCircle,
   Database, MessageSquare, Terminal, Flame, Lock, Infinity as InfinityIcon,
   Save, RotateCcw, Table2, Calendar, DollarSign, RefreshCw, Star,
+  Sparkles, ArrowRight, Undo2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   CACHED_WEIGHT, OUTPUT_WEIGHT, STORAGE_KEY, DEFAULTS,
   FALLBACK_MODELS, CUSTOM_MODEL, loadScenario, fmtUsd, computeCosts,
 } from "@/lib/scenario";
+
+/* -------- Suggestion engine --------
+ * Capability floor keeps the Spotlight honest. Models in the "tiny" band
+ * (input < $0.20 /1M) are excluded from the recommendation so a $0.10
+ * no-op model never wins by being cheapest. Users can still pick them
+ * from the manual dropdown; they just do not get auto-promoted. */
+const CAPABILITY_FLOOR_INPUT = 0.20;
+const CAPABILITY_BLOCKLIST = new Set([
+  "claude-haiku-5-5",
+  "gpt-6-luna",
+]);
+
+function isCapable(model) {
+  if (!model || model.id === "custom") return false;
+  if (CAPABILITY_BLOCKLIST.has(model.id)) return false;
+  return typeof model.input === "number" && model.input >= CAPABILITY_FLOOR_INPUT;
+}
+
+/* Rank every capable model against the current scenario, cheapest first. */
+function rankCapableModels(models, scenario) {
+  return models
+    .filter(isCapable)
+    .map((m) => ({ model: m, stats: computeCosts(scenario, m) }))
+    .sort((a, b) => a.stats.usdPerMonth - b.stats.usdPerMonth);
+}
+
+/* Winner = cheapest capable model under budget, else cheapest capable
+ * overall so the Spotlight always has something to show. */
+function pickRecommended(ranked, budgetUsd) {
+  if (!ranked.length) return null;
+  const underBudget = ranked.find((r) => r.stats.usdPerMonth <= budgetUsd);
+  return underBudget || ranked[0];
+}
+
+const PINNED_STORAGE_KEY = "surgicalai.tokenEconomy.pinnedModels";
+
+const loadPinned = () => {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(PINNED_STORAGE_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
+  } catch { return []; }
+};
 
 /* -------- Content model (adapted to any agentic AI tool) -------- */
 
@@ -194,6 +239,10 @@ const Calculator = () => {
   // response once /api/pricing resolves.
   const [livePricing, setLivePricing] = useState({ models: FALLBACK_MODELS, fetched_at: null, source: "fallback", stale: false });
   const [pricingError, setPricingError] = useState(null);
+  const [pinnedIds, setPinnedIds] = useState(() => loadPinned());
+  useEffect(() => {
+    try { localStorage.setItem(PINNED_STORAGE_KEY, JSON.stringify(pinnedIds)); } catch {}
+  }, [pinnedIds]);
   useEffect(() => {
     const base = import.meta.env.REACT_APP_BACKEND_URL || "";
     let cancelled = false;
@@ -286,6 +335,27 @@ const Calculator = () => {
   }, [inputTokens, cachedPct, outputTokens, promptsPerHour, budgetUsd, hoursPerDay, daysPerMonth, effectiveInputRate, effectiveOutputRate, effectiveOutputWeight]);
 
   const overBudget = stats.usdPerMonth > budgetUsd;
+
+  /* -------- Recommendation engine (monthly mode only) --------
+   * Ranked list depends on the sliders, not on the active modelId, so a
+   * manual override never changes the ordering. The Spotlight card tracks
+   * the active model; the shortlist is the next 4 after excluding it. */
+  const scenario = {
+    inputTokens, cachedPct, outputTokens, promptsPerHour,
+    budgetUsd, hoursPerDay, daysPerMonth,
+    modelId, customInputRate, customOutputRate,
+  };
+  const ranked = useMemo(
+    () => rankCapableModels(livePricing.models, scenario),
+    // Recompute whenever any slider or the pricing list changes. modelId
+    // is intentionally omitted; the ranking is model-agnostic.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [livePricing.models, inputTokens, cachedPct, outputTokens, promptsPerHour, budgetUsd, hoursPerDay, daysPerMonth]
+  );
+  const recommended = useMemo(() => pickRecommended(ranked, budgetUsd), [ranked, budgetUsd]);
+  const activeRanked = ranked.find((r) => r.model.id === modelId) || null;
+  const shortlist = ranked.filter((r) => r.model.id !== modelId).slice(0, 4);
+  const isActiveRecommended = recommended && recommended.model.id === modelId;
 
   return (
     <section className="hig-elevated p-6 sm:p-8 fade-up" data-testid="token-economy-calculator" aria-labelledby="calc-title">
@@ -420,7 +490,8 @@ const Calculator = () => {
               onChange={setBudgetUsd}
               testId="calc-budget"
             />
-            {/* Model picker: vendor chips + search above a grouped dropdown */}
+            {/* Model picker: grouped dropdown with pinned models first,
+                a pin toggle, and an inline refresh action. */}
             <ModelPicker
               models={MODELS}
               modelId={modelId}
@@ -430,6 +501,9 @@ const Calculator = () => {
               effectiveOutputRate={effectiveOutputRate}
               livePricing={livePricing}
               pricingError={pricingError}
+              pinnedIds={pinnedIds}
+              setPinnedIds={setPinnedIds}
+              onPricingRefreshed={(next) => setLivePricing(next)}
             />
             <Field
               label="Hours active / day"
@@ -466,6 +540,21 @@ const Calculator = () => {
             </div>
           )}
         </div>
+      )}
+
+      {mode === "monthly" && (
+        <Spotlight
+          active={activeRanked}
+          activeModel={selectedModel}
+          activeStats={stats}
+          recommended={recommended}
+          shortlist={shortlist}
+          budgetUsd={budgetUsd}
+          isActiveRecommended={!!isActiveRecommended}
+          pinnedIds={pinnedIds}
+          onSwap={setModelId}
+          onBackToRecommended={() => recommended && setModelId(recommended.model.id)}
+        />
       )}
 
       {mode === "prompt" ? (
@@ -570,11 +659,6 @@ const Calculator = () => {
           customOutputRate={customOutputRate}
         />
       )}
-
-      <AdminPricingRefresh
-        livePricing={livePricing}
-        onRefreshed={(next) => setLivePricing(next)}
-      />
     </section>
   );
 };
@@ -729,31 +813,287 @@ const MiniStat = ({ label, value, color, testId }) => (
   </div>
 );
 
-/* -------- Model picker ------
- * Vendor filter chips above a searchable, grouped dropdown. Pinned models
- * are stored in localStorage and surfaced in a "Pinned" group at the top
- * so a user's regulars are always one click away. */
+/* -------- Spotlight + shortlist ------
+ * Picks the cheapest capable model that fits the current sliders and
+ * monthly budget. The Spotlight tracks the active modelId so a manual
+ * swap or dropdown pick lands here with the same hero treatment. The
+ * shortlist is the next four candidates with one-click "Swap in". When
+ * the active model is not the engine's recommendation, a small
+ * "Back to recommended" link puts auto-pick back in control. */
 
-const VENDOR_ORDER = ["Anthropic", "OpenAI", "Google", "You"];
-const PINNED_STORAGE_KEY = "surgicalai.tokenEconomy.pinnedModels";
-
-const loadPinned = () => {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(PINNED_STORAGE_KEY);
-    const arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
-  } catch { return []; }
+const VENDOR_DOT = {
+  Anthropic: "#D97757",
+  OpenAI: "#10A37F",
+  Google: "#4285F4",
+  You: "var(--text-muted)",
 };
 
-const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInputRate, effectiveOutputRate, livePricing, pricingError }) => {
-  const [vendorFilter, setVendorFilter] = useState("All");
-  const [query, setQuery] = useState("");
-  const [pinnedIds, setPinnedIds] = useState(() => loadPinned());
+const Spotlight = ({
+  active, activeModel, activeStats, recommended, shortlist, budgetUsd,
+  isActiveRecommended, pinnedIds, onSwap, onBackToRecommended,
+}) => {
+  const over = activeStats.usdPerMonth > budgetUsd;
+  const activePinned = pinnedIds.includes(activeModel.id);
+  const headroomUsd = Math.abs(budgetUsd - activeStats.usdPerMonth);
+  const vendorDot = VENDOR_DOT[activeModel.vendor] || "var(--brand)";
 
-  useEffect(() => {
-    try { localStorage.setItem(PINNED_STORAGE_KEY, JSON.stringify(pinnedIds)); } catch {}
-  }, [pinnedIds]);
+  // Reason line reads like a verdict, not a hedge.
+  const reason = (() => {
+    if (activeModel.id === "custom") {
+      return "Your custom rate. Suggestions below use live catalog prices.";
+    }
+    if (isActiveRecommended) {
+      return over
+        ? "Cheapest capable model on the market. Nothing under your current budget fits these sliders."
+        : "Cheapest capable model that fits your current sliders and budget.";
+    }
+    if (recommended && recommended.stats.usdPerMonth < activeStats.usdPerMonth) {
+      const delta = activeStats.usdPerMonth - recommended.stats.usdPerMonth;
+      return `Manual pick. ${recommended.model.label} would save ${fmtUsd(delta)}/mo at these sliders.`;
+    }
+    return "Manual pick. No cheaper capable model exists at these sliders.";
+  })();
+
+  // Reward (green) tint when under budget, Risk & Reward red when over.
+  const borderColor = over ? "var(--danger)" : "var(--success)";
+  const stripBg = over ? "rgba(255,69,58,0.12)" : "rgba(48,209,88,0.10)";
+  const stripFg = over ? "var(--danger)" : "var(--success)";
+
+  return (
+    <section
+      className="mt-6 pt-5 pb-8 border-t border-c"
+      aria-labelledby="spotlight-title"
+      data-testid="spotlight-section"
+    >
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4" style={{ color: "var(--brand)" }} aria-hidden="true" />
+          <h3 id="spotlight-title" className="hig-headline text-primary-c">
+            Optimal model for your usage
+          </h3>
+        </div>
+        {!isActiveRecommended && recommended && (
+          <button
+            type="button"
+            onClick={onBackToRecommended}
+            data-testid="spotlight-back-to-recommended"
+            className="inline-flex items-center gap-1.5 hig-footnote text-secondary-c hover:text-primary-c transition-colors"
+          >
+            <Undo2 className="w-3.5 h-3.5" aria-hidden="true" />
+            Back to recommended
+          </button>
+        )}
+      </div>
+
+      <div className="grid lg:grid-cols-5 gap-4">
+        {/* Spotlight card */}
+        <div
+          className="lg:col-span-3 hig-card p-5 sm:p-6 relative overflow-hidden"
+          style={{
+            borderColor,
+            boxShadow: `0 0 0 1px ${borderColor}`,
+          }}
+          data-testid="spotlight-card"
+        >
+          <div className="flex items-center gap-2 flex-wrap mb-3">
+            <span
+              className="hig-chip"
+              style={{
+                background: isActiveRecommended
+                  ? "rgba(10,132,255,0.14)"
+                  : "var(--bg-card-hover)",
+                color: isActiveRecommended ? "var(--brand)" : "var(--text-secondary)",
+                borderColor: "transparent",
+              }}
+              data-testid="spotlight-badge"
+            >
+              {isActiveRecommended ? "Our pick" : "Manual override"}
+            </span>
+            {activePinned && (
+              <span
+                className="hig-chip"
+                style={{ background: "var(--brand-soft)", color: "var(--brand)", borderColor: "transparent" }}
+                data-testid="spotlight-pinned"
+                title="Pinned to top in the model picker"
+              >
+                <Star className="w-3 h-3" fill="currentColor" aria-hidden="true" />
+                Pinned
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-start gap-3 mb-4">
+            <span
+              className="mt-2 w-2.5 h-2.5 rounded-full shrink-0"
+              style={{ background: vendorDot, boxShadow: `0 0 10px ${vendorDot}80` }}
+              aria-hidden="true"
+            />
+            <div className="min-w-0">
+              <div
+                className="hig-title-3 text-primary-c truncate"
+                data-testid="spotlight-model-name"
+              >
+                {activeModel.label}
+              </div>
+              <div className="hig-footnote">
+                {activeModel.vendor}
+                {activeModel.id !== "custom" && (
+                  <> &middot; ${activeModel.input}/{activeModel.output} per 1M in/out</>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-baseline gap-3 flex-wrap">
+            <div
+              className="text-4xl sm:text-5xl font-semibold tracking-[-0.02em]"
+              style={{ color: over ? "var(--danger)" : "var(--text-primary)" }}
+              data-testid="spotlight-monthly"
+            >
+              {fmtUsd(activeStats.usdPerMonth)}
+            </div>
+            <div className="hig-footnote text-secondary-c">per month</div>
+          </div>
+
+          <div
+            className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-[10px]"
+            style={{ background: stripBg, color: stripFg }}
+            data-testid="spotlight-headroom"
+          >
+            {over
+              ? <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
+              : <TrendingDown className="w-3.5 h-3.5" aria-hidden="true" />}
+            <span className="text-[13px] font-medium">
+              {over
+                ? `${fmtUsd(headroomUsd)} over your ${fmtUsd(budgetUsd)} budget`
+                : `${fmtUsd(headroomUsd)} under your ${fmtUsd(budgetUsd)} budget`}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            <MiniStat
+              label="$ per prompt"
+              value={fmtUsd(activeStats.usdPerPrompt)}
+              color="var(--text-primary)"
+              testId="spotlight-per-prompt"
+            />
+            <MiniStat
+              label="Saved by caching"
+              value={`${Math.round(activeStats.savings * 100)}%`}
+              color="var(--success)"
+              testId="spotlight-savings"
+            />
+          </div>
+
+          <p
+            className="hig-footnote mt-4"
+            data-testid="spotlight-reason"
+          >
+            {reason}
+          </p>
+        </div>
+
+        {/* Shortlist */}
+        <div className="lg:col-span-2 flex flex-col gap-2" data-testid="spotlight-shortlist">
+          <div className="hig-footnote mb-1 flex items-center gap-1.5">
+            <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+            Also worth a look
+          </div>
+          {shortlist.length === 0 && (
+            <div className="hig-card p-4 hig-footnote text-secondary-c">
+              No other capable models to suggest at these sliders.
+            </div>
+          )}
+          {shortlist.map((row, idx) => (
+            <ShortlistRow
+              key={row.model.id}
+              row={row}
+              rank={idx + 1}
+              spotlightMonthly={activeStats.usdPerMonth}
+              budgetUsd={budgetUsd}
+              pinned={pinnedIds.includes(row.model.id)}
+              onSwap={() => onSwap(row.model.id)}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const ShortlistRow = ({ row, rank, spotlightMonthly, budgetUsd, pinned, onSwap }) => {
+  const { model, stats } = row;
+  const delta = stats.usdPerMonth - spotlightMonthly;
+  const cheaper = delta < 0;
+  const over = stats.usdPerMonth > budgetUsd;
+  const dot = VENDOR_DOT[model.vendor] || "var(--brand)";
+  const testIdSuffix = model.id.replace(/\./g, "-");
+  return (
+    <div
+      className="hig-card p-3 flex items-center gap-3"
+      data-testid={`spotlight-row-${testIdSuffix}`}
+    >
+      <span
+        className="w-2 h-2 rounded-full shrink-0"
+        style={{ background: dot, boxShadow: `0 0 6px ${dot}80` }}
+        aria-hidden="true"
+      />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="hig-headline text-primary-c truncate">{model.label}</span>
+          {pinned && (
+            <Star
+              className="w-3 h-3 shrink-0"
+              fill="currentColor"
+              style={{ color: "var(--brand)" }}
+              aria-hidden="true"
+            />
+          )}
+        </div>
+        <div className="hig-footnote flex items-center gap-2 flex-wrap">
+          <span
+            className="font-mono"
+            data-testid={`spotlight-row-${testIdSuffix}-monthly`}
+            style={{ color: over ? "var(--danger)" : "var(--text-secondary)" }}
+          >
+            {fmtUsd(stats.usdPerMonth)}/mo
+          </span>
+          <span
+            className="font-mono"
+            style={{ color: cheaper ? "var(--success)" : "var(--text-muted)" }}
+            data-testid={`spotlight-row-${testIdSuffix}-delta`}
+          >
+            {cheaper ? "-" : "+"}{fmtUsd(Math.abs(delta))}
+          </span>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onSwap}
+        className="hig-btn hig-btn-secondary shrink-0"
+        aria-label={`Swap ${model.label} into the Spotlight`}
+        data-testid={`spotlight-swap-${testIdSuffix}`}
+      >
+        Swap in
+      </button>
+    </div>
+  );
+};
+
+/* -------- Model picker ------
+ * Grouped dropdown with pinned models surfaced at the top, a star button
+ * for pinning the current pick, and an inline refresh action that pulls
+ * fresh LiteLLM prices and swaps them into the live catalog. */
+
+const VENDOR_ORDER = ["Anthropic", "OpenAI", "Google", "You"];
+
+const ModelPicker = ({
+  models, modelId, setModelId, selectedModel, effectiveInputRate,
+  effectiveOutputRate, livePricing, pricingError, pinnedIds, setPinnedIds,
+  onPricingRefreshed,
+}) => {
+  const [refreshState, setRefreshState] = useState("idle"); // idle | running | ok | fail
+  const [refreshMessage, setRefreshMessage] = useState("");
 
   const togglePin = (id) => {
     if (!id || id === "custom") return;
@@ -762,31 +1102,16 @@ const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInpu
   const isPinned = (id) => pinnedIds.includes(id);
   const currentPinned = isPinned(modelId);
 
-  const availableVendors = useMemo(() => {
-    const seen = new Set();
-    models.forEach((m) => seen.add(m.vendor));
-    return VENDOR_ORDER.filter((v) => seen.has(v));
-  }, [models]);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return models.filter((m) => {
-      if (vendorFilter !== "All" && m.vendor !== vendorFilter) return false;
-      if (!q) return true;
-      return m.label.toLowerCase().includes(q) || m.vendor.toLowerCase().includes(q);
-    });
-  }, [models, vendorFilter, query]);
-
-  // Pinned appear once in a Pinned group (in the user's pin order) and are
-  // removed from their vendor group below to avoid duplication in the list.
+  // Pinned models surface in a leading group (in the user's pin order) and
+  // are removed from their vendor group so they appear exactly once.
   const grouped = useMemo(() => {
     const pinnedList = pinnedIds
-      .map((id) => filtered.find((m) => m.id === id))
+      .map((id) => models.find((m) => m.id === id))
       .filter(Boolean);
     const pinnedSet = new Set(pinnedList.map((m) => m.id));
 
     const map = new Map();
-    filtered.forEach((m) => {
+    models.forEach((m) => {
       if (pinnedSet.has(m.id)) return;
       if (!map.has(m.vendor)) map.set(m.vendor, []);
       map.get(m.vendor).push(m);
@@ -794,11 +1119,38 @@ const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInpu
     const vendorGroups = [...map.entries()].sort(
       (a, b) => VENDOR_ORDER.indexOf(a[0]) - VENDOR_ORDER.indexOf(b[0])
     );
-
     return pinnedList.length
       ? [["★ Pinned", pinnedList], ...vendorGroups]
       : vendorGroups;
-  }, [filtered, pinnedIds]);
+  }, [models, pinnedIds]);
+
+  const refresh = async () => {
+    setRefreshState("running");
+    setRefreshMessage("");
+    try {
+      const base = import.meta.env.REACT_APP_BACKEND_URL || "";
+      const r = await fetch(`${base}/api/pricing/refresh`, { method: "POST" });
+      if (!r.ok) {
+        setRefreshState("fail");
+        setRefreshMessage(`HTTP ${r.status}`);
+        return;
+      }
+      const data = await r.json();
+      const live = (data.models || []).filter((m) => m.source === "live").length;
+      onPricingRefreshed({
+        models: data.models,
+        fetched_at: data.fetched_at,
+        source: live === data.models.length ? "live" : "mixed",
+        stale: false,
+        source_url: data.source_url,
+      });
+      setRefreshState("ok");
+      setRefreshMessage(`${live}/${data.models.length} live`);
+    } catch (e) {
+      setRefreshState("fail");
+      setRefreshMessage(String(e.message || e));
+    }
+  };
 
   return (
     <div data-testid="calc-model-picker">
@@ -809,83 +1161,58 @@ const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInpu
         </span>
       </div>
 
-      <div className="flex flex-wrap gap-1.5 mb-2" role="tablist" aria-label="Filter by vendor" data-testid="calc-model-vendor-chips">
-        {["All", ...availableVendors].map((v) => {
-          const active = vendorFilter === v;
-          return (
-            <button
-              key={v}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              onClick={() => setVendorFilter(v)}
-              data-testid={`calc-model-vendor-${v.toLowerCase()}`}
-              className={cn(
-                "hig-chip transition-colors",
-                active
-                  ? "text-white border-transparent"
-                  : "text-secondary-c hover:text-primary-c"
-              )}
-              style={active ? { background: "var(--brand)" } : undefined}
-            >
-              {v}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search models..."
-          aria-label="Search models"
-          data-testid="calc-model-search"
-          className="w-full h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors"
-        />
-        <div className="flex items-stretch gap-2">
-          <select
-            id="calc-model"
-            data-testid="calc-model-select"
-            value={modelId}
-            onChange={(e) => setModelId(e.target.value)}
-            className="flex-1 min-w-0 h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors cursor-pointer"
-            aria-describedby="calc-model-hint"
-          >
-            {grouped.length === 0 && (
-              <option value={modelId} disabled>No models match the filter</option>
-            )}
-            {grouped.map(([vendor, list]) => (
-              <optgroup key={vendor} label={vendor}>
-                {list.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {isPinned(m.id) ? "★ " : ""}{m.label}{m.id === "custom" ? "" : ` ($${m.input}/${m.output} per 1M)`}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={() => togglePin(modelId)}
-            disabled={modelId === "custom"}
-            aria-pressed={currentPinned}
-            aria-label={currentPinned ? `Unpin ${selectedModel.label}` : `Pin ${selectedModel.label} to top`}
-            title={modelId === "custom" ? "Custom rate cannot be pinned" : (currentPinned ? "Unpin from top" : "Pin to top")}
-            data-testid="calc-model-pin"
-            className={cn(
-              "h-10 w-10 flex items-center justify-center rounded-[10px] border border-c surface-card transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
-              currentPinned ? "text-[color:var(--brand)] hover:text-primary-c" : "text-secondary-c hover:text-primary-c"
-            )}
-          >
-            <Star
-              className="w-4 h-4"
-              fill={currentPinned ? "currentColor" : "none"}
-              aria-hidden="true"
-            />
-          </button>
-        </div>
+      <div className="flex items-stretch gap-2">
+        <select
+          id="calc-model"
+          data-testid="calc-model-select"
+          value={modelId}
+          onChange={(e) => setModelId(e.target.value)}
+          className="flex-1 min-w-0 h-10 px-3 rounded-[10px] border border-c surface-card text-primary-c text-[14px] outline-none focus:border-bright-c transition-colors cursor-pointer"
+          aria-describedby="calc-model-hint"
+        >
+          {grouped.map(([vendor, list]) => (
+            <optgroup key={vendor} label={vendor}>
+              {list.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {isPinned(m.id) ? "★ " : ""}{m.label}{m.id === "custom" ? "" : ` ($${m.input}/${m.output} per 1M)`}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={() => togglePin(modelId)}
+          disabled={modelId === "custom"}
+          aria-pressed={currentPinned}
+          aria-label={currentPinned ? `Unpin ${selectedModel.label}` : `Pin ${selectedModel.label} to top`}
+          title={modelId === "custom" ? "Custom rate cannot be pinned" : (currentPinned ? "Unpin from top" : "Pin to top")}
+          data-testid="calc-model-pin"
+          className={cn(
+            "h-10 w-10 flex items-center justify-center rounded-[10px] border border-c surface-card transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+            currentPinned ? "text-[color:var(--brand)] hover:text-primary-c" : "text-secondary-c hover:text-primary-c"
+          )}
+        >
+          <Star
+            className="w-4 h-4"
+            fill={currentPinned ? "currentColor" : "none"}
+            aria-hidden="true"
+          />
+        </button>
+        <button
+          type="button"
+          onClick={refresh}
+          disabled={refreshState === "running"}
+          aria-label="Refresh live pricing"
+          title={refreshState === "running" ? "Refreshing live prices…" : "Refresh live prices"}
+          data-testid="calc-model-refresh"
+          className="h-10 w-10 flex items-center justify-center rounded-[10px] border border-c surface-card text-secondary-c hover:text-primary-c transition-colors disabled:opacity-60 disabled:cursor-progress"
+        >
+          <RefreshCw
+            className={cn("w-4 h-4", refreshState === "running" && "animate-spin")}
+            aria-hidden="true"
+          />
+        </button>
       </div>
 
       <div id="calc-model-hint" className="hig-footnote mt-1 flex items-center gap-1.5 flex-wrap" data-testid="pricing-freshness">
@@ -904,77 +1231,25 @@ const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInpu
             </span>
           )
         )}
+        {refreshState !== "idle" && (
+          <span
+            className="hig-footnote"
+            data-testid="calc-model-refresh-status"
+            style={{
+              color: refreshState === "ok" ? "var(--success)"
+                : refreshState === "fail" ? "var(--warning)"
+                : "var(--text-muted)",
+            }}
+          >
+            {refreshState === "running" ? "Refreshing…" : refreshMessage}
+          </span>
+        )}
       </div>
     </div>
   );
 };
 
 
-/* -------- Pricing refresh ------
- * Small footer link that busts the backend's 24h LiteLLM cache. Public
- * endpoint because it only pulls a public GitHub JSON. */
-
-const AdminPricingRefresh = ({ livePricing, onRefreshed }) => {
-  const [status, setStatus] = useState(null); // "ok" | "fail" | "running"
-  const [message, setMessage] = useState("");
-
-  const run = async () => {
-    setStatus("running");
-    setMessage("Pulling LiteLLM...");
-    try {
-      const base = import.meta.env.REACT_APP_BACKEND_URL || "";
-      const r = await fetch(`${base}/api/pricing/refresh`, { method: "POST" });
-      if (!r.ok) {
-        setStatus("fail");
-        setMessage(`Failed with HTTP ${r.status}`);
-        return;
-      }
-      const data = await r.json();
-      const live = (data.models || []).filter((m) => m.source === "live").length;
-      onRefreshed({
-        models: data.models,
-        fetched_at: data.fetched_at,
-        source: live === data.models.length ? "live" : "mixed",
-        stale: false,
-        source_url: data.source_url,
-      });
-      setStatus("ok");
-      setMessage(`Refreshed. ${live}/${data.models.length} models resolved live.`);
-    } catch (e) {
-      setStatus("fail");
-      setMessage(String(e.message || e));
-    }
-  };
-
-  const stamp = livePricing?.fetched_at ? new Date(livePricing.fetched_at).toLocaleString() : "never";
-
-  return (
-    <div className="mt-5 pt-4 border-t border-c flex flex-wrap items-center gap-3 text-[13px]" data-testid="admin-pricing-refresh">
-      <span className="hig-footnote">
-        Pricing cache (24h). Last pulled: <span className="text-secondary-c">{stamp}</span>
-      </span>
-      <button
-        type="button"
-        onClick={run}
-        disabled={status === "running"}
-        data-testid="admin-pricing-refresh-button"
-        className="hig-chip hover:text-primary-c transition-colors disabled:opacity-60"
-      >
-        <RefreshCw className={cn("w-3.5 h-3.5", status === "running" && "animate-spin")} aria-hidden="true" />
-        Refresh now
-      </button>
-      {message && (
-        <span
-          className="hig-footnote"
-          style={{ color: status === "ok" ? "var(--success)" : status === "fail" ? "var(--warning)" : "var(--text-muted)" }}
-          data-testid="admin-pricing-refresh-status"
-        >
-          {message}
-        </span>
-      )}
-    </div>
-  );
-};
 
 /* -------- Tabs ----------- */
 

@@ -202,3 +202,27 @@ Zero new dependencies. All content lint-clean through Vale.
 - Added a `<Panel position="bottom-left">` legend chip above the control bar. It lists one coloured dot and label per pipeline layer, sourced dynamically from the first node of each layer so colour and name stay in sync with seed data.
 - `index.css` now carries one vendor override: `.react-flow__controls-button svg { fill: none !important; max-width: 14px; max-height: 14px; }`. React Flow's own stylesheet forces `fill: currentColor` on nested SVGs, which painted the Lucide magnifier circles as solid dots in light mode; `fill: none !important` restores the Lucide default. The earlier path-level fill rule from the dark-mode fix is removed since all four buttons are now Lucide-based.
 - Fullscreen parity verified via scripted `requestFullscreen` on the wrapper div: all four buttons report `inFs: true`, `svgFill: none`, `svgStroke: rgb(71, 85, 105)` (slate secondary). CSS variables and the vendor override cascade into the browser top layer unchanged.
+
+
+## 2026-11 - Token Economy: Spotlight + Ranked Shortlist
+
+New section on the Token Economy calculator (monthly mode) that stops users from clicking twenty-plus dropdown entries to find the cheapest capable model.
+
+Engine (new helpers at the top of `pages/TokenEconomy.jsx`):
+- `isCapable(model)`: rejects `custom`, anything with `input < $0.20 /1M`, and a hard-coded blocklist (`claude-haiku-5-5`, `gpt-6-luna`). Keeps "basic/tiny" models out of auto-recommendations while leaving them available in the manual dropdown.
+- `rankCapableModels(models, scenario)`: computes `usdPerMonth` for every capable model against the current sliders via the shared `computeCosts` so Spotlight numbers can never drift from the Stat grid.
+- `pickRecommended(ranked, budgetUsd)`: cheapest-capable-under-budget, or cheapest-capable overall if nothing fits (ensures the Spotlight always has a verdict).
+
+UI (two new components in the same file):
+- `<Spotlight>` renders a hero card tracking the active `modelId`. Green outline + success-strip when under budget, `--danger` outline + warning-strip when over. Shows a "Our pick" chip when the active model equals the recommendation, "Manual override" chip plus a "Back to recommended" link otherwise. Dynamic reason line reads like a verdict: either "Cheapest capable model that fits your current sliders and budget" or, under manual pick, "`<recommended>` would save $X/mo at these sliders." Pinned glyph when the active model is in `pinnedIds`.
+- `<ShortlistRow>` renders four compact rows (next cheapest capable models, excluding the active one) with vendor dot, model name, `$X/mo`, signed delta vs Spotlight (`-$12` / `+$8`), and a `Swap in` button that sets `modelId` to that row. Signed delta uses `fmtUsd(Math.abs(delta))` with explicit sign so the number never reads `$-14` awkwardness.
+
+Plumbing changes:
+- `pinnedIds` lifted from `ModelPicker` up to `Calculator` so both the picker and the Spotlight read from the same source. Duplicate `PINNED_STORAGE_KEY` / `loadPinned` collapsed into one declaration at the top of the file.
+- `recommended` / `shortlist` / `activeRanked` recompute on slider or pricing-list change via `useMemo`; `modelId` is intentionally omitted from the ranking deps so a manual swap never re-orders the shortlist.
+
+Testable surface:
+- `data-testid="spotlight-section"`, `spotlight-card`, `spotlight-badge`, `spotlight-pinned`, `spotlight-model-name`, `spotlight-monthly`, `spotlight-headroom`, `spotlight-per-prompt`, `spotlight-savings`, `spotlight-reason`, `spotlight-back-to-recommended`, `spotlight-shortlist`.
+- Each row: `spotlight-row-{model-id}` plus `spotlight-row-{id}-monthly`, `spotlight-row-{id}-delta`, and the swap button `spotlight-swap-{id}`.
+
+Verified via Playwright at 1920x1080: initial Sonnet 5.5 at $20/mo under $25 shows "Manual override" with the hint "Gemini 3 Flash would save $14/mo"; clicking Swap-in promotes Gemini 3 Flash to "Our pick", shortlist re-ranks correctly, Back-to-recommended link disappears when active matches the engine pick. Red over-budget state confirmed by dropping budget to $5 and raising input tokens / prompts-per-hour: Spotlight card gets red outline, `$245 over your $5.00 budget` strip, and the price number turns red while shortlist deltas still render with proper leading minus. Haiku 5.5 and GPT-6 Luna correctly never appear in the shortlist. No new dependencies, no new palette tokens.
