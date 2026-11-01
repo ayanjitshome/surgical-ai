@@ -1,0 +1,173 @@
+{
+  "s:sfx_impact": [
+    "sfx_impact",
+    [
+      "fal-ai/elevenlabs/sound-effects",
+      200,
+      {
+        "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a1946c-c3b6-7e70-b6a6-35bc9a96c8d8/cancel",
+        "logs": null,
+        "metrics": {},
+        "queue_position": 0,
+        "request_id": "01a1946c-c3b6-7e70-b6a6-35bc9a96c8d8",
+        "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a1946c-c3b6-7e70-b6a6-35bc9a96c8d8",
+        "status": "IN_QUEUE",
+        "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a1946c-c3b6-7e70-b6a6-35bc9a96c8d8/status",
+        "user_queue_position": 0,
+        "user_queued_count": 1
+      }
+    ]
+  ],
+  "v:whoosh_streaks": [
+    "whoosh_streaks",
+    [
+      "bytedance/seedance-2.5/text-to-video",
+      200,
+      {
+        "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/bytedance/seedance-2.5/requests/01a1946c-c3d7-7453-9f32-43a711a53620/cancel",
+        "logs": null,
+        "metrics": {},
+        "queue_position": 0,
+        "request_id": "01a1946c-c3d7-7453-9f32-43a711a53620",
+        "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/bytedance/seedance-2.5/requests/01a1946c-c3d7-7453-9f32-43a711a53620",
+        "status": "IN_QUEUE",
+        "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/bytedance/seedance-2.5/requests/01a1946c-c3d7-7453-9f32-43a711a53620/status",
+        "user_queue_position": 0,
+        "user_queued_count": 1
+      }
+    ]
+  ],
+  "s:sfx_click": [
+    "sfx_click",
+    [
+      "fal-ai/elevenlabs/sound-effects",
+      200,
+      {
+        "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a1946c-c3d9-7303-9b20-ed148a6658bb/cancel",
+        "logs": null,
+        "metrics": {},
+        "queue_position": 1,
+        "request_id": "01a1946c-c3d9-7303-9b20-ed148a6658bb",
+        "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a1946c-c3d9-7303-9b20-ed148a6658bb",
+        "status": "IN_QUEUE",
+        "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a1946c-c3d9-7303-9b20-ed148a6658bb/status",
+        "user_queue_position": 1,
+        "user_queued_count": 2
+      }
+    ]
+  ],
+  "s:sfx_whoosh": [
+    "sfx_whoosh",
+    [
+      "fal-ai/elevenlabs/sound-effects",
+      200,
+      {
+        "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a1946c-c3d7-7ba3-af12-57fffe2f07f3/cancel",
+        "logs": null,
+        "metrics": {},
+        "queue_position": 0,
+        "request_id": "01a1946c-c3d7-7ba3-af12-57fffe2f07f3",
+        "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a1946c-c3d7-7ba3-af12-57fffe2f07f3",
+        "status": "IN_QUEUE",
+        "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a1946c-c3d7-7ba3-af12-57fffe2f07f3/status",
+        "user_queue_position": 0,
+        "user_queued_count": 1
+      }
+    ]
+  ],
+  "v:studio_void": [
+    "studio_void",
+    [
+      "bytedance/seedance-2.5/text-to-video",
+      200,
+      {
+        "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/bytedance/seedance-2.5/requests/01a1946c-c3f9-77b1-b7b4-6ac8ce324344/cancel",
+        "logs": null,
+        "metrics": {},
+        "queue_position": 0,
+        "request_id": "01a1946c-c3f9-77b1-b7b4-6ac8ce324344",
+        "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/bytedance/seedance-2.5/requests/01a1946c-c3f9-77b1-b7b4-6ac8ce324344",
+        "status": "IN_QUEUE",
+        "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/bytedance/seedance-2.5/requests/01a1946c-c3f9-77b1-b7b4-6ac8ce324344/status",
+        "user_queue_position": 0,
+        "user_queued_count": 1
+      }
+    ]
+  ],
+  "music": [
+    "music",
+    [
+      "cassetteai/music-generator",
+      200,
+      {
+        "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/cassetteai/music-generator/requests/01a1946c-c416-79c2-afbd-5f96025e5668/cancel",
+        "logs": null,
+        "metrics": {},
+        "queue_position": 0,
+        "request_id": "01a1946c-c416-79c2-afbd-5f96025e5668",
+        "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/cassetteai/music-generator/requests/01a1946c-c416-79c2-afbd-5f96025e5668",
+        "status": "IN_QUEUE",
+        "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/cassetteai/music-generator/requests/01a1946c-c416-79c2-afbd-5f96025e5668/status",
+        "user_queue_position": 0,
+        "user_queued_count": 1
+      }
+    ]
+  ],
+  "v:tower_drop": [
+    "tower_drop",
+    [
+      "bytedance/seedance-2.5/text-to-video",
+      200,
+      {
+        "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/bytedance/seedance-2.5/requests/01a1946c-c416-71b1-9d0d-3b5aa0ba10a3/cancel",
+        "logs": null,
+        "metrics": {},
+        "queue_position": 1,
+        "request_id": "01a1946c-c416-71b1-9d0d-3b5aa0ba10a3",
+        "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/bytedance/seedance-2.5/requests/01a1946c-c416-71b1-9d0d-3b5aa0ba10a3",
+        "status": "IN_QUEUE",
+        "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/bytedance/seedance-2.5/requests/01a1946c-c416-71b1-9d0d-3b5aa0ba10a3/status",
+        "user_queue_position": 1,
+        "user_queued_count": 2
+      }
+    ]
+  ],
+  "s:sfx_riser": [
+    "sfx_riser",
+    [
+      "fal-ai/elevenlabs/sound-effects",
+      200,
+      {
+        "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a1946c-c416-76e1-b801-a3f4d523f55b/cancel",
+        "logs": null,
+        "metrics": {},
+        "queue_position": 0,
+        "request_id": "01a1946c-c416-76e1-b801-a3f4d523f55b",
+        "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a1946c-c416-76e1-b801-a3f4d523f55b",
+        "status": "IN_QUEUE",
+        "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/fal-ai/elevenlabs/requests/01a1946c-c416-76e1-b801-a3f4d523f55b/status",
+        "user_queue_position": 0,
+        "user_queued_count": 1
+      }
+    ]
+  ],
+  "v:teaser_macro": [
+    "teaser_macro",
+    [
+      "bytedance/seedance-2.5/text-to-video",
+      200,
+      {
+        "cancel_url": "https://integrations.emergentagent.com/api/v1/fal/queue/bytedance/seedance-2.5/requests/01a1946c-c416-74f3-80ad-f2c23173fb94/cancel",
+        "logs": null,
+        "metrics": {},
+        "queue_position": 0,
+        "request_id": "01a1946c-c416-74f3-80ad-f2c23173fb94",
+        "response_url": "https://integrations.emergentagent.com/api/v1/fal/queue/bytedance/seedance-2.5/requests/01a1946c-c416-74f3-80ad-f2c23173fb94",
+        "status": "IN_QUEUE",
+        "status_url": "https://integrations.emergentagent.com/api/v1/fal/queue/bytedance/seedance-2.5/requests/01a1946c-c416-74f3-80ad-f2c23173fb94/status",
+        "user_queue_position": 0,
+        "user_queued_count": 1
+      }
+    ]
+  ]
+}
