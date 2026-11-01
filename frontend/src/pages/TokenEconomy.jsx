@@ -230,6 +230,11 @@ const Calculator = () => {
   const [hoursPerDay, setHoursPerDay] = useState(initial?.hoursPerDay ?? DEFAULTS.hoursPerDay);
   const [daysPerMonth, setDaysPerMonth] = useState(initial?.daysPerMonth ?? DEFAULTS.daysPerMonth);
   const [modelId, setModelId] = useState(initial?.modelId ?? DEFAULTS.modelId);
+  // When false, the Spotlight recommendation drives modelId on every slider
+  // change. Flipped to true the moment the user manually picks a model
+  // (dropdown change or Shortlist Swap-in). "Back to recommendation" and
+  // Reset both clear it so the engine takes over again.
+  const [userOverride, setUserOverride] = useState(false);
   const [customInputRate, setCustomInputRate] = useState(initial?.customInputRate ?? DEFAULTS.customInputRate);
   const [customOutputRate, setCustomOutputRate] = useState(initial?.customOutputRate ?? DEFAULTS.customOutputRate);
   const [savedAt, setSavedAt] = useState(initial ? "loaded" : null);
@@ -309,6 +314,14 @@ const Calculator = () => {
     setCustomInputRate(DEFAULTS.customInputRate);
     setCustomOutputRate(DEFAULTS.customOutputRate);
     setActivePreset(null);
+    setUserOverride(false);
+  };
+
+  // Any manual pick (dropdown change or Shortlist Swap-in) flips the override
+  // flag so slider moves no longer silently promote the engine's winner.
+  const handleManualPick = (nextId) => {
+    setModelId(nextId);
+    setUserOverride(true);
   };
 
   const stats = useMemo(() => {
@@ -353,9 +366,21 @@ const Calculator = () => {
     [livePricing.models, inputTokens, cachedPct, outputTokens, promptsPerHour, budgetUsd, hoursPerDay, daysPerMonth]
   );
   const recommended = useMemo(() => pickRecommended(ranked, budgetUsd), [ranked, budgetUsd]);
+  // When the user has not manually overridden the pick, slider moves promote
+  // the engine's current winner into modelId so the Spotlight tracks it.
+  useEffect(() => {
+    if (userOverride) return;
+    if (!recommended) return;
+    if (recommended.model.id === modelId) return;
+    setModelId(recommended.model.id);
+  }, [recommended, userOverride, modelId]);
   const activeRanked = ranked.find((r) => r.model.id === modelId) || null;
   const shortlist = ranked.filter((r) => r.model.id !== modelId).slice(0, 4);
   const isActiveRecommended = recommended && recommended.model.id === modelId;
+  const backToRecommendation = () => {
+    setUserOverride(false);
+    if (recommended) setModelId(recommended.model.id);
+  };
 
   return (
     <section className="hig-elevated p-6 sm:p-8 fade-up" data-testid="token-economy-calculator" aria-labelledby="calc-title">
@@ -495,7 +520,7 @@ const Calculator = () => {
             <ModelPicker
               models={MODELS}
               modelId={modelId}
-              setModelId={setModelId}
+              setModelId={handleManualPick}
               selectedModel={selectedModel}
               effectiveInputRate={effectiveInputRate}
               effectiveOutputRate={effectiveOutputRate}
@@ -551,9 +576,10 @@ const Calculator = () => {
           shortlist={shortlist}
           budgetUsd={budgetUsd}
           isActiveRecommended={!!isActiveRecommended}
+          userOverride={userOverride}
           pinnedIds={pinnedIds}
-          onSwap={setModelId}
-          onBackToRecommended={() => recommended && setModelId(recommended.model.id)}
+          onSwap={handleManualPick}
+          onBackToRecommended={backToRecommendation}
         />
       )}
 
@@ -830,7 +856,7 @@ const VENDOR_DOT = {
 
 const Spotlight = ({
   active, activeModel, activeStats, recommended, shortlist, budgetUsd,
-  isActiveRecommended, pinnedIds, onSwap, onBackToRecommended,
+  isActiveRecommended, userOverride, pinnedIds, onSwap, onBackToRecommended,
 }) => {
   const over = activeStats.usdPerMonth > budgetUsd;
   const activePinned = pinnedIds.includes(activeModel.id);
@@ -872,15 +898,15 @@ const Spotlight = ({
             Optimal model for your usage
           </h3>
         </div>
-        {!isActiveRecommended && recommended && (
+        {userOverride && !isActiveRecommended && recommended && (
           <button
             type="button"
             onClick={onBackToRecommended}
             data-testid="spotlight-back-to-recommended"
-            className="inline-flex items-center gap-1.5 hig-footnote text-secondary-c hover:text-primary-c transition-colors"
+            className="hig-btn hig-btn-secondary inline-flex items-center gap-1.5"
           >
             <Undo2 className="w-3.5 h-3.5" aria-hidden="true" />
-            Back to recommended
+            Show recommended
           </button>
         )}
       </div>
