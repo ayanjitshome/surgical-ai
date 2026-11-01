@@ -4,12 +4,57 @@ import {
   Coins, Zap, TrendingDown, AlertTriangle, CheckCircle2, XCircle,
   Database, MessageSquare, Terminal, Flame, Lock, Infinity as InfinityIcon,
   Save, RotateCcw, Table2, Calendar, DollarSign, RefreshCw, Star,
+  Sparkles, ArrowRight, Undo2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   CACHED_WEIGHT, OUTPUT_WEIGHT, STORAGE_KEY, DEFAULTS,
   FALLBACK_MODELS, CUSTOM_MODEL, loadScenario, fmtUsd, computeCosts,
 } from "@/lib/scenario";
+
+/* -------- Suggestion engine --------
+ * Capability floor keeps the Spotlight honest. Models in the "tiny" band
+ * (input < $0.20 /1M) are excluded from the recommendation so a $0.10
+ * no-op model never wins by being cheapest. Users can still pick them
+ * from the manual dropdown; they just do not get auto-promoted. */
+const CAPABILITY_FLOOR_INPUT = 0.20;
+const CAPABILITY_BLOCKLIST = new Set([
+  "claude-haiku-5-5",
+  "gpt-6-luna",
+]);
+
+function isCapable(model) {
+  if (!model || model.id === "custom") return false;
+  if (CAPABILITY_BLOCKLIST.has(model.id)) return false;
+  return typeof model.input === "number" && model.input >= CAPABILITY_FLOOR_INPUT;
+}
+
+/* Rank every capable model against the current scenario, cheapest first. */
+function rankCapableModels(models, scenario) {
+  return models
+    .filter(isCapable)
+    .map((m) => ({ model: m, stats: computeCosts(scenario, m) }))
+    .sort((a, b) => a.stats.usdPerMonth - b.stats.usdPerMonth);
+}
+
+/* Winner = cheapest capable model under budget, else cheapest capable
+ * overall so the Spotlight always has something to show. */
+function pickRecommended(ranked, budgetUsd) {
+  if (!ranked.length) return null;
+  const underBudget = ranked.find((r) => r.stats.usdPerMonth <= budgetUsd);
+  return underBudget || ranked[0];
+}
+
+const PINNED_STORAGE_KEY = "surgicalai.tokenEconomy.pinnedModels";
+
+const loadPinned = () => {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(PINNED_STORAGE_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
+  } catch { return []; }
+};
 
 /* -------- Content model (adapted to any agentic AI tool) -------- */
 
@@ -194,6 +239,10 @@ const Calculator = () => {
   // response once /api/pricing resolves.
   const [livePricing, setLivePricing] = useState({ models: FALLBACK_MODELS, fetched_at: null, source: "fallback", stale: false });
   const [pricingError, setPricingError] = useState(null);
+  const [pinnedIds, setPinnedIds] = useState(() => loadPinned());
+  useEffect(() => {
+    try { localStorage.setItem(PINNED_STORAGE_KEY, JSON.stringify(pinnedIds)); } catch {}
+  }, [pinnedIds]);
   useEffect(() => {
     const base = import.meta.env.REACT_APP_BACKEND_URL || "";
     let cancelled = false;
@@ -286,6 +335,27 @@ const Calculator = () => {
   }, [inputTokens, cachedPct, outputTokens, promptsPerHour, budgetUsd, hoursPerDay, daysPerMonth, effectiveInputRate, effectiveOutputRate, effectiveOutputWeight]);
 
   const overBudget = stats.usdPerMonth > budgetUsd;
+
+  /* -------- Recommendation engine (monthly mode only) --------
+   * Ranked list depends on the sliders, not on the active modelId, so a
+   * manual override never changes the ordering. The Spotlight card tracks
+   * the active model; the shortlist is the next 4 after excluding it. */
+  const scenario = {
+    inputTokens, cachedPct, outputTokens, promptsPerHour,
+    budgetUsd, hoursPerDay, daysPerMonth,
+    modelId, customInputRate, customOutputRate,
+  };
+  const ranked = useMemo(
+    () => rankCapableModels(livePricing.models, scenario),
+    // Recompute whenever any slider or the pricing list changes. modelId
+    // is intentionally omitted; the ranking is model-agnostic.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [livePricing.models, inputTokens, cachedPct, outputTokens, promptsPerHour, budgetUsd, hoursPerDay, daysPerMonth]
+  );
+  const recommended = useMemo(() => pickRecommended(ranked, budgetUsd), [ranked, budgetUsd]);
+  const activeRanked = ranked.find((r) => r.model.id === modelId) || null;
+  const shortlist = ranked.filter((r) => r.model.id !== modelId).slice(0, 4);
+  const isActiveRecommended = recommended && recommended.model.id === modelId;
 
   return (
     <section className="hig-elevated p-6 sm:p-8 fade-up" data-testid="token-economy-calculator" aria-labelledby="calc-title">
@@ -430,6 +500,8 @@ const Calculator = () => {
               effectiveOutputRate={effectiveOutputRate}
               livePricing={livePricing}
               pricingError={pricingError}
+              pinnedIds={pinnedIds}
+              setPinnedIds={setPinnedIds}
             />
             <Field
               label="Hours active / day"
@@ -466,6 +538,21 @@ const Calculator = () => {
             </div>
           )}
         </div>
+      )}
+
+      {mode === "monthly" && (
+        <Spotlight
+          active={activeRanked}
+          activeModel={selectedModel}
+          activeStats={stats}
+          recommended={recommended}
+          shortlist={shortlist}
+          budgetUsd={budgetUsd}
+          isActiveRecommended={!!isActiveRecommended}
+          pinnedIds={pinnedIds}
+          onSwap={setModelId}
+          onBackToRecommended={() => recommended && setModelId(recommended.model.id)}
+        />
       )}
 
       {mode === "prompt" ? (
@@ -729,31 +816,283 @@ const MiniStat = ({ label, value, color, testId }) => (
   </div>
 );
 
+/* -------- Spotlight + shortlist ------
+ * Picks the cheapest capable model that fits the current sliders and
+ * monthly budget. The Spotlight tracks the active modelId so a manual
+ * swap or dropdown pick lands here with the same hero treatment. The
+ * shortlist is the next four candidates with one-click "Swap in". When
+ * the active model is not the engine's recommendation, a small
+ * "Back to recommended" link puts auto-pick back in control. */
+
+const VENDOR_DOT = {
+  Anthropic: "#D97757",
+  OpenAI: "#10A37F",
+  Google: "#4285F4",
+  You: "var(--text-muted)",
+};
+
+const Spotlight = ({
+  active, activeModel, activeStats, recommended, shortlist, budgetUsd,
+  isActiveRecommended, pinnedIds, onSwap, onBackToRecommended,
+}) => {
+  const over = activeStats.usdPerMonth > budgetUsd;
+  const activePinned = pinnedIds.includes(activeModel.id);
+  const headroomUsd = Math.abs(budgetUsd - activeStats.usdPerMonth);
+  const vendorDot = VENDOR_DOT[activeModel.vendor] || "var(--brand)";
+
+  // Reason line reads like a verdict, not a hedge.
+  const reason = (() => {
+    if (activeModel.id === "custom") {
+      return "Your custom rate. Suggestions below use live catalog prices.";
+    }
+    if (isActiveRecommended) {
+      return over
+        ? "Cheapest capable model on the market. Nothing under your current budget fits these sliders."
+        : "Cheapest capable model that fits your current sliders and budget.";
+    }
+    if (recommended && recommended.stats.usdPerMonth < activeStats.usdPerMonth) {
+      const delta = activeStats.usdPerMonth - recommended.stats.usdPerMonth;
+      return `Manual pick. ${recommended.model.label} would save ${fmtUsd(delta)}/mo at these sliders.`;
+    }
+    return "Manual pick. No cheaper capable model exists at these sliders.";
+  })();
+
+  // Reward (green) tint when under budget, Risk & Reward red when over.
+  const borderColor = over ? "var(--danger)" : "var(--success)";
+  const stripBg = over ? "rgba(255,69,58,0.12)" : "rgba(48,209,88,0.10)";
+  const stripFg = over ? "var(--danger)" : "var(--success)";
+
+  return (
+    <section
+      className="mt-6 pt-5 border-t border-c"
+      aria-labelledby="spotlight-title"
+      data-testid="spotlight-section"
+    >
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4" style={{ color: "var(--brand)" }} aria-hidden="true" />
+          <h3 id="spotlight-title" className="hig-headline text-primary-c">
+            Optimal model for your usage
+          </h3>
+        </div>
+        {!isActiveRecommended && recommended && (
+          <button
+            type="button"
+            onClick={onBackToRecommended}
+            data-testid="spotlight-back-to-recommended"
+            className="inline-flex items-center gap-1.5 hig-footnote text-secondary-c hover:text-primary-c transition-colors"
+          >
+            <Undo2 className="w-3.5 h-3.5" aria-hidden="true" />
+            Back to recommended
+          </button>
+        )}
+      </div>
+
+      <div className="grid lg:grid-cols-5 gap-4">
+        {/* Spotlight card */}
+        <div
+          className="lg:col-span-3 hig-card p-5 sm:p-6 relative overflow-hidden"
+          style={{
+            borderColor,
+            boxShadow: `0 0 0 1px ${borderColor}`,
+          }}
+          data-testid="spotlight-card"
+        >
+          <div className="flex items-center gap-2 flex-wrap mb-3">
+            <span
+              className="hig-chip"
+              style={{
+                background: isActiveRecommended
+                  ? "rgba(10,132,255,0.14)"
+                  : "var(--bg-card-hover)",
+                color: isActiveRecommended ? "var(--brand)" : "var(--text-secondary)",
+                borderColor: "transparent",
+              }}
+              data-testid="spotlight-badge"
+            >
+              {isActiveRecommended ? "Our pick" : "Manual override"}
+            </span>
+            {activePinned && (
+              <span
+                className="hig-chip"
+                style={{ background: "var(--brand-soft)", color: "var(--brand)", borderColor: "transparent" }}
+                data-testid="spotlight-pinned"
+                title="Pinned to top in the model picker"
+              >
+                <Star className="w-3 h-3" fill="currentColor" aria-hidden="true" />
+                Pinned
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-start gap-3 mb-4">
+            <span
+              className="mt-2 w-2.5 h-2.5 rounded-full shrink-0"
+              style={{ background: vendorDot, boxShadow: `0 0 10px ${vendorDot}80` }}
+              aria-hidden="true"
+            />
+            <div className="min-w-0">
+              <div
+                className="hig-title-3 text-primary-c truncate"
+                data-testid="spotlight-model-name"
+              >
+                {activeModel.label}
+              </div>
+              <div className="hig-footnote">
+                {activeModel.vendor}
+                {activeModel.id !== "custom" && (
+                  <> &middot; ${activeModel.input}/{activeModel.output} per 1M in/out</>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-baseline gap-3 flex-wrap">
+            <div
+              className="text-4xl sm:text-5xl font-semibold tracking-[-0.02em]"
+              style={{ color: over ? "var(--danger)" : "var(--text-primary)" }}
+              data-testid="spotlight-monthly"
+            >
+              {fmtUsd(activeStats.usdPerMonth)}
+            </div>
+            <div className="hig-footnote text-secondary-c">per month</div>
+          </div>
+
+          <div
+            className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-[10px]"
+            style={{ background: stripBg, color: stripFg }}
+            data-testid="spotlight-headroom"
+          >
+            {over
+              ? <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
+              : <TrendingDown className="w-3.5 h-3.5" aria-hidden="true" />}
+            <span className="text-[13px] font-medium">
+              {over
+                ? `${fmtUsd(headroomUsd)} over your ${fmtUsd(budgetUsd)} budget`
+                : `${fmtUsd(headroomUsd)} under your ${fmtUsd(budgetUsd)} budget`}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            <MiniStat
+              label="$ per prompt"
+              value={fmtUsd(activeStats.usdPerPrompt)}
+              color="var(--text-primary)"
+              testId="spotlight-per-prompt"
+            />
+            <MiniStat
+              label="Saved by caching"
+              value={`${Math.round(activeStats.savings * 100)}%`}
+              color="var(--success)"
+              testId="spotlight-savings"
+            />
+          </div>
+
+          <p
+            className="hig-footnote mt-4"
+            data-testid="spotlight-reason"
+          >
+            {reason}
+          </p>
+        </div>
+
+        {/* Shortlist */}
+        <div className="lg:col-span-2 flex flex-col gap-2" data-testid="spotlight-shortlist">
+          <div className="hig-footnote mb-1 flex items-center gap-1.5">
+            <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+            Also worth a look
+          </div>
+          {shortlist.length === 0 && (
+            <div className="hig-card p-4 hig-footnote text-secondary-c">
+              No other capable models to suggest at these sliders.
+            </div>
+          )}
+          {shortlist.map((row, idx) => (
+            <ShortlistRow
+              key={row.model.id}
+              row={row}
+              rank={idx + 1}
+              spotlightMonthly={activeStats.usdPerMonth}
+              budgetUsd={budgetUsd}
+              pinned={pinnedIds.includes(row.model.id)}
+              onSwap={() => onSwap(row.model.id)}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const ShortlistRow = ({ row, rank, spotlightMonthly, budgetUsd, pinned, onSwap }) => {
+  const { model, stats } = row;
+  const delta = stats.usdPerMonth - spotlightMonthly;
+  const cheaper = delta < 0;
+  const over = stats.usdPerMonth > budgetUsd;
+  const dot = VENDOR_DOT[model.vendor] || "var(--brand)";
+  const testIdSuffix = model.id.replace(/\./g, "-");
+  return (
+    <div
+      className="hig-card p-3 flex items-center gap-3"
+      data-testid={`spotlight-row-${testIdSuffix}`}
+    >
+      <span
+        className="w-2 h-2 rounded-full shrink-0"
+        style={{ background: dot, boxShadow: `0 0 6px ${dot}80` }}
+        aria-hidden="true"
+      />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="hig-headline text-primary-c truncate">{model.label}</span>
+          {pinned && (
+            <Star
+              className="w-3 h-3 shrink-0"
+              fill="currentColor"
+              style={{ color: "var(--brand)" }}
+              aria-hidden="true"
+            />
+          )}
+        </div>
+        <div className="hig-footnote flex items-center gap-2 flex-wrap">
+          <span
+            className="font-mono"
+            data-testid={`spotlight-row-${testIdSuffix}-monthly`}
+            style={{ color: over ? "var(--danger)" : "var(--text-secondary)" }}
+          >
+            {fmtUsd(stats.usdPerMonth)}/mo
+          </span>
+          <span
+            className="font-mono"
+            style={{ color: cheaper ? "var(--success)" : "var(--text-muted)" }}
+            data-testid={`spotlight-row-${testIdSuffix}-delta`}
+          >
+            {cheaper ? "-" : "+"}{fmtUsd(Math.abs(delta))}
+          </span>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onSwap}
+        className="hig-btn hig-btn-secondary shrink-0"
+        aria-label={`Swap ${model.label} into the Spotlight`}
+        data-testid={`spotlight-swap-${testIdSuffix}`}
+      >
+        Swap in
+      </button>
+    </div>
+  );
+};
+
 /* -------- Model picker ------
  * Vendor filter chips above a searchable, grouped dropdown. Pinned models
  * are stored in localStorage and surfaced in a "Pinned" group at the top
  * so a user's regulars are always one click away. */
 
 const VENDOR_ORDER = ["Anthropic", "OpenAI", "Google", "You"];
-const PINNED_STORAGE_KEY = "surgicalai.tokenEconomy.pinnedModels";
 
-const loadPinned = () => {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(PINNED_STORAGE_KEY);
-    const arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
-  } catch { return []; }
-};
-
-const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInputRate, effectiveOutputRate, livePricing, pricingError }) => {
+const ModelPicker = ({ models, modelId, setModelId, selectedModel, effectiveInputRate, effectiveOutputRate, livePricing, pricingError, pinnedIds, setPinnedIds }) => {
   const [vendorFilter, setVendorFilter] = useState("All");
   const [query, setQuery] = useState("");
-  const [pinnedIds, setPinnedIds] = useState(() => loadPinned());
-
-  useEffect(() => {
-    try { localStorage.setItem(PINNED_STORAGE_KEY, JSON.stringify(pinnedIds)); } catch {}
-  }, [pinnedIds]);
 
   const togglePin = (id) => {
     if (!id || id === "custom") return;
