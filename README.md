@@ -1,8 +1,6 @@
 # Surgical AI Hub
 
-<video src="https://raw.githubusercontent.com/ayanjitshome/surgical-ai/main/promo_video/v3/surgical_ai_hub_reveal_v3.mp4" controls="controls" width="100%">
-  Your browser does not support the video tag.
-</video>
+<video src="https://raw.githack.com/ayanjitshome/surgical-ai/main/promo_video/v3/surgical_ai_hub_reveal_v3.mp4" controls="controls" width="100%">
 
 A single-page app that shows you how to combine seven developer tools (Ponytail, Trail, Serena, Graphify, Codebase Memory, Archify, Agentsview) to cut token waste in any AI-agentic IDE (Claude Code, Copilot, Codex, Antigravity).
 
