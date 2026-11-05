@@ -27,14 +27,13 @@ import {
 const Chapter1 = ({ accent }) => (
   <div className="space-y-6">
     <Lead>
-      Most people open Claude Code, type a request and hope. A configured
-      setup means Claude starts every session already knowing your stack,
-      your rules and your workflows, and cannot skip the checks you care
-      about.
+      Open it, type, pray. That's how most sessions start. A real setup
+      flips it the other way: Claude walks in already knowing your
+      stack, your rules and the checks you refuse to skip.
     </Lead>
 
     <H2 accent={accent}>The six layers at a glance</H2>
-    <P>Think of it as six layers, each with one job.</P>
+    <P>Picture it as six slots, each with one job.</P>
 
     <FilterTable
       testId="table-six-layers"
@@ -94,9 +93,9 @@ const Chapter1 = ({ accent }) => (
 
     <H3>Rule of thumb</H3>
     <P>
-      CLAUDE.md is what Claude should know, skills are what Claude should
-      know how to do, subagents are who does side work, and hooks are
-      what must happen regardless of what the model decides.
+      CLAUDE.md is what it should know. Skills are what it should know
+      how to do. Subagents are who handles side work. Hooks are what
+      must happen, no matter what the model decides.
     </P>
   </div>
 );
@@ -105,11 +104,11 @@ const Chapter1 = ({ accent }) => (
 const Chapter2 = ({ accent }) => (
   <div className="space-y-6">
     <Lead>
-      Everything lives in two places: <Mono>~/.claude/</Mono> for you
-      across every project, and <Mono>.claude/</Mono> inside the repo
-      for the team. Commit the project folder; keep personal overrides
-      in the <Mono>.local</Mono> files, which Claude Code gitignores for
-      you.
+      Two folders run the show. <Mono>~/.claude/</Mono> is yours and
+      follows you everywhere. <Mono>.claude/</Mono> lives in the repo
+      and belongs to the team. Commit the repo one. Drop your personal
+      tweaks into the <Mono>.local</Mono> files; Claude Code gitignores
+      them so nobody sees your mess.
     </Lead>
 
     <H2 accent={accent}>Personal home and team repo</H2>
@@ -190,13 +189,13 @@ const Chapter2 = ({ accent }) => (
       ]}
     />
 
-    <H3>Precedence when two files collide</H3>
+    <H3>Who wins when two files argue</H3>
     <P>
-      The more specific file wins: managed policy, then CLI flags, then{" "}
-      <Mono>settings.local.json</Mono>, then project{" "}
-      <Mono>settings.json</Mono>, then your user{" "}
-      <Mono>settings.json</Mono>. For skills with the same name, personal
-      beats project; for subagents, project beats personal.
+      The more specific one. Strongest to weakest: managed policy, CLI
+      flags, <Mono>settings.local.json</Mono>, project{" "}
+      <Mono>settings.json</Mono>, your user <Mono>settings.json</Mono>.
+      Two skills with the same name? Personal wins. Two subagents?
+      Project wins.
     </P>
   </div>
 );
@@ -205,20 +204,20 @@ const Chapter2 = ({ accent }) => (
 const Chapter3 = ({ accent }) => (
   <div className="space-y-6">
     <Lead>
-      <Mono>CLAUDE.md</Mono> loads into every session, so every line
-      costs context on every turn. Keep it short and put only what
-      Claude cannot work out by reading the code. Run <Mono>/init</Mono>{" "}
-      once to generate a starter, then cut it down by hand.
+      <Mono>CLAUDE.md</Mono> tags along every single session, so every
+      line costs you context on every turn. Keep it lean. Only put
+      things Claude could never guess by reading the code. Run{" "}
+      <Mono>/init</Mono> once for a scaffold, then trim with a scalpel.
     </Lead>
 
     <H2 accent={accent}>How it loads</H2>
     <P>
-      Claude Code walks up from where you start it and loads every{" "}
-      <Mono>CLAUDE.md</Mono> and <Mono>CLAUDE.local.md</Mono> it finds,
-      then loads subdirectory <Mono>CLAUDE.md</Mono> files on demand
-      when it works in those folders. Your <Mono>~/.claude/CLAUDE.md</Mono>{" "}
-      loads everywhere. Edit any of them in-session with{" "}
-      <Mono>/memory</Mono>.
+      Claude Code starts from where you launched it and walks up the
+      tree, grabbing every <Mono>CLAUDE.md</Mono> and{" "}
+      <Mono>CLAUDE.local.md</Mono> along the way. Subfolder files load
+      on demand when Claude actually works in there. Your{" "}
+      <Mono>~/.claude/CLAUDE.md</Mono> comes with you everywhere. Edit
+      any of them mid-session with <Mono>/memory</Mono>.
     </P>
 
     <H3>What belongs in it, and what to keep out</H3>
@@ -238,7 +237,7 @@ const Chapter3 = ({ accent }) => (
       ]}
     />
 
-    <H3>Starter template (aim for under about 100 lines)</H3>
+    <H3>Starter template (shoot for under 100 lines)</H3>
     <CodeBlock
       label="markdown"
       testId="code-claude-md-starter"
@@ -270,18 +269,18 @@ One paragraph: what this is, who uses it, the stack.
 - Git workflow: @docs/git.md`}
     />
 
-    <H3>Three ways to stop CLAUDE.md bloating</H3>
+    <H3>Three ways to keep it slim</H3>
     <UL ordered>
       <LI>
         <b>Imports.</b> <Mono>@path/to/file.md</Mono> pulls another file
-        in; <Mono>@~/.claude/my-prefs.md</Mono> pulls in a personal
-        file. Imports inside code spans are ignored.
+        in. <Mono>@~/.claude/my-prefs.md</Mono> pulls in a personal
+        one. Imports inside code spans are ignored.
       </LI>
       <LI>
         <b>Rules folder.</b> Split topics into{" "}
         <Mono>.claude/rules/*.md</Mono> (testing.md, api.md,
         security.md). Add <Mono>paths:</Mono> frontmatter so a rule
-        loads only when Claude touches matching files:
+        only shows up when Claude touches matching files:
       </LI>
     </UL>
     <CodeBlock
@@ -294,22 +293,22 @@ All endpoints validate input with Zod and return { data, error }.`}
     />
     <UL ordered>
       <LI>
-        <b>Nested CLAUDE.md.</b> In a monorepo, put a short{" "}
-        <Mono>CLAUDE.md</Mono> in each package; it loads only when
-        Claude works there.
+        <b>Nested CLAUDE.md.</b> In a monorepo, drop a tiny{" "}
+        <Mono>CLAUDE.md</Mono> in each package. It only loads when
+        Claude works in there.
       </LI>
     </UL>
 
     <H3>A short note on auto memory</H3>
     <P>
-      Auto memory is separate: Claude writes notes to{" "}
-      <Mono>~/.claude/projects/&lt;project&gt;/memory/MEMORY.md</Mono>{" "}
-      when you correct it, and the first 200 lines (or 25KB) load each
-      session. Say "add this to CLAUDE.md" when a lesson should be
-      shared with the team rather than kept in Claude's private notes.
-      Toggle it from <Mono>/memory</Mono>. Run <Mono>/doctor</Mono>{" "}
-      periodically: it flags CLAUDE.md content Claude could derive from
-      the code and offers to move procedures into skills.
+      Auto memory is its own thing. When you correct Claude, it jots
+      the lesson into{" "}
+      <Mono>~/.claude/projects/&lt;project&gt;/memory/MEMORY.md</Mono>,
+      and the first 200 lines (or 25KB) load every session. Want the
+      team to see it? Say "add this to CLAUDE.md". Toggle the feature
+      from <Mono>/memory</Mono>. Run <Mono>/doctor</Mono> now and
+      then: it flags CLAUDE.md content that could be inferred from code
+      and offers to move procedures into skills.
     </P>
   </div>
 );
@@ -318,12 +317,12 @@ All endpoints validate input with Zod and return { data, error }.`}
 const Chapter4 = ({ accent }) => (
   <div className="space-y-6">
     <Lead>
-      A skill is a folder with a <Mono>SKILL.md</Mono> file. Only its
-      short description sits in context; the full body loads when Claude
-      decides it's relevant or you type <Mono>/skill-name</Mono>. Make a
-      skill whenever you catch yourself pasting the same instructions
-      twice, or when a CLAUDE.md section turns into a procedure. Custom
-      slash commands are now skills:{" "}
+      A skill is a folder with a <Mono>SKILL.md</Mono>. Only the short
+      description sits in context; the full body loads when Claude
+      thinks it's relevant, or when you type <Mono>/skill-name</Mono>.
+      Write one the second you catch yourself pasting the same
+      instructions twice, or when a CLAUDE.md section grows legs and
+      turns into a procedure. Custom slash commands are skills now:{" "}
       <Mono>.claude/commands/deploy.md</Mono> still works, but new work
       goes in <Mono>.claude/skills/deploy/SKILL.md</Mono>.
     </Lead>
@@ -360,8 +359,8 @@ const Chapter4 = ({ accent }) => (
       ]}
     />
     <P>
-      Same name in two places: personal beats project, and your skill
-      replaces a bundled one of the same name.
+      Same name twice? Personal wins, and your skill replaces a bundled
+      one with the same name.
     </P>
 
     <H3>SKILL.md anatomy</H3>
@@ -416,8 +415,8 @@ For error-shape rules see [reference.md](reference.md).`}
     <Note>
       <b>Live data in the prompt.</b> A line like{" "}
       <Mono>!`git diff HEAD`</Mono> runs before Claude reads the skill
-      and inlines the output, so the skill starts grounded in your real
-      state. Use <Mono>$ARGUMENTS</Mono>, <Mono>$0</Mono>,{" "}
+      and inlines the output, so the skill kicks off already grounded
+      in your real state. Use <Mono>$ARGUMENTS</Mono>, <Mono>$0</Mono>,{" "}
       <Mono>$1</Mono> for arguments.
     </Note>
 
@@ -426,10 +425,10 @@ For error-shape rules see [reference.md](reference.md).`}
       <LI>
         <b>/plan-feature</b> (project): interview me, read the relevant
         code, write a plan to <Mono>docs/plans/&lt;feature&gt;.md</Mono>
-        , stop for approval.
+        , then stop for approval.
       </LI>
       <LI>
-        <b>/fix-issue &lt;n&gt;</b> (project, manual): read the GitHub
+        <b>/fix-issue &lt;n&gt;</b> (project, manual): open the GitHub
         issue, reproduce with a failing test, fix, run checks, commit.
       </LI>
       <LI>
@@ -438,7 +437,7 @@ For error-shape rules see [reference.md](reference.md).`}
       </LI>
       <LI>
         <b>verify</b> (project): Claude Code runs a project skill named
-        verify before each commit; let <Mono>/verify</Mono> record your
+        verify before each commit. Let <Mono>/verify</Mono> record your
         build-and-run recipe once.
       </LI>
       <LI>
@@ -447,13 +446,13 @@ For error-shape rules see [reference.md](reference.md).`}
       </LI>
     </UL>
     <P>
-      Also use the bundled ones before writing your own:{" "}
+      Reach for the built-ins before writing your own:{" "}
       <Mono>/code-review</Mono>, <Mono>/debug</Mono>,{" "}
       <Mono>/simplify</Mono>, <Mono>/batch</Mono>, <Mono>/loop</Mono>,{" "}
-      <Mono>/run</Mono>, <Mono>/verify</Mono>, <Mono>/doctor</Mono>. Run{" "}
-      <Mono>/skill-doctor</Mono> to find skills that cost context but
-      never get used, and the skill-creator plugin to test a skill with
-      and without it.
+      <Mono>/run</Mono>, <Mono>/verify</Mono>, <Mono>/doctor</Mono>.{" "}
+      <Mono>/skill-doctor</Mono> finds the skills that hog context but
+      never get called, and the skill-creator plugin lets you A/B a
+      skill with and without it.
     </P>
   </div>
 );
@@ -462,12 +461,11 @@ For error-shape rules see [reference.md](reference.md).`}
 const Chapter5 = ({ accent }) => (
   <div className="space-y-6">
     <Lead>
-      A subagent is a worker with its own context window, system prompt,
-      tools and model. Its job is to soak up noisy work (searching 40
-      files, running a test suite, reading logs) and hand back a short
-      summary, so your main conversation stays clean. Use a skill when
-      you want a playbook in the main thread; use a subagent when you
-      want the work done somewhere else.
+      A subagent is a hired hand with its own context window, prompt,
+      tools and model. Give it the loud jobs (grepping 40 files,
+      running the test suite, trawling logs) and it hands back a tidy
+      summary. Your main chat stays spotless. Skill = playbook in the
+      main thread. Subagent = work done in another room.
     </Lead>
 
     <H2 accent={accent}>Where agent files live, and who wins</H2>
@@ -487,8 +485,8 @@ const Chapter5 = ({ accent }) => (
       ]}
     />
     <P>
-      Subfolders like <Mono>agents/review/</Mono> are fine; identity
-      comes only from the <Mono>name</Mono> field, so keep names unique.
+      Subfolders like <Mono>agents/review/</Mono> are fine. Identity
+      lives in the <Mono>name</Mono> field, so keep every name unique.
     </P>
 
     <H3>How to create one</H3>
@@ -501,12 +499,12 @@ const Chapter5 = ({ accent }) => (
       </LI>
       <LI>
         <b>Or write the file yourself.</b> Only <Mono>name</Mono> and{" "}
-        <Mono>description</Mono> are required; the body is the system
+        <Mono>description</Mono> are required. The body is the system
         prompt.
       </LI>
       <LI>
         <b>Check it:</b> Claude Code picks up edits within seconds.
-        Restart only if the <Mono>agents/</Mono> folder didn't exist
+        Only restart if the <Mono>agents/</Mono> folder didn't exist
         when the session started.
       </LI>
     </UL>
@@ -550,7 +548,7 @@ Check your memory for recurring issues in this repo, and save new patterns.`}
       ]}
     />
 
-    <H3>Delegation patterns</H3>
+    <H3>Ways to call them</H3>
     <UL>
       <LI>
         <b>Automatic:</b> Claude delegates when a task matches a
@@ -564,21 +562,21 @@ Check your memory for recurring issues in this repo, and save new patterns.`}
         the auth module.
       </LI>
       <LI>
-        <b>Whole session:</b> <Mono>claude --agent code-reviewer</Mono>,
-        or <Mono>"agent": "code-reviewer"</Mono> in settings.
+        <b>Whole session:</b> <Mono>claude --agent code-reviewer</Mono>
+        , or <Mono>"agent": "code-reviewer"</Mono> in settings.
       </LI>
       <LI>
-        <b>Patterns:</b> parallel research ("explore auth, db and api in
-        separate subagents"), chaining (reviewer finds, fixer fixes),
+        <b>Patterns:</b> parallel research ("explore auth, db and api
+        in separate subagents"), chaining (reviewer finds, fixer fixes),
         and isolating test runs.
       </LI>
     </UL>
     <P>
-      Built-ins already cover a lot: <b>Explore</b> (fast read-only
-      search), <b>Plan</b> (research during plan mode) and{" "}
-      <b>general-purpose</b>. Subagents start fresh: they don't see your
-      conversation, so restate anything critical in the request. A
-      starter team: code reviewer (read-only), test-runner (haiku),
+      The built-ins cover plenty: <b>Explore</b> (fast read-only
+      search), <b>Plan</b> (research in plan mode) and{" "}
+      <b>general-purpose</b>. Heads up: subagents start fresh. They
+      can't see your chat, so repeat anything they need. A solid
+      starter roster: code-reviewer (read-only), test-runner (haiku),
       debugger (can edit), security-auditor (read-only, opus).
     </P>
   </div>
@@ -588,16 +586,15 @@ Check your memory for recurring issues in this repo, and save new patterns.`}
 const Chapter6 = ({ accent }) => (
   <div className="space-y-6">
     <Lead>
-      <Mono>CLAUDE.md</Mono> is advice Claude will probably follow;
-      settings and hooks are enforced. Anything that must happen every
-      time (formatting, blocking secrets, running tests) belongs here,
-      not in a prompt.
+      <Mono>CLAUDE.md</Mono> is a strong suggestion. Settings and hooks
+      are the law. Anything that has to happen every time (formatting,
+      blocking secrets, running tests) goes here, not in a prompt.
     </Lead>
 
     <H2 accent={accent}>Permissions</H2>
     <P>
-      Pre-approve the safe commands you run constantly and deny the
-      dangerous ones. Deny always beats allow.
+      Pre-approve the safe commands you type all day. Deny the scary
+      ones. If both lists mention something, deny wins.
     </P>
     <CodeBlock
       label="json"
@@ -620,21 +617,22 @@ const Chapter6 = ({ accent }) => (
 
     <H3>Permission modes</H3>
     <P>
-      Cycle with <b>Shift+Tab</b>: <Mono>default</Mono> asks for risky
-      actions, <Mono>acceptEdits</Mono> auto-accepts file edits,{" "}
-      <Mono>plan</Mono> is read-only research, <Mono>auto</Mono> lets a
-      classifier approve routine actions. Avoid{" "}
-      <Mono>bypassPermissions</Mono> outside a sandbox or container.
+      Cycle with <b>Shift+Tab</b>. <Mono>default</Mono> asks before
+      anything risky. <Mono>acceptEdits</Mono> auto-accepts file edits.{" "}
+      <Mono>plan</Mono> is read-only research.{" "}
+      <Mono>auto</Mono> lets a classifier wave through routine actions.
+      Stay away from <Mono>bypassPermissions</Mono> unless you're
+      inside a sandbox or container.
     </P>
 
     <H2 accent={accent}>Hooks: the lifecycle events</H2>
     <P>
-      Hooks are commands Claude Code runs at lifecycle events,
+      Hooks are commands Claude Code runs on lifecycle events,
       configured under <Mono>hooks</Mono> in any settings file (or in a
-      skill or agent's frontmatter). They receive JSON on stdin.{" "}
-      <b>Exit 0</b> = continue, <b>exit 2</b> = block and send stderr
-      back to Claude, any other code = non-blocking error. A policy
-      script that exits 1 enforces nothing.
+      skill or agent frontmatter). They get JSON on stdin.{" "}
+      <b>Exit 0</b> = carry on. <b>Exit 2</b> = block the action and
+      send stderr back to Claude. Any other code = non-blocking error.
+      A policy script that exits 1 enforces nothing.
     </P>
 
     <FilterTable
@@ -679,11 +677,11 @@ const Chapter6 = ({ accent }) => (
 }`}
     />
     <P>
-      Besides shell commands, hooks can call an HTTP endpoint, ask a
-      model a yes-or-no question, or spawn an agent. Use{" "}
-      <Mono>/hooks</Mono> to view what's active. Hooks run with your
-      full credentials, so review any hook a repo ships before trusting
-      the folder.
+      Hooks aren't limited to shell. They can hit an HTTP endpoint,
+      ask a model a yes-or-no question, or spawn an agent. Use{" "}
+      <Mono>/hooks</Mono> to see what's live. They run with your full
+      credentials, so read any hook a repo ships before you trust the
+      folder.
     </P>
 
     <H3>Other settings worth knowing</H3>
@@ -716,21 +714,21 @@ const Chapter6 = ({ accent }) => (
 const Chapter7 = ({ accent }) => (
   <div className="space-y-6">
     <Lead>
-      MCP servers give Claude tools outside the repo: GitHub, Linear,
-      Sentry, your database, a browser. Plugins bundle skills,
-      subagents, hooks and MCP servers into one install, which is how
-      you share a setup across repos.
+      MCP servers hand Claude tools that live outside the repo:
+      GitHub, Linear, Sentry, your database, a browser. Plugins wrap
+      skills, subagents, hooks and MCP servers into a single install,
+      which is how a setup travels from repo to repo.
     </Lead>
 
     <H2 accent={accent}>Adding and scoping MCP servers</H2>
     <P>
       Add one with <Mono>claude mcp add</Mono> (scope <Mono>local</Mono>
-      , <Mono>project</Mono> or <Mono>user</Mono>); project-scoped
-      servers go in <Mono>.mcp.json</Mono> so the team shares them.
-      Check status with <Mono>/mcp</Mono>. Every connected server's tool
-      descriptions cost context, so connect only what you use, and give
-      heavy servers (like Playwright) to a single subagent via{" "}
-      <Mono>mcpServers</Mono> instead.
+      , <Mono>project</Mono> or <Mono>user</Mono>). Project-scoped
+      servers land in <Mono>.mcp.json</Mono> so the team shares them.
+      Check status with <Mono>/mcp</Mono>. Every connected server's
+      tool descriptions eat context, so wire up only what you actually
+      use, and hand the heavy ones (Playwright, say) to a single
+      subagent via <Mono>mcpServers</Mono> instead of the main chat.
     </P>
     <CodeBlock
       label="bash"
@@ -751,8 +749,8 @@ claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest`}
 /plugin install typescript-lsp@claude-plugins-official  # real go-to-definition and type errors`}
     />
     <P>
-      Once your own setup stabilises, package it as a plugin so every
-      repo and teammate gets the same skills and agents.
+      Once your setup settles, package it as a plugin so every repo
+      and every teammate inherits the same skills and agents.
     </P>
 
     <H3>Quality-of-life extras</H3>
@@ -762,8 +760,8 @@ claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest`}
         branch and context usage at the bottom of the terminal.
       </LI>
       <LI>
-        <b>Output styles</b>: change how Claude talks (e.g. an
-        explanatory or learning style) without touching CLAUDE.md.
+        <b>Output styles</b>: change how Claude talks (explainer,
+        learning mode, whatever fits) without touching CLAUDE.md.
       </LI>
       <LI>
         <b>IDE integration</b>: run Claude Code inside VS Code or
@@ -773,14 +771,14 @@ claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest`}
         <b>
           <Mono>/doctor</Mono>
         </b>
-        : setup checkup covering installs, unused extensions, bloated
+        : a quick checkup for installs, unused extensions, bloated
         CLAUDE.md and permissions.
       </LI>
       <LI>
         <b>
           <Mono>/context</Mono>
         </b>
-        : see exactly what is eating your context window.
+        : see exactly what's eating your context window.
       </LI>
     </UL>
   </div>
@@ -790,67 +788,68 @@ claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest`}
 const Chapter8 = ({ accent }) => (
   <div className="space-y-6">
     <Lead>
-      A good setup is wasted if every task is one long prompt. The loop
-      that produces clean, reviewable work (and a session log you'd be
-      proud to share) is Explore, Plan, Code, Verify, Commit.
+      A good setup dies if you dump every task into one giant prompt.
+      The loop that leads to clean, reviewable work (and a session log
+      you'd happily post in a channel) is Explore, Plan, Code, Verify,
+      Commit.
     </Lead>
 
     <H2 accent={accent}>The daily loop</H2>
     <UL ordered>
       <LI>
         <b>Explore.</b> Start in plan mode (Shift+Tab). "Read the auth
-        module and the checkout flow; don't change anything. Explain
+        module and the checkout flow. Don't change anything. Explain
         how sessions are validated." Let Explore subagents do the
         reading.
       </LI>
       <LI>
         <b>Plan.</b> "Interview me about edge cases, then write a plan
         to <Mono>docs/plans/refunds.md</Mono>." Push back on the plan
-        before any code exists; this is the cheapest place to fix
+        before any code exists. This is the cheapest place to catch
         mistakes.
       </LI>
       <LI>
         <b>Code.</b> Leave plan mode and implement one step at a time.
-        Give Claude a way to check itself: a failing test first, a type
-        check, or <Mono>/run</Mono> against the real app.
+        Give Claude something to check itself against: a failing test
+        first, a type check, or <Mono>/run</Mono> on the real app.
       </LI>
       <LI>
-        <b>Verify.</b> Have the code-reviewer subagent review the diff
-        in a fresh context, run <Mono>/verify</Mono>, and read the diff
-        yourself.
+        <b>Verify.</b> Have the code-reviewer subagent read the diff
+        in a fresh context, run <Mono>/verify</Mono>, and read the
+        diff yourself.
       </LI>
       <LI>
         <b>Commit.</b> <Mono>/commit</Mono> or "commit with a
         conventional message and open a PR." Hooks format and test on
-        the way.
+        the way out.
       </LI>
     </UL>
 
     <H3>Debugging loop</H3>
     <P>
-      Paste the exact error or stack trace, ask for a hypothesis and a
-      failing test that reproduces it before a fix, then fix and
-      re-run. <Mono>/debug</Mono> and a debugger subagent formalise
-      this.
+      Paste the exact error or stack trace. Ask for a hypothesis, then
+      a failing test that reproduces the bug, then the fix, then
+      re-run. <Mono>/debug</Mono> and a debugger subagent make the
+      whole thing a ritual.
     </P>
 
     <H3>Context hygiene</H3>
     <UL>
       <LI>
-        <Mono>/clear</Mono> between unrelated tasks; a fresh session
-        beats a long, confused one.
+        <Mono>/clear</Mono> between unrelated tasks. A fresh session
+        beats a long, confused one every time.
       </LI>
       <LI>
         <Mono>/compact</Mono> with a focus ("keep the API decisions")
-        when a long task fills up.
+        when a long task starts filling up.
       </LI>
       <LI>
-        <b>Esc</b> stops Claude without losing context; <b>Esc twice</b>{" "}
-        or <Mono>/rewind</Mono> restores code or conversation to a
+        <b>Esc</b> stops Claude without losing context. <b>Esc twice</b>
+        , or <Mono>/rewind</Mono>, restores code or conversation to a
         checkpoint.
       </LI>
       <LI>
-        <Mono>/context</Mono> shows what is using space; push noisy
+        <Mono>/context</Mono> shows what's using space. Push noisy
         work into subagents.
       </LI>
       <LI>
@@ -862,26 +861,27 @@ const Chapter8 = ({ accent }) => (
     <H3>Scaling up</H3>
     <UL>
       <LI>
-        <Mono>claude --worktree</Mono> (or <Mono>isolation: worktree</Mono>{" "}
-        on a subagent) runs parallel work on separate checkouts.
+        <Mono>claude --worktree</Mono> (or{" "}
+        <Mono>isolation: worktree</Mono> on a subagent) runs parallel
+        work on separate checkouts.
       </LI>
       <LI>
         <Mono>claude -p "..."</Mono> runs headless for CI, scripts and
         scheduled jobs.
       </LI>
-      <LI>Background agents let several sessions run at once while you review.</LI>
+      <LI>Background agents let a few sessions run at once while you review.</LI>
     </UL>
 
     <H3>Prompting habits that make the logs look senior</H3>
     <P>
-      State the goal and the constraint ("keep the public API
-      unchanged"), point at files with <Mono>@path</Mono>, name how
-      success is measured, and correct Claude early and specifically,
-      then say "add that to CLAUDE.md" so the fix sticks.
+      State the goal and the guardrail ("keep the public API the
+      same"). Point at files with <Mono>@path</Mono>. Spell out how
+      success is measured. Correct Claude early and in specifics, then
+      say "add that to CLAUDE.md" so the fix sticks next time.
     </P>
 
     <H2 accent={accent}>Setup checklist</H2>
-    <P>An afternoon gets you from "just prompting" to a real setup.</P>
+    <P>One afternoon takes you from "just prompting" to a real setup.</P>
     <Checklist
       items={[
         { id: "init", text: "Run /init, then cut CLAUDE.md to the commands, conventions and gotchas Claude can't infer." },
@@ -923,9 +923,9 @@ export const CHAPTERS = [
     number: 1,
     slug: "why-setup-beats-prompting",
     title: "Why setup beats prompting",
-    promise: "See the six layers at a glance.",
+    promise: "Six layers, one glance.",
     takeaway:
-      "A mental map of where CLAUDE.md, skills, subagents, hooks, MCP and plugins each fit, and when to reach for which.",
+      "A pocket map of where CLAUDE.md, skills, subagents, hooks, MCP and plugins each sit, and which one to reach for.",
     Icon: Target,
     accent: "#0A84FF",
     Body: Chapter1,
@@ -934,9 +934,9 @@ export const CHAPTERS = [
     number: 2,
     slug: "folder-map",
     title: "The folder map",
-    promise: "Where ~/.claude ends and .claude begins.",
+    promise: "~/.claude vs .claude, sorted.",
     takeaway:
-      "Know which file lives where, which belongs to the team, and which one wins when two settings collide.",
+      "Know which file lives where, which belongs to the team, and who wins when two files argue.",
     Icon: FolderTree,
     accent: "#30D158",
     Body: Chapter2,
@@ -945,9 +945,9 @@ export const CHAPTERS = [
     number: 3,
     slug: "claude-md",
     title: "CLAUDE.md, the always-on brief",
-    promise: "A short brief that pays for itself every session.",
+    promise: "A tiny brief that earns its keep.",
     takeaway:
-      "What belongs in CLAUDE.md, a starter template, and three ways to stop it bloating as the repo grows.",
+      "What belongs in it, a starter template, and three ways to keep it slim as the repo grows.",
     Icon: FileText,
     accent: "#BF5AF2",
     Body: Chapter3,
@@ -956,9 +956,9 @@ export const CHAPTERS = [
     number: 4,
     slug: "skills",
     title: "Skills",
-    promise: "Reusable playbooks and slash commands.",
+    promise: "Playbooks on tap.",
     takeaway:
-      "When to write a skill, SKILL.md anatomy with a real example, and the frontmatter fields worth knowing.",
+      "When to write one, what a SKILL.md looks like in real life, and the frontmatter fields worth knowing by heart.",
     Icon: Sparkles,
     accent: "#FF9F0A",
     Body: Chapter4,
@@ -967,9 +967,9 @@ export const CHAPTERS = [
     number: 5,
     slug: "subagents",
     title: "Subagents",
-    promise: "Workers with their own context window.",
+    promise: "Hired hands with their own brain.",
     takeaway:
-      "When a subagent beats a skill, how to create one, and the delegation patterns that keep main chat clean.",
+      "When a subagent beats a skill, how to spin one up, and the delegation patterns that keep main chat clean.",
     Icon: Users,
     accent: "#FF453A",
     Body: Chapter5,
@@ -978,9 +978,9 @@ export const CHAPTERS = [
     number: 6,
     slug: "settings-permissions-hooks",
     title: "Settings, permissions and hooks",
-    promise: "Advice versus enforcement, and when each wins.",
+    promise: "Suggestions versus rules.",
     takeaway:
-      "The permissions block, the four permission modes, every lifecycle event, and a worked PostToolUse hook.",
+      "The permissions block, the four modes, every lifecycle event, and a PostToolUse hook you can copy today.",
     Icon: Shield,
     accent: "#FFD60A",
     Body: Chapter6,
@@ -989,9 +989,9 @@ export const CHAPTERS = [
     number: 7,
     slug: "mcp-plugins",
     title: "MCP servers and plugins",
-    promise: "Tools outside the repo, shared across teams.",
+    promise: "Reach outside the repo.",
     takeaway:
-      "Add and scope MCP servers to one subagent, install plugins, and the quality-of-life extras to keep on.",
+      "Add and scope MCP servers to a single subagent, install plugins, and the little extras worth leaving on.",
     Icon: Plug,
     accent: "#06B6D4",
     Body: Chapter7,
@@ -1002,7 +1002,7 @@ export const CHAPTERS = [
     title: "The daily workflow and the checklist",
     promise: "Explore, plan, code, verify, ship.",
     takeaway:
-      "The habit loop, the debugging loop, the setup checklist you can tick off in a browser, and the common mistakes.",
+      "The habit loop, the debugging loop, a tick-and-persist setup checklist, and the mistakes that bite everyone once.",
     Icon: ListChecks,
     accent: "#EC4899",
     Body: Chapter8,

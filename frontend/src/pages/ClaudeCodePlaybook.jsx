@@ -57,13 +57,13 @@ const Landing = () => {
           {"// claude code playbook"}
         </div>
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-primary-c max-w-3xl tracking-[-0.02em]">
-          Stop prompting blind. Set Claude Code{" "}
-          <span style={{ color: "var(--brand)" }}>up once</span>.
+          Stop winging it.{" "}
+          <span style={{ color: "var(--brand)" }}>Set it up once</span>.
         </h1>
         <p className="text-secondary-c mt-4 max-w-2xl leading-relaxed">
-          Eight short chapters that turn a terminal install into a
-          configured workbench. For engineers already using Claude Code
-          in anger.
+          Eight short chapters that take Claude Code from blank prompt
+          to configured workbench. Written for folks who already live
+          inside the terminal.
         </p>
 
         {/* Headline numbers */}
