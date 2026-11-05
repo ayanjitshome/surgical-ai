@@ -1,71 +1,168 @@
-# Token Economy — Optimal Model Suggestion
+# Claude Code Setup Playbook — in-app chapter experience
 
-The Token Economy page learns the user's usage from the sliders already on screen and does the model-shopping for them. Instead of trying one model at a time against the dropdown, the user sees the single cheapest capable model that fits their budget and four runner-ups ready to swap in with one click.
+Turn the uploaded setup playbook into a dedicated page inside Surgical AI
+Hub, reached from a new sidebar entry placed directly under Risk & Reward.
+Reads as eight chapters, each opened one at a time from a landing grid.
 
 ## Who it's for
 
-Developers and tech leads who use the Token Economy page to size a monthly AI coding bill. They know their rough prompt rhythm (prompts per hour, hours per day, days per month) and a monthly budget. They do not want to click twenty-plus models to see which one does not blow their budget.
+Engineers who are using Claude Code in anger and want to stop prompting
+blind. The playbook assumes some familiarity with a terminal, git, and a
+modern codebase; it does not teach those. The reader is here to make their
+sessions faster, safer, and more repeatable, not to install Claude Code
+for the first time.
 
 ## Core features and experience
 
-- A **Spotlight** card at the top of the results area always shows the recommended model: the cheapest one above a minimum capability tier that still fits all current slider inputs and the monthly budget.
-- The Spotlight card carries the model name and vendor, projected monthly spend, headroom under budget (for example "$47 under your $500 budget"), per-prompt cost, cached-share savings, and a one-line reason ("Cheapest capable model that fits your 500 prompts a day").
-- A **Ranked shortlist** of four runners-up sits beside or beneath the Spotlight. Each row carries vendor glyph, model name, projected monthly spend, delta against the Spotlight (`+$12 /mo`), and a `Swap in` button that promotes that row into the Spotlight. The old Spotlight demotes into the row the user just swapped from — nothing is hidden, the comparison is reversible with one click.
-- A **capability floor** keeps the shortlist honest: models flagged as basic or tiny in the LiteLLM metadata never win, even when they are cheaper. This stops the suggestion from always being the cheapest no-name model.
-- An **over-budget state**: when zero models fit, the Spotlight still shows the cheapest capable model, framed in a red-tinted warning strip that calls out the overage ("$54 over your $500 budget"). The user is never left with nothing to look at.
-- The **existing manual dropdown stays** as a visible override, placed next to the Spotlight with the label "Pick manually". Choosing a model from it immediately promotes that model into the Spotlight; a small "Back to recommended" link reverts.
-- Everything recalculates **live**: as the user drags any slider or edits the budget, the Spotlight and shortlist refresh in-place with the same smooth number animation the page already uses.
-- **Pinned favorites** keep their star but do not jump the ranking. If a pinned model is also the current winner, a small pin glyph appears next to its name.
+- **Sidebar entry.** New Claude Code Playbook item sits immediately below
+  Risk & Reward in the primary nav. Shown on every screen, same visual
+  weight as the other top-level pages.
+- **Landing grid: eight chapter cards.** One row of headline numbers at
+  the top ("8 chapters · ~25 min read · afternoon to apply"), then a
+  responsive grid of eight cards, each with a chapter number, a colored
+  mini-icon drawn from Lucide, a one-line promise, and a two-line what
+  you will take away. Cards are keyboard-focusable, tap-and-go on mobile,
+  and show a ticked state once the chapter has been opened in this
+  browser.
+- **Chapter reader.** Clicking a card swaps the grid for a full-bleed
+  reading pane with the chapter title, a back-to-grid arrow, previous and
+  next chapter buttons, a thin reading-progress bar at the very top of
+  the viewport, and the chapter body itself. The URL carries the chapter
+  slug so links and refreshes land on the same place.
+- **Copyable code.** Every code block has a copy button that lives
+  quietly in the top-right of the block and flashes a confirmation when
+  pressed.
+- **Anchor on every heading.** Hovering any heading reveals a small link
+  icon; clicking copies a deep link to that exact section.
+- **Interactive setup checklist.** Chapter 7 (Setup checklist) renders
+  the nine bullet points as real checkboxes. Tick state is stored in the
+  browser and persists across visits; a small "Reset list" link below
+  the checklist clears it.
+- **Filterable tables.** The three big tables (the six layers, the
+  personal-versus-team paths, and the hook events) each get a short
+  search input above them and lightweight column filters (vendor /
+  scope / event type depending on the table). Below a certain row count
+  the filter UI stays out of the way.
+- **Reading tone.** No marketing fluff, no em-dashes, no AI-slop
+  vocabulary. Short sentences, concrete nouns, exact file paths. The
+  page's voice must sound like the rest of the Hub, especially the
+  existing Prompt Playbook and Token Economy pages.
+- **Mobile.** Chapter grid collapses to a single column; sticky previous
+  and next chapter buttons live at the bottom of the viewport inside a
+  chapter; code blocks horizontally scroll rather than wrapping.
+- **Print.** `window.print()` produces a clean document with every
+  chapter in order and no app chrome, for teams who still want a PDF to
+  share around.
+
+## Chapter list
+
+1. **Why setup beats prompting.** The six layers at a glance (the first
+   big table), and the rule-of-thumb sentence on when to reach for
+   each one.
+2. **The folder map.** Where `~/.claude` lives versus the repo's
+   `.claude`, the personal-vs-team table, and the precedence rules when
+   two settings collide.
+3. **CLAUDE.md, the always-on brief.** What belongs in it and what
+   doesn't, the starter template, the three ways to stop it bloating,
+   and a short note on auto memory.
+4. **Skills.** When to write one, where to put it, the SKILL.md anatomy
+   with a real example, the frontmatter fields that matter, and the
+   starter skills worth having.
+5. **Subagents.** When a subagent beats a skill, the priority table,
+   how to create one, the frontmatter fields, and the delegation
+   patterns.
+6. **Settings, permissions, and hooks.** The permissions block, the
+   permission modes, the lifecycle events table, a worked PostToolUse
+   hook, and the other settings worth knowing.
+7. **MCP servers and plugins.** Adding servers, scoping them to a
+   single subagent, installing plugins, and the quality-of-life extras
+   (statusline, output styles, /doctor, /context).
+8. **The daily workflow and the checklist.** The explore-plan-code-
+   verify-ship loop, the debugging loop, context hygiene, prompting
+   habits, the interactive setup checklist, and the common-mistakes
+   table.
 
 ## User flow
 
-1. The user lands on Token Economy. The sliders are at the saved or default values. The Spotlight card already shows the recommended model for those values.
-2. The user slides "Prompts per hour" up. The Spotlight animates to a new model (or stays and shows a tighter headroom). The shortlist re-sorts.
-3. The user glances at the shortlist, sees "Claude Haiku +$8 /mo", clicks `Swap in`. Haiku takes the Spotlight; the previous winner slides into row one.
-4. The user raises the monthly budget. The red over-budget strip (if any) disappears; a bigger-ticket model may now surface at the top.
-5. The user wants to try a specific model from memory. They open the "Pick manually" dropdown, pick it, and it takes the Spotlight with the same card and metrics. A small "Back to recommended" link brings auto-pick back.
+1. Reader clicks Claude Code Playbook in the sidebar.
+2. Landing grid appears. They see eight chapters, pick one.
+3. Chapter opens full-bleed with the reading-progress bar at the top
+   and previous / next controls visible.
+4. They copy a code block with one click, bookmark a specific heading
+   if they want, or tick an item off the setup checklist.
+5. They hit back, pick another chapter, or close the tab. Checklist
+   state and opened-chapter ticks persist on their next visit.
 
 ## UI/UX feel
 
-- Visual tone matches the existing Token Economy page: dark card surfaces, cyan accent, Apple-HIG restrained type. No new palette.
-- The Spotlight card is physically larger than any model row today — generous padding, a strong price number, a short honest reason line. It reads like a verdict, not a suggestion.
-- Shortlist rows are compact and scannable, cost first, delta second, vendor glyph aligned left.
-- The over-budget state uses the same red tint the Risk & Reward page uses, not a new red, so the aesthetic stays unified.
-- All transitions reuse the existing number-roll and card-lift motion. No new animation vocabulary.
-- Three design concepts were considered. **Concept B — Spotlight plus ranked shortlist — is the one being built.** The other two are left here so the user can see what was passed over.
-  - Concept A: Winner card with a Why-this ribbon. Minimalist Apple-reveal feel, a single verdict with an "Explore alternatives" drawer. Rejected for feeling too opaque — the comparison was one click away rather than always on screen.
-  - Concept C: Budget thermometer with model markers. A horizontal budget bar with every eligible model placed as a dot. Rejected as more playful than developer-serious; it also scales badly when there are twenty-plus models.
+Matches the current Surgical AI Hub language: the dark-but-warm palette,
+rounded 10-pixel cards, subtle elevation shadows, Lucide icons tinted
+from the existing accent set (the same blue, green, violet, orange, red
+used across Decision Guide, Token Economy, Risk & Reward). Each chapter
+card gets one of those accents and keeps it as the chapter's tint colour
+throughout the reader, so the eye tracks the chapter even inside a long
+scroll. Typography stays with the existing Hub type scale; no new font
+families. Motion is restrained: a 150 ms crossfade between grid and
+chapter, hover lifts on cards, a quick slide on the previous / next
+transition. No carousels, no auto-playing anything.
 
 ## Implementation phases
 
 ### Phase 1 — MVP, built now
 
-- Add the Spotlight + Ranked shortlist layout, replacing the current "results" area of the Token Economy page.
-- Compute recommendations live from the current slider state against the LiteLLM pricing cache the page already uses.
-- Enforce the minimum capability tier so basic or tiny models cannot win, even when cheaper.
-- Keep the current manual dropdown as a visible override next to the Spotlight, with a "Back to recommended" link.
-- Render the over-budget warning state when nothing fits.
-- Reuse the existing cards, number-roll animation, and colour tokens; no new palette or motion vocabulary.
+Everything described above, in one shipment:
+
+- Sidebar entry below Risk & Reward.
+- Landing grid with all eight chapters.
+- Chapter reader with reading-progress bar, previous / next, back, and
+  deep-linkable URL per chapter.
+- Full playbook content converted to the Hub's voice (no em-dashes, no
+  AI-slop words), rendered as styled React, with every table, bullet
+  list, and code block from the source preserved.
+- Copy buttons on all code blocks.
+- Hover-to-reveal anchor link on every heading.
+- Interactive, browser-persisted setup checklist in Chapter 8.
+- Filterable layers / scope / hook-events tables in Chapters 1, 2, 6.
+- Opened-chapter tick marks persisted in the browser.
+- Mobile layout and print styles.
 
 ### Phase 2 — Not built now
 
-- Pin-aware alternates: pinned models surface in the shortlist even if they fall outside the top four by cost.
-- Share link: encode the current slider state and winner into a URL so a user can send the exact scenario to a teammate.
-- "Fit my budget" button that trims the sliders proportionally until the current Spotlight comes under budget on its own.
+- Per-chapter "ask an expert" box that routes a question into the main
+  Hub assistant pre-seeded with that chapter as context.
+- Export the ticked state as a Markdown report for team review.
+- Dark / light theme toggle specific to the reader (the Hub is
+  currently dark-only).
 
 ### Phase 3 — Not built now
 
-- Quality dial on the Spotlight card: a two-position toggle "Cheapest / Best fit", where "Best fit" weighs latency and long-context behaviour alongside cost.
-- Vendor allow/block list that persists across sessions and biases the shortlist.
-- A 90-day usage history ribbon above the Spotlight showing how recommended models have shifted as prices move.
+- Second playbook (Codex, Cursor, etc.) using the same reader frame,
+  turning the single-page experience into a Playbooks library.
+- Embedded, sandboxed terminal demos of key commands (`/init`,
+  `/doctor`, `/memory`).
 
 ## Assumptions
 
-- "Cheapest above a minimum capability tier" is interpreted as excluding models that LiteLLM metadata or an app-side allow-list marks as basic or tiny. The exact tier floor is a short list maintained in the app; it is not asked from the user per calculation.
-- "Capability tier" uses signals already in the pricing cache (max context, provider family, token price band). No new third-party integration is added.
-- Monthly spend is the number the page already computes from the sliders; the suggestion engine never introduces its own cost formula.
-- Four runner-ups is the right number for a short, scannable list on desktop; the layout gracefully drops to two rows on narrow widths.
-- The over-budget state does not block anything; the user can still swap, pin, or override. The warning strip is informational, not destructive.
-- "Pick manually" preserves the full current catalogue; the recommendation never hides a model, only re-orders what the user sees first.
-- No change to the sliders, the pricing refresh cadence, or the model-picker filter chips that already exist.
-- Light and dark mode are both supported out of the gate because the existing cards already respond to the theme tokens.
+- The playbook is a reference the reader returns to, not a tutorial
+  with forced order. No chapter is locked; any card is clickable at any
+  time.
+- Content is authored as structured React, not as raw Markdown rendered
+  at runtime. This keeps the page's voice consistent and the tables
+  properly filterable, and it also lets the Vale linter run over the
+  JSX text the way it does on the rest of the app.
+- Ticked state and opened-chapter state live in the browser only. No
+  backend, no account, no sync across devices. The "Reset list" link is
+  the only way to clear it.
+- Images from the source are not reproduced; the playbook is text-first
+  and the source has no figures beyond its tables and code blocks.
+- The sidebar icon for the new entry is a Lucide book or terminal glyph
+  (`BookOpen` or `Terminal`) tinted in a fresh accent not already used
+  by neighbouring items, so it sits distinctly under Risk & Reward.
+- The page is read-only. Nothing in it writes to disk, calls the
+  backend, or needs any new API endpoint. The three existing endpoints
+  (`/api/pricing`, `/api/tools`, `/api/ecosystem`) are untouched.
+- The page's slug is `/claude-code-playbook`. Deep links to chapters
+  take the form `/claude-code-playbook/<chapter-slug>`.
+- Only the explicitly chosen interactive touches are added (copy code,
+  heading anchors, interactive setup checklist, filterable tables);
+  nothing else is invented.

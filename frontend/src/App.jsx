@@ -16,6 +16,7 @@ import PlatformView from "@/pages/PlatformView";
 import StageView from "@/pages/StageView";
 import TokenEconomy from "@/pages/TokenEconomy";
 import RiskReward from "@/pages/RiskReward";
+import ClaudeCodePlaybook from "@/pages/ClaudeCodePlaybook";
 
 function App() {
   return (
@@ -31,6 +32,8 @@ function App() {
               <Route path="/prompt/builder" element={<PromptBuilder />} />
               <Route path="/tokeneconomy" element={<TokenEconomy />} />
               <Route path="/risk-reward" element={<RiskReward />} />
+              <Route path="/claude-code-playbook" element={<ClaudeCodePlaybook />} />
+              <Route path="/claude-code-playbook/:slug" element={<ClaudeCodePlaybook />} />
               <Route path="/tools/:id" element={<ToolDetail />} />
               <Route path="/tools/:id/setup" element={<Wizard />} />
               <Route path="/platform/:id" element={<PlatformView />} />

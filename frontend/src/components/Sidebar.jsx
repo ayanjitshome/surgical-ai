@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTools, useMeta } from "@/hooks/useData";
 import { stageIcon } from "@/lib/icons";
-import { Boxes, Compass, Network, ChevronRight, Wand2, Sparkles, Coins, Gauge, ChevronDown, Wrench, Workflow } from "lucide-react";
+import { Boxes, Compass, Network, ChevronRight, Wand2, Sparkles, Coins, Gauge, ChevronDown, Wrench, Workflow, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
 
@@ -115,6 +115,11 @@ export const Sidebar = ({ onClose }) => {
             className={({ isActive }) => cn(linkBase, isActive ? linkActive : linkIdle)}>
             <Gauge className="w-[18px] h-[18px]" style={{ color: "#FF453A" }} aria-hidden="true" />
             <span>Risk & Reward</span>
+          </NavLink>
+          <NavLink to="/claude-code-playbook" onClick={onClose} data-testid="nav-link-claude-code-playbook"
+            className={({ isActive }) => cn(linkBase, isActive ? linkActive : linkIdle)}>
+            <BookOpen className="w-[18px] h-[18px]" style={{ color: "#06B6D4" }} aria-hidden="true" />
+            <span>Claude Code Playbook</span>
           </NavLink>
         </div>
 
