@@ -226,3 +226,49 @@ Testable surface:
 - Each row: `spotlight-row-{model-id}` plus `spotlight-row-{id}-monthly`, `spotlight-row-{id}-delta`, and the swap button `spotlight-swap-{id}`.
 
 Verified via Playwright at 1920x1080: initial Sonnet 5.5 at $20/mo under $25 shows "Manual override" with the hint "Gemini 3 Flash would save $14/mo"; clicking Swap-in promotes Gemini 3 Flash to "Our pick", shortlist re-ranks correctly, Back-to-recommended link disappears when active matches the engine pick. Red over-budget state confirmed by dropping budget to $5 and raising input tokens / prompts-per-hour: Spotlight card gets red outline, `$245 over your $5.00 budget` strip, and the price number turns red while shortlist deltas still render with proper leading minus. Haiku 5.5 and GPT-6 Luna correctly never appear in the shortlist. No new dependencies, no new palette tokens.
+
+
+## 2026-11 - Claude Code Setup Playbook page
+
+New sidebar entry **Claude Code Playbook** sits directly under **Risk & Reward** with a BookOpen glyph tinted cyan (`#06B6D4`), a fresh accent not reused elsewhere in the sidebar. Routed at `/claude-code-playbook` (landing grid) and `/claude-code-playbook/:slug` (chapter reader).
+
+Content converted from `/app/memory`-style source into eight structured React chapters in `src/lib/claudeCodePlaybookData.jsx`, each exporting a `Body` function rendered into the reader. Chapters:
+1. `why-setup-beats-prompting` (Target, `#0A84FF`) - the six-layer map, filterable by layer.
+2. `folder-map` (FolderTree, `#30D158`) - two directory trees plus the personal-vs-team scope table.
+3. `claude-md` (FileText, `#BF5AF2`) - what belongs, the starter template, three ways to stop bloating, auto memory note.
+4. `skills` (Sparkles, `#FF9F0A`) - skill location table, SKILL.md tree + example, frontmatter fields table, starter skills list.
+5. `subagents` (Users, `#FF453A`) - agent file priority table, worked example, frontmatter fields, delegation patterns.
+6. `settings-permissions-hooks` (Shield, `#FFD60A`) - permissions JSON, permission modes, filterable hook-events table, worked PostToolUse hook JSON.
+7. `mcp-plugins` (Plug, `#06B6D4`) - MCP add CLI, plugin install CLI, quality-of-life extras.
+8. `daily-workflow-checklist` (ListChecks, `#EC4899`) - the explore/plan/code/verify/commit loop, interactive nine-item setup checklist, common-mistakes table.
+
+Reader behaviour:
+- `<CodeBlock>` (shared with the rest of the Hub) wraps every code block, delivering the copy-to-clipboard button and toast notification requested by the plan.
+- Every `H2/H3/H4` is replaced with an `AnchorHeading` that reveals a small link icon on hover and copies a deep link to the heading when clicked. `scroll-mt-24` keeps the anchor jump below the sticky breadcrumb.
+- Reading-progress bar is a sticky 2px stripe at the top of the reader coloured to the chapter accent, driven by `#main-content` scroll position.
+- Prev/Next and "All chapters" buttons render as accent-outlined cards below the body on desktop, and as a sticky bottom bar on mobile.
+- Opened-chapter state lives in `localStorage.ccp-opened-v1`, surfaced as a small tick + "Opened" pill on landing cards.
+- Checklist state lives in `localStorage.ccp-checklist-v1` and a Reset link clears it.
+- `window.print()` prints the current chapter plus every other chapter inline for a complete printable document.
+
+Three filterable tables (six layers, personal-vs-team, hook events) plus three bonus filterable tables (CLAUDE.md in/out, skill location, skill frontmatter, agent priority, agent frontmatter, common mistakes) all share the new `<FilterTable>` component in `src/components/playbook/PlaybookBits.jsx`. Search input filters across every cell and a per-column `filter: "select"` renders a dropdown for the primary column.
+
+All visible copy scrubbed of em-dashes, banned words (`delve`, `seamless`, `robust`, `elevate`, `foster`, `testament`, `tapestry`, `unlock`, `unleash`, `embark`, `paradigm`, `dynamic`, `comprehensive`, `crucial`, `vital`) and banned transitions (`Moreover`, `Additionally`, `Furthermore`, `Ultimately`, `In conclusion`). Grepped the two new files and got zero hits.
+
+Testable surface:
+- `data-testid="nav-link-claude-code-playbook"`, `claude-code-playbook-landing`, `playbook-print-btn`.
+- Landing cards: `chapter-card-{slug}` plus `chapter-opened-{slug}` tick.
+- Reader: `chapter-reader-{slug}`, `chapter-back-btn`, `chapter-prev-link`, `chapter-next-link`, `chapter-prev-mobile`, `chapter-next-mobile`.
+- Filter tables: `table-{id}` with `-search` and `-filter-{col}` children.
+- Checklist: `setup-checklist`, `setup-checklist-reset`, `checklist-{id}`.
+
+Verified via Playwright at 1920x900: landing grid renders eight cards with the correct accents, breadcrumb shows `Hub > Claude-Code-Playbook`. Clicking the Chapter 1 card loads the reader; the layers table filter dropdown renders with the six layers; Next link points to Chapter 2 (The folder map). Deep-linking to `/claude-code-playbook/daily-workflow-checklist` opens the reader directly, shows the progress bar stripe, lets the user tick checklist items (persisted as `{"init":true,"skills":true}` in `localStorage`), records the chapter as opened (`{"daily-workflow-checklist":true}`), and renders the common-mistakes filterable table below.
+
+Not included (deferred per the Phase 2/3 list in the plan): "ask an expert" box, Markdown export of the checklist, per-reader dark/light toggle, second playbook, embedded terminal demos.
+
+Files changed:
+- Added `src/lib/claudeCodePlaybookData.jsx`
+- Added `src/pages/ClaudeCodePlaybook.jsx`
+- Added `src/components/playbook/PlaybookBits.jsx`
+- Updated `src/App.jsx` (new routes + import)
+- Updated `src/components/Sidebar.jsx` (new link + BookOpen import)
